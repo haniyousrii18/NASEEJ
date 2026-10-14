@@ -92,15 +92,3 @@ export interface PatientData {
   prescriptions: Prescription[];
   labOrders: LabOrder[];
 }
-
-export type Severity = 'high' | 'medium' | 'low';
-
-export interface Interaction {
-  id: string;
-  kind: 'drug-drug' | 'drug-allergy';
-  severity: Severity;
-  a: string;
-  b: string;
-  message_ar: string;
-  message_en: string;
-}

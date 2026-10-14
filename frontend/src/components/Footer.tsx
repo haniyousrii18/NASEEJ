@@ -5,7 +5,7 @@ export const Footer: React.FC = () => {
   const { t, isRtl } = useLang();
 
   return (
-    <footer data-chrome="global" className="site-footer" style={{
+    <footer className="site-footer" style={{
       background: 'var(--color-paper-white)',
       borderTop: '1px solid var(--color-border-subtle)',
       padding: '80px 24px 48px',
@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <img src="/logo.png" alt="Naseej Logo" style={{ width: 36, height: 36, borderRadius: 8 }} />
-            <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--color-ink)', letterSpacing: '-0.3px' }}>
+            <span style={{ fontSize: 20, fontWeight: 520, color: 'var(--color-ink)', letterSpacing: '-0.3px' }}>
               {t.brand.fullName}
             </span>
           </div>
@@ -41,7 +41,7 @@ export const Footer: React.FC = () => {
                 background: 'var(--color-recovery-green)',
               }}
             />
-            <span style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 500 }}>
+            <span style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
               {isRtl ? 'جميع الأنظمة السريرية تعمل بكفاءة' : 'All Clinical Nodes Operational'}
             </span>
           </div>
@@ -51,7 +51,7 @@ export const Footer: React.FC = () => {
         <div>
           <h4 style={{
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: 520,
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
             color: 'var(--color-ink)',
@@ -60,16 +60,16 @@ export const Footer: React.FC = () => {
             {isRtl ? 'الأمان والخصوصية' : 'Privacy & Security'}
           </h4>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <li style={{ fontSize: 16, color: 'var(--color-ink)', fontWeight: 500 }}>
+            <li style={{ fontSize: 16, color: 'var(--color-ink)', fontWeight: 480 }}>
               {t.features.f1_title}
             </li>
-            <li style={{ fontSize: 16, color: 'var(--color-ink)', fontWeight: 500 }}>
+            <li style={{ fontSize: 16, color: 'var(--color-ink)', fontWeight: 480 }}>
               {t.features.f2_title}
             </li>
-            <li style={{ fontSize: 16, color: 'var(--color-ink)', fontWeight: 500 }}>
+            <li style={{ fontSize: 16, color: 'var(--color-ink)', fontWeight: 480 }}>
               {t.features.f4_title}
             </li>
-            <li style={{ fontSize: 16, color: 'var(--color-ink)', fontWeight: 500 }}>
+            <li style={{ fontSize: 16, color: 'var(--color-ink)', fontWeight: 480 }}>
               {t.features.f5_title}
             </li>
           </ul>
@@ -79,7 +79,7 @@ export const Footer: React.FC = () => {
         <div>
           <h4 style={{
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: 520,
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
             color: 'var(--color-ink)',
@@ -88,11 +88,11 @@ export const Footer: React.FC = () => {
             {isRtl ? 'أدوار النظام' : 'System Personas'}
           </h4>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 500 }}>{t.roles.platform_admin}</li>
-            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 500 }}>{t.roles.center_manager}</li>
-            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 500 }}>{t.roles.doctor}</li>
-            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 500 }}>{t.roles.reception}</li>
-            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 500 }}>{t.roles.patient}</li>
+            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 480 }}>{t.roles.platform_admin}</li>
+            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 480 }}>{t.roles.center_manager}</li>
+            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 480 }}>{t.roles.doctor}</li>
+            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 480 }}>{t.roles.reception}</li>
+            <li style={{ fontSize: 16, color: 'var(--color-body-gray)', fontWeight: 480 }}>{t.roles.patient}</li>
           </ul>
         </div>
 
@@ -100,7 +100,7 @@ export const Footer: React.FC = () => {
         <div>
           <h4 style={{
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: 520,
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
             color: 'var(--color-ink)',

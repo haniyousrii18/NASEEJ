@@ -388,3 +388,41 @@ Create a community-story carousel of rounded 16px portrait media tiles, using ph
   --shadow-subtle-2: rgba(255, 255, 255, 0.36) 0px 1px 0px 0px inset;
 }
 ```
+
+## Doctor Workspace (components, motion, shortcuts)
+
+The doctor workspace (`frontend/src/pages/DoctorWorkspace.tsx`) is split into small components in `frontend/src/components/doctor/`. It only presents data and statuses the existing API returns; it adds no clinical logic.
+
+- **PatientOverview**: identity, recorded allergies (as recorded, icon + word), latest approved visit, current check-in state. Missing data is stated as "not recorded" and never as "none exists". Source line: this center's records only.
+- **PendingPanel**: drafts that still await the clinician's approval (visit, prescription, lab result), each with a Draft chip and a "Hidden from patient" chip. It reflects the existing draft status only, not what the clinician has viewed.
+- **LabsPanel / MedsPanel**: lab rows show the recorded value, reference range, the record's own out-of-range flag, and the arithmetic difference to the previous result of the same parameter; both show Draft/Approved and whether the patient can see the item.
+- **VisitComposer**: the existing visit fields in a two-column form with a plain "what will be saved" echo. Same `POST /api/visits` payload. A failed save keeps everything typed, validation is announced, unsaved text is held in memory only, and leaving with unsaved text asks first.
+- **ApprovalDialog**: shows what becomes visible to the patient, states that linked prescriptions and lab results are approved separately, blocks a second submit, shows "approved" only after the API confirms, and offers a retry on failure. Calls the unchanged approve endpoint.
+- **ItemApprovalDialog**: the same explicit approval step for a draft prescription or lab result, calling the existing `POST /api/prescriptions/:id/approve` and `POST /api/labs/results/:id/approve`. Shared state lives in `useApprovalFlow` (no second submit while one runs, "approved" only after the API confirms, retry on failure).
+- **Dialog**: accessible modal (portal to `<body>`, focus trap, focus restore, Esc).
+- **PatientSearch, ShortcutsDialog, DemoTour, useDoctorShortcuts**: `/` or `Ctrl+K` search, `[` `]` sections, `G` then `D` waiting room, `F` focus mode, `?` help. Matched on `event.code`, so they work on Arabic and Latin layouts; never fire while typing or while a dialog is open; none saves, submits or approves.
+- **Focus mode**: hides the context rail only. The allergy alert, patient header and site navigation stay visible.
+
+### Motion
+One vocabulary, shared by the React layer (`components/motion.tsx`, Framer Motion with `LazyMotion`) and the CSS layer (`theme.css` motion tokens and `.motion-*` classes):
+- **enter** 120-300ms, exponential ease-out (`--ease`), 8px travel. **stagger** 30ms, capped at 6. **press** scale 0.98. **no hover lift**: hover changes colour or shadow only. **urgent** alerts appear at once (`<Rise urgent>`, `.motion-alert-enter` is opacity-only).
+- Exports: `MotionRoot` (reducedMotion="user"), `PageTransition` (keyed by view in `App.tsx`, no exit), `Rise`, `Stagger`, `Reveal`, `Pressable`, `Collapse`, `LoadSwap` (instant skeleton swap, content fades in), `Presence` and `Backdrop` (dialogs, panels; `slide` mirrors for RTL), `GrowBar`, `CountUp` (renders the number as is), `AnimatedCheck`.
+- Only opacity and transform are animated and nothing loops. Content never waits on an exit animation.
+- Reduced motion: `MotionConfig` drops transforms; the CSS block in `theme.css` zeroes animations and keeps 100ms colour/opacity feedback.
+
+### Storage
+Only two non-sensitive UI values are stored in `localStorage`: the focus-mode flag and the tour-done flag. Neither key nor value contains a user or patient identifier. Clinical text lives in component memory only.
+
+## Visual direction: Mercury adaptation (dark theme and shared structure)
+
+Adapted from `DESIGN (3).md` (a style reference, not product requirements). Naseej keeps its logo, bilingual behavior, light/dark themes and clinical content; only the visual system changed.
+
+- **Dark theme** is the Mercury-style world: onyx canvas `#171721`, graphite cards `#1e1e2a`, obsidian secondary fills `#272735`, ivory text `#ededf3`, ash secondary text `#c3c3cc`. Tokens: `--color-onyx`, `--color-graphite`, `--color-obsidian`, `--color-ivory`, `--color-ash`, `--color-cobalt`, `--color-cobalt-text`.
+- **One chromatic action:** `.btn-pill-charcoal` / `.btn-pill-brand` render cobalt `#5266eb` with white text in dark. Secondary buttons are obsidian, ghost buttons are ivory outlines. Selected navigation is an ivory pill, not cobalt.
+- **Light theme** keeps the Naseej botanical palette (cream, forest, keylime) and primary action in forest green. It shares the new structure: flat surfaces, 12px cards, pill controls, measured weights.
+- **Flat:** every decorative shadow token is `none`. Dialogs separate by border and scrim; light-theme dialogs keep one quiet shadow.
+- **Shape:** cards 12px, nav 40px, buttons and single-line inputs 32px pills, multi-line fields 20px.
+- **Type:** headings 480, emphasis 520/560, nothing bolder than 560. Latin headings get +0.01-0.015em tracking. Arabic is never letter-spaced (it breaks letter joining), enforced with `[dir='rtl'] body * { letter-spacing: normal !important }`. Fonts load as variable (`Cairo` and `Inter`, weight 300-700).
+- **Icons:** decorative emoji marks were replaced by line icons (`components/LineIcon.tsx`); remaining feature pictographs are rendered monochrome (`.emoji-quiet`). Warnings are an icon plus a word.
+- **Clinical status colors are not removed.** Draft, danger and approved keep muted tints because safety states cannot be monochrome; they always carry an icon and a word.
+- **Not applied (Mercury-specific):** the full-bleed photographic hero (no suitable asset), the banking copy and navigation, the email-capture pill form, and the rule "no green/red/orange" (conflicts with clinical status).

@@ -131,7 +131,13 @@ Naseej includes automated integration test suites executed against the real data
 ```bash
 # Run all automated tests
 npm --prefix backend run test
+
+# Frontend unit tests: doctor-workspace selectors and ar/en translation key parity
+npm --prefix frontend run test
 ```
+
+### Doctor workspace keyboard shortcuts
+Press `?` in the doctor workspace for the full list: `/` or `Ctrl+K` search a patient, `[` / `]` previous/next section, `G` then `D` back to the waiting room, `F` focus mode (hides the side lists only), `Esc` closes dialogs. Shortcuts never fire while typing in a field, and none of them saves, submits or approves anything.
 
 ### Test Results Summary (100% Passing)
 ```text

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LeafIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
 
@@ -66,7 +67,7 @@ export const AdminDashboard: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
         <div>
           <div className="recognition-laurel-item" style={{ marginBottom: 4 }}>
-            <span>🌿</span>
+            <LeafIcon />
             <span>{isRtl ? 'لوحة تحكم المنصة · Platform Administration' : 'Platform Operations & System Architecture'}</span>
           </div>
           <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', margin: '4px 0' }}>
@@ -90,7 +91,7 @@ export const AdminDashboard: React.FC = () => {
       }}>
         <div style={{ fontSize: '1.6rem' }}>🛡️</div>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-ink)' }}>
+          <div style={{ fontSize: 15, fontWeight: 520, color: 'var(--color-ink)' }}>
             {isRtl ? 'جدار الحماية الإداري للمحتوى السريري (FR-133 Compliance)' : 'Platform Clinical Isolation Wall Active (FR-133)'}
           </div>
           <div style={{ fontSize: 13, color: 'var(--color-body-gray)', marginTop: 2 }}>
@@ -104,28 +105,28 @@ export const AdminDashboard: React.FC = () => {
       {/* Metrics Row (Cloud Card Bins) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 20, marginBottom: 36 }}>
         <div className="cloud-feature-card" style={{ padding: 24 }}>
-          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'المراكز الطبية المسجلة' : 'Registered Centers'}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 600, color: 'var(--color-ink)', marginTop: 8, letterSpacing: '-1px' }}>
+          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-ink)', marginTop: 8, letterSpacing: '-1px' }}>
             {organizations.length}
           </div>
         </div>
 
         <div className="cloud-feature-card" style={{ padding: 24 }}>
-          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'طلبات العروض التجريبية' : 'Pending Demo Inquiries'}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 600, color: 'var(--color-metric-blue)', marginTop: 8, letterSpacing: '-1px' }}>
+          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-metric-blue)', marginTop: 8, letterSpacing: '-1px' }}>
             {demoRequests.length}
           </div>
         </div>
 
         <div className="cloud-feature-card" style={{ padding: 24 }}>
-          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'سجلات الأمان والتدقيق' : 'Audit Log Entries'}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 600, color: 'var(--color-recovery-green)', marginTop: 8, letterSpacing: '-1px' }}>
+          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-recovery-green)', marginTop: 8, letterSpacing: '-1px' }}>
             {auditLogs.length}+
           </div>
         </div>
@@ -242,13 +243,13 @@ export const AdminDashboard: React.FC = () => {
                 {organizations.map((org) => (
                   <tr key={org.id}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{isRtl ? org.name_ar : org.name_en}</div>
+                      <div style={{ fontWeight: 520 }}>{isRtl ? org.name_ar : org.name_en}</div>
                       <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>
                         {isRtl ? org.name_en : org.name_ar}
                       </div>
                     </td>
                     <td>
-                      <code style={{ background: 'var(--color-cloud-card)', padding: '2px 8px', borderRadius: 6, fontWeight: 600 }}>
+                      <code style={{ background: 'var(--color-cloud-card)', padding: '2px 8px', borderRadius: 6, fontWeight: 520 }}>
                         {org.code}
                       </code>
                     </td>
@@ -295,7 +296,7 @@ export const AdminDashboard: React.FC = () => {
                 ) : (
                   demoRequests.map((req) => (
                     <tr key={req.id}>
-                      <td style={{ fontWeight: 600 }}>{req.organization_name}</td>
+                      <td style={{ fontWeight: 520 }}>{req.organization_name}</td>
                       <td>{req.contact_name}</td>
                       <td>
                         <div>{req.email}</div>
@@ -336,7 +337,7 @@ export const AdminDashboard: React.FC = () => {
                       {new Date(log.created_at).toLocaleString()}
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{log.actor_email || 'System'}</div>
+                      <div style={{ fontWeight: 520 }}>{log.actor_email || 'System'}</div>
                       <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>{log.actor_role}</div>
                     </td>
                     <td>
@@ -345,7 +346,7 @@ export const AdminDashboard: React.FC = () => {
                         background: 'var(--color-cloud-card)',
                         padding: '3px 8px',
                         borderRadius: 6,
-                        fontWeight: 600,
+                        fontWeight: 520,
                       }}>
                         {log.action}
                       </code>

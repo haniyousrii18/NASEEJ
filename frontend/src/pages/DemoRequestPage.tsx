@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LeafIcon } from '../components/LineIcon.js';
 import { useLang } from '../context/LangContext.js';
 
 export const DemoRequestPage: React.FC = () => {
@@ -43,9 +44,9 @@ export const DemoRequestPage: React.FC = () => {
       <div style={{ textAlign: 'center', marginBottom: 44 }}>
         <div className="recognition-laurel-pair">
           <div className="recognition-laurel-item">
-            <span>🌿</span>
+            <LeafIcon />
             <span>{isRtl ? 'طلب شراكة وعرض حي' : 'Live Institutional Demo'}</span>
-            <span>🌿</span>
+            <LeafIcon />
           </div>
         </div>
         <h1 className="text-display" style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', margin: '14px 0' }}>

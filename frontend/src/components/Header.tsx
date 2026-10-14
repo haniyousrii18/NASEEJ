@@ -17,7 +17,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
   };
 
   return (
-    <div data-chrome="global" className="site-header-shell" style={{
+    <div className="site-header-shell" style={{
       position: 'sticky',
       top: 12,
       zIndex: 100,
@@ -64,14 +64,14 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
                 style={{
                   fontSize: 18,
                   lineHeight: '25.2px',
-                  fontWeight: 500,
+                  fontWeight: 480,
                   letterSpacing: '0.162px',
                   color: 'var(--color-ink)',
                 }}
               >
                 {t.brand.name}
               </span>
-              <span style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 500 }}>
+              <span style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
                 · Naseej
               </span>
             </div>
@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
               padding: '6px 14px',
               borderRadius: 128,
               fontSize: 16,
-              fontWeight: 500,
+              fontWeight: 480,
               lineHeight: '22.4px',
               color: currentView === 'home' ? 'var(--color-ink)' : 'var(--color-body-gray)',
               background: currentView === 'home' ? 'var(--color-cloud-card)' : 'transparent',
@@ -104,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
               padding: '6px 14px',
               borderRadius: 128,
               fontSize: 16,
-              fontWeight: 500,
+              fontWeight: 480,
               lineHeight: '22.4px',
               color: currentView === 'features' ? 'var(--color-ink)' : 'var(--color-body-gray)',
               background: currentView === 'features' ? 'var(--color-cloud-card)' : 'transparent',
@@ -119,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
               padding: '6px 14px',
               borderRadius: 128,
               fontSize: 16,
-              fontWeight: 500,
+              fontWeight: 480,
               lineHeight: '22.4px',
               color: currentView === 'workflow' ? 'var(--color-ink)' : 'var(--color-body-gray)',
               background: currentView === 'workflow' ? 'var(--color-cloud-card)' : 'transparent',
@@ -222,7 +222,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
               padding: '6px 12px',
               borderRadius: 128,
               fontSize: 13,
-              fontWeight: 500,
+              fontWeight: 480,
               color: 'var(--color-ink)',
               background: 'var(--color-cloud-card)',
               border: 'none',

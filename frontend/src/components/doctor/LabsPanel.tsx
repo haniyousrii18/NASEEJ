@@ -3,8 +3,7 @@ import { useLang } from '../../context/LangContext.js';
 import { fmt } from '../../lib/format.js';
 import { labRows, type LabRow } from '../../lib/selectors.js';
 import type { LabOrder } from '../../lib/types.js';
-import { Highlight } from '../motion.js';
-import { formatDate, Icon, NewTag } from './bits.js';
+import { formatDate, Icon } from './bits.js';
 
 const RANGE = /(-?\d+(?:[.,]\d+)?)\s*[-–]\s*(-?\d+(?:[.,]\d+)?)/;
 const toNum = (s: string) => parseFloat(s.replace(',', '.'));
@@ -37,11 +36,11 @@ const RangeBar: React.FC<{ row: LabRow; label: string }> = ({ row, label }) => {
 
 interface Props {
   orders: LabOrder[];
-  unseen: Set<string>;
   onOrder: () => void;
+  onApprove: (row: LabRow) => void;
 }
 
-export const LabsPanel = React.forwardRef<HTMLElement, Props>(({ orders, unseen, onOrder }, ref) => {
+export const LabsPanel = React.forwardRef<HTMLElement, Props>(({ orders, onOrder, onApprove }, ref) => {
   const { t, isRtl } = useLang();
   const [onlyAbnormal, setOnlyAbnormal] = useState(false);
   const locale = isRtl ? 'ar-EG' : 'en-GB';
@@ -71,18 +70,21 @@ export const LabsPanel = React.forwardRef<HTMLElement, Props>(({ orders, unseen,
         </div>
       </div>
 
+      <p style={{ fontSize: 13, color: 'var(--color-body-gray)', marginBottom: 10 }}>{L.note}</p>
       {pending > 0 && <p style={{ fontSize: 13, color: 'var(--color-body-gray)', marginBottom: 10 }}>{fmt(L.pendingOrders, { n: pending })}</p>}
 
       {shown.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '28px 12px', color: 'var(--color-body-gray)' }}>
-          <p style={{ fontSize: 14, marginBottom: 14 }}>{L.empty}</p>
-          <button type="button" className="btn-pill btn-pill-charcoal" style={{ fontSize: 14, minHeight: 44 }} onClick={onOrder}>
-            + {L.emptyAction}
-          </button>
+          <p style={{ fontSize: 14, marginBottom: 14 }}>{onlyAbnormal && rows.length > 0 ? L.noneFiltered : L.empty}</p>
+          {rows.length === 0 && (
+            <button type="button" className="btn-pill btn-pill-charcoal" style={{ fontSize: 14, minHeight: 44 }} onClick={onOrder}>
+              + {L.emptyAction}
+            </button>
+          )}
         </div>
       ) : (
         <div className="data-table-container">
-          <table className="data-table">
+          <table className="data-table doctor-table-stack">
             <caption style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>{L.title}</caption>
             <thead>
               <tr>
@@ -98,28 +100,25 @@ export const LabsPanel = React.forwardRef<HTMLElement, Props>(({ orders, unseen,
             <tbody>
               {shown.map((r) => (
                 <tr key={r.id}>
-                  <th scope="row" style={{ textAlign: 'start', fontWeight: 600 }}>
-                    <Highlight active={unseen.has(`lab:${r.id}`)} style={{ borderRadius: 8 }}>
-                      <div dir="auto">{r.parameter_name}</div>
-                      <div style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-body-gray)' }} dir="auto">
-                        {isRtl ? r.testName_ar : r.testName_en}
-                      </div>
-                      {unseen.has(`lab:${r.id}`) && <NewTag />}
-                    </Highlight>
+                  <th scope="row" data-label={L.parameter} style={{ textAlign: 'start', fontWeight: 520 }}>
+                    <div dir="auto" style={{ overflowWrap: 'anywhere' }}>{r.parameter_name}</div>
+                    <div style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-body-gray)', overflowWrap: 'anywhere' }} dir="auto">
+                      {isRtl ? r.testName_ar : r.testName_en}
+                    </div>
                   </th>
-                  <td>
-                    <bdi className="num" style={{ fontWeight: 700 }}>
+                  <td data-label={L.value}>
+                    <bdi className="num" style={{ fontWeight: 560 }}>
                       {r.value} {r.unit}
                     </bdi>
                     <div style={{ marginTop: 4 }}>
                       <RangeBar row={r} label={L.rangeBar} />
                     </div>
                   </td>
-                  <td>
+                  <td data-label={L.range}>
                     <bdi className="num">{r.reference_range || '—'}</bdi>
                   </td>
-                  <td>{r.previous ? <bdi className="num">{r.previous.value}</bdi> : L.noPrevious}</td>
-                  <td>
+                  <td data-label={L.previous}>{r.previous ? <bdi className="num">{r.previous.value}</bdi> : L.noPrevious}</td>
+                  <td data-label={L.change}>
                     {r.trend ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         {trendIcon(r)}
@@ -133,8 +132,8 @@ export const LabsPanel = React.forwardRef<HTMLElement, Props>(({ orders, unseen,
                       L.noPrevious
                     )}
                   </td>
-                  <td>{formatDate(r.date, locale)}</td>
-                  <td>
+                  <td data-label={L.date}>{formatDate(r.date, locale)}</td>
+                  <td data-label={L.status}>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {r.is_abnormal ? (
                         <span className="status-badge badge-danger" style={{ fontSize: 12 }}>
@@ -150,6 +149,11 @@ export const LabsPanel = React.forwardRef<HTMLElement, Props>(({ orders, unseen,
                       <span className={`status-badge ${r.status === 'approved' ? 'badge-info' : 'badge-draft'}`} style={{ fontSize: 12 }}>
                         {r.status === 'approved' ? L.approvedResult : L.draftResult}
                       </span>
+                      {r.status === 'draft' && (
+                        <button type="button" className="btn-pill btn-pill-charcoal" style={{ fontSize: 12, padding: '4px 12px', minHeight: 44 }} onClick={() => onApprove(r)}>
+                          ✓ {t.clinical.approveLabBtn}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { LeafIcon } from '../components/LineIcon.js';
 import { useLang } from '../context/LangContext.js';
 
 export const FeaturesPage: React.FC = () => {
@@ -84,9 +85,9 @@ export const FeaturesPage: React.FC = () => {
       <div style={{ textAlign: 'center', marginBottom: 56 }}>
         <div className="recognition-laurel-pair">
           <div className="recognition-laurel-item">
-            <span>🌿</span>
+            <LeafIcon />
             <span>{isRtl ? 'المعايير الهندسية والمعمارية' : 'Architectural Standards'}</span>
-            <span>🌿</span>
+            <LeafIcon />
           </div>
         </div>
         <h1 className="text-display" style={{ fontSize: 'clamp(2.2rem, 4vw, 3.5rem)', margin: '14px 0' }}>
@@ -104,7 +105,7 @@ export const FeaturesPage: React.FC = () => {
           <div key={feat.id} className="cloud-feature-card" style={{ padding: '36px 40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 28 }}>{feat.icon}</span>
+                <span className="emoji-quiet" aria-hidden="true" style={{ fontSize: 28 }}>{feat.icon}</span>
                 <span className={`status-badge ${feat.badgeClass}`}>{feat.tag}</span>
               </div>
               <span style={{ fontSize: 13, color: 'var(--color-body-gray)', fontFamily: 'monospace' }}>
@@ -128,7 +129,7 @@ export const FeaturesPage: React.FC = () => {
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {feat.points.map((pt, idx) => (
                   <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 15, color: 'var(--color-ink)' }}>
-                    <span style={{ color: feat.accentColor, fontWeight: 700, fontSize: 18 }}>•</span>
+                    <span style={{ color: feat.accentColor, fontWeight: 560, fontSize: 18 }}>•</span>
                     <span style={{ lineHeight: 1.6 }}>{pt}</span>
                   </li>
                 ))}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LeafIcon, AlertIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
 
@@ -124,7 +125,7 @@ export const ReceptionWorkspace: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 32 }}>
         <div>
           <div className="recognition-laurel-item" style={{ marginBottom: 4 }}>
-            <span>🌿</span>
+            <LeafIcon />
             <span>{isRtl ? 'الاستقبال وخدمات المرضى · Reception Services' : 'Reception & Patient Flow Desk'}</span>
           </div>
           <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', margin: '4px 0' }}>
@@ -179,7 +180,7 @@ export const ReceptionWorkspace: React.FC = () => {
                 marginBottom: 20,
               }}
             >
-              ⚠️ {bookingError}
+              <AlertIcon /> {bookingError}
             </div>
           )}
 
@@ -403,7 +404,7 @@ export const ReceptionWorkspace: React.FC = () => {
                 appointments.map((a) => (
                   <tr key={a.id}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>
+                      <div style={{ fontWeight: 520 }}>
                         {isRtl ? a.patient_name_ar : a.patient_name_en}
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>{a.patient_phone}</div>
@@ -430,7 +431,7 @@ export const ReceptionWorkspace: React.FC = () => {
                           ✓ {isRtl ? 'تسجيل وصول المريض' : 'Check-In Patient'}
                         </button>
                       ) : a.status === 'checked_in' ? (
-                        <span style={{ fontSize: 13, color: 'var(--color-recovery-green)', fontWeight: 600 }}>
+                        <span style={{ fontSize: 13, color: 'var(--color-recovery-green)', fontWeight: 520 }}>
                           ✓ {isRtl ? 'في صالة الانتظار' : 'In Waiting Room'}
                         </span>
                       ) : (

@@ -86,7 +86,7 @@ export const PatientSearch: React.FC<Props> = ({ open, patients, waitingIds, onS
               border: `1.5px solid ${i === active ? 'var(--color-charcoal)' : 'var(--color-border-subtle)'}`,
             }}
           >
-            <span style={{ fontWeight: 600 }} dir="auto">{isRtl ? p.full_name_ar : p.full_name_en}</span>
+            <span style={{ fontWeight: 520 }} dir="auto">{isRtl ? p.full_name_ar : p.full_name_en}</span>
             <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
               {waitingIds.has(p.id) && <span className="status-badge badge-approved" style={{ fontSize: 11 }}>{Icon.check}<span>{t.doctor.queue.title}</span></span>}
               <bdi className="num" style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>{p.mrn}</bdi>

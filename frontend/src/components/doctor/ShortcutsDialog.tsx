@@ -16,7 +16,6 @@ export const ShortcutsDialog: React.FC<{ open: boolean; onClose: () => void }> =
     [<><Kbd>[</Kbd> <Kbd>]</Kbd></>, S.prevNext],
     [<><Kbd>G</Kbd> {S.then} <Kbd>D</Kbd></>, S.dashboard],
     [<><Kbd>F</Kbd></>, S.focus],
-    [<><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd></>, S.approve],
     [<Kbd>Esc</Kbd>, S.escape],
     [<Kbd>?</Kbd>, S.help],
   ];

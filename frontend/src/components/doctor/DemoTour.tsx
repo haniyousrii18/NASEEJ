@@ -12,7 +12,7 @@ export const DemoTour: React.FC = () => {
   const T = t.doctor.tour;
   const [open, setOpen] = useState(() => safeStorage.get(TOUR_KEY) !== '1');
   const [step, setStep] = useState(0);
-  const steps = [T.brief, T.approval, T.shortcuts];
+  const steps = [T.overview, T.approval, T.shortcuts];
   const last = step === steps.length - 1;
 
   const finish = () => {

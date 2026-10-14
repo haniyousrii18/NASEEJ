@@ -1,6 +1,7 @@
-// Pure helpers that derive doctor-facing views from API records. No I/O, no state.
+// Pure helpers that derive doctor-facing views from records the API already returns.
+// Nothing here interprets clinical data: it only reads statuses and flags that exist on the records.
 
-import type { LabOrder, PatientData, Prescription, PrescriptionItem, Visit } from './types.js';
+import type { LabOrder, PatientData } from './types.js';
 
 export type Trend = 'up' | 'down' | 'flat';
 
@@ -28,7 +29,7 @@ const num = (v: string) => {
 };
 const key = (name: string) => name.trim().toLowerCase();
 
-/** Every lab result as a flat row, newest first, with delta vs the previous result of the same parameter. */
+/** Every lab result as a flat row, newest first, with the arithmetic difference to the previous result of the same parameter. */
 export function labRows(orders: LabOrder[]): LabRow[] {
   const rows: LabRow[] = [];
   for (const o of orders) {
@@ -55,34 +56,29 @@ export function labRows(orders: LabOrder[]): LabRow[] {
   return rows;
 }
 
-export const abnormalLabs = (orders: LabOrder[]): LabRow[] => labRows(orders).filter((r) => r.is_abnormal);
+export type PendingKind = 'visit' | 'rx' | 'lab';
 
-export const draftVisits = (visits: Visit[]): Visit[] => visits.filter((v) => v.status === 'draft');
-
-export const activeMedicines = (prescriptions: Prescription[]): PrescriptionItem[] =>
-  prescriptions.filter((p) => p.status === 'draft' || p.status === 'approved').flatMap((p) => p.items ?? []);
-
-export type ChangeKind = 'lab' | 'visit-draft' | 'visit-approved' | 'rx';
-
-export interface ChangeItem {
+export interface PendingItem {
   id: string;
-  kind: ChangeKind;
-  at: string; // ISO
+  kind: PendingKind;
   refId: string;
+  label: string;
+  at: string; // ISO
 }
 
-/** Items that appeared or changed after `lastSeen` (ISO). With no timestamp, everything counts as new. */
-export function unseenChanges(data: PatientData, lastSeen: string | null): ChangeItem[] {
-  const after = (iso: string | null | undefined) => !!iso && (!lastSeen || iso > lastSeen);
-  const out: ChangeItem[] = [];
-  for (const l of labRows(data.labOrders)) if (after(l.date)) out.push({ id: `lab:${l.id}`, kind: 'lab', at: l.date, refId: l.id });
+/** Records still in "draft": hidden from the patient and awaiting clinician approval. */
+export function pendingItems(data: PatientData): PendingItem[] {
+  const out: PendingItem[] = [];
   for (const v of data.visits) {
-    const at = v.status === 'approved' ? v.approved_at || v.updated_at || v.visit_date : v.updated_at || v.visit_date;
-    if (after(at)) out.push({ id: `visit:${v.id}`, kind: v.status === 'approved' ? 'visit-approved' : 'visit-draft', at, refId: v.id });
+    if (v.status === 'draft') out.push({ id: `visit:${v.id}`, kind: 'visit', refId: v.id, label: v.diagnosis, at: v.updated_at || v.visit_date });
   }
   for (const p of data.prescriptions) {
-    const at = p.updated_at || p.created_at;
-    if (after(at)) out.push({ id: `rx:${p.id}`, kind: 'rx', at, refId: p.id });
+    if (p.status === 'draft') {
+      out.push({ id: `rx:${p.id}`, kind: 'rx', refId: p.id, label: (p.items ?? []).map((i) => i.medication_name).join(' · '), at: p.updated_at || p.created_at });
+    }
+  }
+  for (const l of labRows(data.labOrders)) {
+    if (l.status === 'draft') out.push({ id: `lab:${l.id}`, kind: 'lab', refId: l.orderId, label: `${l.parameter_name}: ${l.value} ${l.unit}`.trim(), at: l.date });
   }
   return out.sort((a, b) => b.at.localeCompare(a.at));
 }

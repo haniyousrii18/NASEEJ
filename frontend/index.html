@@ -20,7 +20,7 @@
           var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.dataset.theme = dark ? 'dark' : 'light';
           var m = document.querySelector('meta[name="theme-color"]');
-          if (m && dark) m.setAttribute('content', '#0e1410');
+          if (m && dark) m.setAttribute('content', '#171721');
         } catch (e) {}
       })();
     </script>
@@ -28,7 +28,7 @@
     <meta name="description" content="منصة نسيج الصحية السحابية لربط الملفات الطبية وسجلات المرضى عبر المراكز والمستشفيات المتعددة بأعلى معايير الخصوصية والعزل التام." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300..700&family=Inter:wght@300..700&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>

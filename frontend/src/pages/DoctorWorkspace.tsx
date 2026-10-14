@@ -1,28 +1,32 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
-import { aiSummary } from '../lib/ai.js';
-import { fmt, safeStorage } from '../lib/format.js';
-import { activeMedicines, unseenChanges } from '../lib/selectors.js';
+import { safeStorage } from '../lib/format.js';
+import { pendingItems, type PendingKind } from '../lib/selectors.js';
 import type { Appointment, LabOrder, Patient, PatientData, Prescription, Visit } from '../lib/types.js';
+import { fmt } from '../lib/format.js';
 import { LoadSwap, Presence, Rise } from '../components/motion.js';
 import { ApprovalDialog } from '../components/doctor/ApprovalDialog.js';
-import { formatDate, Icon, Skeleton } from '../components/doctor/bits.js';
-import { ChangesPanel } from '../components/doctor/ChangesPanel.js';
+import { ItemApprovalDialog, type ApprovalTarget } from '../components/doctor/ItemApprovalDialog.js';
+import { formatDate, Icon, Skeleton, StatusChip, VisibilityChip } from '../components/doctor/bits.js';
 import { DemoTour } from '../components/doctor/DemoTour.js';
 import { LabsPanel } from '../components/doctor/LabsPanel.js';
 import { MedsPanel } from '../components/doctor/MedsPanel.js';
-import { PatientBrief } from '../components/doctor/PatientBrief.js';
+import { PatientOverview } from '../components/doctor/PatientOverview.js';
 import { PatientSearch } from '../components/doctor/PatientSearch.js';
+import { PendingPanel } from '../components/doctor/PendingPanel.js';
 import { ShortcutsDialog } from '../components/doctor/ShortcutsDialog.js';
 import { useDoctorShortcuts } from '../components/doctor/useDoctorShortcuts.js';
 import { VisitComposer, type VisitDraftFields } from '../components/doctor/VisitComposer.js';
 
 type Section = 'summary' | 'visits' | 'labs' | 'medicines';
 const SECTIONS: Section[] = ['summary', 'visits', 'labs', 'medicines'];
+const SECTION_FOR: Record<PendingKind, Section> = { visit: 'visits', rx: 'medicines', lab: 'labs' };
+// A single non-sensitive UI preference: no user or patient identifiers in the key or the value.
+const FOCUS_KEY = 'naseej_doctor_focus_mode';
 
 export const DoctorWorkspace: React.FC = () => {
-  const { apiFetch, currentOrgId, user } = useAuth();
+  const { apiFetch, currentOrgId } = useAuth();
   const { t, isRtl } = useLang();
   const D = t.doctor;
   const locale = isRtl ? 'ar-EG' : 'en-GB';
@@ -32,6 +36,7 @@ export const DoctorWorkspace: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [data, setData] = useState<PatientData | null>(null);
   const [loadingPatient, setLoadingPatient] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [section, setSection] = useState<Section>('summary');
   const [actionError, setActionError] = useState('');
   const [notice, setNotice] = useState('');
@@ -48,22 +53,16 @@ export const DoctorWorkspace: React.FC = () => {
   const [labTestNameAr, setLabTestNameAr] = useState('');
   const [labTestNameEn, setLabTestNameEn] = useState('');
 
-  // Overlays, focus mode, "what changed"
+  // Overlays and focus mode
   const [approvalVisitId, setApprovalVisitId] = useState<string | null>(null);
+  const [itemTarget, setItemTarget] = useState<ApprovalTarget | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const focusKey = `naseej_doctor_focus_${user?.id ?? 'anon'}`;
-  const [focusMode, setFocusMode] = useState(() => safeStorage.get(focusKey) === '1');
-  const [lastSeen, setLastSeen] = useState<string | null>(null);
-  const [seen, setSeen] = useState<Set<string>>(new Set());
-  const [seenNote, setSeenNote] = useState('');
+  const [focusMode, setFocusMode] = useState(() => safeStorage.get(FOCUS_KEY) === '1');
 
   const panelRef = useRef<HTMLElement>(null);
-  const changesRef = useRef<HTMLElement>(null);
   const queueRef = useRef<HTMLHeadingElement>(null);
   const requestSeq = useRef(0);
-
-  const lastLookKey = (patientId: string) => `naseej_lastlook_${user?.id ?? 'anon'}_${patientId}`;
 
   const selectPatient = useCallback(
     async (patientId: string, silent = false) => {
@@ -71,17 +70,15 @@ export const DoctorWorkspace: React.FC = () => {
       setSelectedId(patientId);
       if (!silent) {
         setLoadingPatient(true);
+        setLoadError(false);
         setSection('summary');
         setShowNewVisit(false);
         setShowNewRx(false);
         setShowNewLab(false);
         setNotice('');
-        setSeen(new Set());
-        setSeenNote('');
-        setLastSeen(safeStorage.get(lastLookKey(patientId)));
       }
       try {
-        // Prescriptions and labs are existing read endpoints; a failure there must not block the file.
+        // Prescriptions and labs are existing read endpoints; if one fails the file still opens without it.
         const [ptRes, vRes, rxRes, labRes] = await Promise.all([
           apiFetch(`/api/patients/${patientId}`),
           apiFetch(`/api/visits?patientId=${patientId}`),
@@ -97,12 +94,14 @@ export const DoctorWorkspace: React.FC = () => {
         });
       } catch (err) {
         console.error('Error fetching patient details:', err);
-        if (seq === requestSeq.current) setActionError(D.actionFailed);
+        if (seq !== requestSeq.current) return;
+        if (silent) setActionError(D.actionFailed);
+        else setLoadError(true);
       } finally {
         if (seq === requestSeq.current) setLoadingPatient(false);
       }
     },
-    [apiFetch, user?.id], // eslint-disable-line react-hooks/exhaustive-deps
+    [apiFetch], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const loadData = useCallback(async () => {
@@ -122,28 +121,19 @@ export const DoctorWorkspace: React.FC = () => {
     void loadData();
   }, [currentOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Focus mode: the preference is a boolean per user. The attribute hides the site header/footer.
-  useEffect(() => {
-    if (focusMode) document.documentElement.setAttribute('data-doctor-focus', '1');
-    else document.documentElement.removeAttribute('data-doctor-focus');
-    return () => document.documentElement.removeAttribute('data-doctor-focus');
-  }, [focusMode]);
-
   const toggleFocus = useCallback(() => {
     setFocusMode((f) => {
-      safeStorage.set(focusKey, f ? '0' : '1');
+      safeStorage.set(FOCUS_KEY, f ? '0' : '1');
       return !f;
     });
-  }, [focusKey]);
+  }, []);
 
   // ---------- derived ----------
-  const summary = useMemo(() => (data ? aiSummary(data) : null), [data]);
-  const changes = useMemo(() => (data ? unseenChanges(data, lastSeen) : []), [data, lastSeen]);
-  const unseenIds = useMemo(() => new Set(changes.filter((c) => !seen.has(c.id)).map((c) => c.id)), [changes, seen]);
+  const pending = useMemo(() => (data ? pendingItems(data) : []), [data]);
   const waitingIds = useMemo(() => new Set(appointments.map((a) => a.patient_id)), [appointments]);
   const draftVisitList = useMemo(() => (data?.visits ?? []).filter((v) => v.status === 'draft'), [data]);
   const approvalVisit = data?.visits.find((v) => v.id === approvalVisitId) ?? null;
-  const currentMeds = useMemo(() => (data ? activeMedicines(data.prescriptions).map((i) => i.medication_name) : []), [data]);
+  const nextWaiting = appointments.find((a) => a.patient_id !== selectedId);
 
   // ---------- actions ----------
   const goSection = useCallback((s: Section, moveFocus = true) => {
@@ -159,18 +149,7 @@ export const DoctorWorkspace: React.FC = () => {
     [section, goSection],
   );
 
-  const markSeen = (id: string) => {
-    setSeen((s) => new Set(s).add(id));
-    setSeenNote(D.changes.itemSeen);
-  };
-  const markAllSeen = () => {
-    if (!selectedId) return;
-    safeStorage.set(lastLookKey(selectedId), new Date().toISOString()); // a timestamp only, never clinical data
-    setLastSeen(new Date().toISOString());
-    setSeen(new Set(changes.map((c) => c.id)));
-    setSeenNote(D.changes.allSeen);
-  };
-
+  // None of these shortcuts approves, saves or submits anything, and none fires while typing.
   useDoctorShortcuts({
     enabled: true,
     onSearch: () => setSearchOpen(true),
@@ -179,7 +158,7 @@ export const DoctorWorkspace: React.FC = () => {
     onNext: () => stepSection(1),
     onDashboard: () => {
       setFocusMode(false);
-      safeStorage.set(focusKey, '0');
+      safeStorage.set(FOCUS_KEY, '0');
       requestAnimationFrame(() => queueRef.current?.focus());
     },
     onFocusMode: toggleFocus,
@@ -204,6 +183,7 @@ export const DoctorWorkspace: React.FC = () => {
         treatment_plan: f.treatment_plan,
       }),
     });
+    // Reaching this line means the API confirmed the save.
     setShowNewVisit(false);
     setNotice(D.composer.saved);
     await selectPatient(data.patient.id, true);
@@ -211,6 +191,13 @@ export const DoctorWorkspace: React.FC = () => {
 
   const handleApproveVisit = async (visitId: string) => {
     await apiFetch(`/api/visits/${visitId}/approve`, { method: 'POST' });
+    if (selectedId) await selectPatient(selectedId, true);
+  };
+
+  // Same endpoints the backend already exposes; the list is refreshed only after the API confirms.
+  const handleApproveItem = async (target: ApprovalTarget) => {
+    const url = target.kind === 'rx' ? `/api/prescriptions/${target.id}/approve` : `/api/labs/results/${target.id}/approve`;
+    await apiFetch(url, { method: 'POST' });
     if (selectedId) await selectPatient(selectedId, true);
   };
 
@@ -265,8 +252,6 @@ export const DoctorWorkspace: React.FC = () => {
     goSection('medicines', false);
   };
 
-  const nextWaiting = appointments.find((a) => a.patient_id !== selectedId);
-
   const patientButton = (p: { id: string; name: string; sub: string; meta: string }, selected: boolean) => (
     <button
       key={p.id}
@@ -283,17 +268,17 @@ export const DoctorWorkspace: React.FC = () => {
       }}
     >
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }} dir="auto">{p.name}</span>
-        <span style={{ display: 'block', fontSize: 12, color: 'var(--color-body-gray)', marginTop: 2 }}>{p.sub}</span>
+        <span style={{ display: 'block', fontSize: 14, fontWeight: 520, color: 'var(--color-ink)', overflowWrap: 'anywhere' }} dir="auto">{p.name}</span>
+        <span style={{ display: 'block', fontSize: 12, color: 'var(--color-body-gray)', marginTop: 2, overflowWrap: 'anywhere' }}>{p.sub}</span>
       </span>
-      <bdi className="num" style={{ fontSize: 12, color: 'var(--color-metric-blue)', fontWeight: 700 }}>{p.meta}</bdi>
+      <bdi className="num" style={{ fontSize: 12, color: 'var(--color-metric-blue)', fontWeight: 560 }}>{p.meta}</bdi>
     </button>
   );
 
   // ---------- render ----------
-  const identitySkeleton = (
-    <div className="cloud-feature-card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 220 }} aria-busy="true">
-      <Skeleton height={28} width="45%" />
+  const skeletonCard = (
+    <div className="cloud-feature-card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 180 }} aria-busy="true">
+      <Skeleton height={26} width="45%" />
       <Skeleton height={14} width="30%" />
       <Skeleton height={14} width="80%" />
       <Skeleton height={14} width="65%" />
@@ -318,7 +303,7 @@ export const DoctorWorkspace: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {appointments.map((a) =>
             patientButton(
-              { id: a.patient_id, name: isRtl ? a.patient_name_ar : a.patient_name_en, sub: `${a.start_time} · ${a.reason || ''}`, meta: a.status },
+              { id: a.patient_id, name: isRtl ? a.patient_name_ar : a.patient_name_en, sub: `${(a.start_time || '').slice(0, 5)} · ${a.reason || ''}`, meta: a.status === 'checked_in' ? D.queue.checkedIn : a.status },
               selectedId === a.patient_id,
             ),
           )}
@@ -358,11 +343,10 @@ export const DoctorWorkspace: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px 14px', flexWrap: 'wrap' }}>
           <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.25rem, 1.8vw, 1.6rem)', margin: 0 }}>
-            <span aria-hidden="true">🌿 </span>
             {D.title}
           </h1>
-          <span className="status-badge badge-lilac" title={D.syntheticHint} style={{ fontSize: 12 }}>
-            {Icon.spark}
+          <span className="status-badge badge-info" title={D.syntheticHint} style={{ fontSize: 12 }}>
+            {Icon.info}
             <span>{D.syntheticBadge}</span>
           </span>
         </div>
@@ -384,27 +368,27 @@ export const DoctorWorkspace: React.FC = () => {
         </div>
       </div>
 
-      <div role="status" aria-live="polite" style={{ minHeight: notice ? undefined : 0 }}>
+      <div role="status" aria-live="polite">
         {notice && (
           <Rise>
-            <div style={{ marginBottom: 16, padding: '10px 16px', borderRadius: 12, background: 'var(--color-status-approved-bg)', border: '1px solid var(--color-status-approved-border)', color: 'var(--color-status-approved-text)', fontSize: 14 }}>
+            <div style={{ margin: '8px 0', padding: '10px 16px', borderRadius: 12, background: 'var(--color-status-approved-bg)', border: '1px solid var(--color-status-approved-border)', color: 'var(--color-status-approved-text)', fontSize: 14 }}>
               {notice}
             </div>
           </Rise>
         )}
       </div>
       {actionError && (
-        <div role="alert" style={{ marginBottom: 16, padding: '10px 16px', borderRadius: 12, background: 'var(--color-status-danger-bg)', border: '1px solid var(--color-status-danger-border)', color: 'var(--color-status-danger-text)', fontSize: 14, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+        <div role="alert" style={{ margin: '8px 0', padding: '10px 16px', borderRadius: 12, background: 'var(--color-status-danger-bg)', border: '1px solid var(--color-status-danger-border)', color: 'var(--color-status-danger-text)', fontSize: 14, display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <span>{actionError}</span>
-          <button type="button" className="btn-pill btn-pill-ghost" style={{ minHeight: 36, padding: '2px 12px', fontSize: 12 }} onClick={() => setActionError('')}>
+          <button type="button" className="btn-pill btn-pill-ghost" style={{ minHeight: 44, padding: '2px 14px', fontSize: 13 }} onClick={() => setActionError('')}>
             {t.common.cancel}
           </button>
         </div>
       )}
 
-      <div className="doctor-layout" data-focus={focusMode ? '1' : undefined}>
-        {/* Context rail: hidden in focus mode */}
-        <Presence show={!focusMode} kind="panel" dir={isRtl ? -1 : 1} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div className="doctor-layout" data-focus={focusMode ? '1' : undefined} style={{ marginTop: 10 }}>
+        {/* Context rail: focus mode hides this only. The allergy alert and site navigation stay visible. */}
+        <Presence show={!focusMode} kind="panel" slide={isRtl ? -1 : 1} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {waitingList}
           {directory}
         </Presence>
@@ -412,221 +396,236 @@ export const DoctorWorkspace: React.FC = () => {
         {/* Active patient */}
         {selectedId ? (
           <div key={selectedId} style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
-            <LoadSwap
-              ready={!!data && !loadingPatient && data.patient.id === selectedId}
-              swapKey={selectedId}
-              skeleton={
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }} role="status" aria-label={D.loadingPatient}>
-                  {identitySkeleton}
-                  {identitySkeleton}
-                </div>
-              }
-            >
-              {patient && data && summary && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {/* Patient header + allergy banner (FR-072) */}
-                  <div className="cloud-feature-card" style={{ padding: '16px 22px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                      <div>
-                        <h2 className="text-card-heading" style={{ fontSize: 22, margin: 0 }} dir="auto">
-                          {isRtl ? patient.full_name_ar : patient.full_name_en}
-                        </h2>
-                        {patient.phone && (
-                          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', marginTop: 6 }}>
-                            <bdi className="num">{patient.phone}</bdi>
-                          </div>
-                        )}
+            {loadError ? (
+              <div role="alert" className="cloud-feature-card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+                <span style={{ color: 'var(--color-status-danger-text)', fontWeight: 520 }}>{D.loadFailed}</span>
+                <button type="button" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }} onClick={() => void selectPatient(selectedId)}>
+                  {D.retry}
+                </button>
+              </div>
+            ) : (
+              <LoadSwap
+                ready={!!data && !loadingPatient && data.patient.id === selectedId}
+                swapKey={selectedId}
+                skeleton={
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }} role="status" aria-label={D.loadingPatient}>
+                    {skeletonCard}
+                    {skeletonCard}
+                  </div>
+                }
+              >
+                {patient && data && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {/* Patient header + allergy banner (FR-072), always visible */}
+                    <div className="cloud-feature-card" style={{ padding: '16px 22px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                        <div style={{ minWidth: 0 }}>
+                          <h2 className="text-card-heading" style={{ fontSize: 22, margin: 0, overflowWrap: 'anywhere' }} dir="auto">
+                            {isRtl ? patient.full_name_ar : patient.full_name_en}
+                          </h2>
+                          {patient.phone && (
+                            <div style={{ fontSize: 13, color: 'var(--color-body-gray)', marginTop: 6 }}>
+                              <bdi className="num">{patient.phone}</bdi>
+                            </div>
+                          )}
+                        </div>
+                        <div className="responsive-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                          <button type="button" onClick={() => { setShowNewVisit(true); goSection('visits', false); }} className="btn-pill btn-pill-charcoal" style={{ fontSize: 13, minHeight: 44 }}>
+                            + {t.clinical.newVisitBtn}
+                          </button>
+                          <button type="button" onClick={() => { setShowNewLab(true); goSection('labs', false); }} className="btn-pill btn-pill-cloud" style={{ fontSize: 13, minHeight: 44, background: 'var(--color-paper-white)' }}>
+                            + {D.visits.newLab}
+                          </button>
+                        </div>
                       </div>
-                      <div className="responsive-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <button type="button" onClick={() => { setShowNewVisit(true); goSection('visits', false); }} className="btn-pill btn-pill-charcoal" style={{ fontSize: 13, minHeight: 44 }}>
-                          + {t.clinical.newVisitBtn}
-                        </button>
-                        <button type="button" onClick={() => { setShowNewLab(true); goSection('labs', false); }} className="btn-pill btn-pill-cloud" style={{ fontSize: 13, minHeight: 44, background: 'var(--color-paper-white)' }}>
-                          + {D.visits.newLab}
-                        </button>
-                      </div>
+
+                      {(patient.allergies?.length ?? 0) > 0 && (
+                        <div
+                          className="motion-alert-enter"
+                          role="alert"
+                          style={{ marginTop: 12, padding: '8px 14px', borderRadius: 14, background: 'var(--color-status-draft-bg)', border: '1px solid var(--color-status-draft-border)', display: 'flex', alignItems: 'center', gap: '4px 12px', flexWrap: 'wrap' }}
+                        >
+                          <span style={{ display: 'inline-flex', color: 'var(--color-status-draft-text)' }}>{Icon.octagon}</span>
+                          <span style={{ fontSize: 14, fontWeight: 560, color: 'var(--color-status-draft-text)' }}>{t.clinical.allergiesWarning}</span>
+                          <span style={{ fontSize: 13, color: 'var(--color-ink)' }}>
+                            {patient.allergies!.map((a) => (
+                              <span key={a.id} style={{ marginInlineEnd: 14 }} dir="auto">
+                                • {isRtl ? a.allergen_ar : a.allergen_en} ({a.severity})
+                              </span>
+                            ))}
+                          </span>
+                        </div>
+                      )}
+
+                      <nav aria-label={D.sections.nav} className="doctor-section-nav" style={{ marginTop: 10 }}>
+                        {SECTIONS.map((s) => (
+                          <button key={s} type="button" aria-current={section === s ? 'true' : undefined} onClick={() => goSection(s, false)}>
+                            {D.sections[s]}
+                          </button>
+                        ))}
+                      </nav>
                     </div>
 
-                    {(patient.allergies?.length ?? 0) > 0 && (
-                      <div
-                        className="motion-alert-enter"
-                        role="alert"
-                        style={{ marginTop: 12, padding: '8px 14px', borderRadius: 14, background: 'var(--color-status-draft-bg)', border: '1px solid var(--color-status-draft-border)', display: 'flex', alignItems: 'center', gap: '4px 12px', flexWrap: 'wrap' }}
-                      >
-                        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-status-draft-text)' }}>{t.clinical.allergiesWarning}</span>
-                        <span style={{ fontSize: 13, color: 'var(--color-ink)' }}>
-                          {patient.allergies!.map((a) => (
-                            <span key={a.id} style={{ marginInlineEnd: 14 }} dir="auto">
-                              • {isRtl ? a.allergen_ar : a.allergen_en} ({a.severity})
-                            </span>
-                          ))}
-                        </span>
-                      </div>
+                    {section === 'summary' && (
+                      <Rise key="summary" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div ref={panelRef as React.RefObject<HTMLDivElement>} tabIndex={-1} style={{ outline: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                          <PatientOverview data={data} checkedIn={waitingIds.has(patient.id)} />
+                          <PendingPanel items={pending} onOpen={(k) => goSection(SECTION_FOR[k])} />
+                        </div>
+                      </Rise>
                     )}
 
-                    {/* Sections: [ and ] step through them */}
-                    <nav aria-label={D.sections.nav} className="doctor-section-nav" style={{ marginTop: 10 }}>
-                      {SECTIONS.map((s) => (
-                        <button key={s} type="button" aria-current={section === s ? 'true' : undefined} onClick={() => goSection(s, false)}>
-                          {D.sections[s]}
-                        </button>
-                      ))}
-                    </nav>
-                  </div>
-
-                  {section === 'summary' && (
-                    <Rise key="summary" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                      <div ref={panelRef as React.RefObject<HTMLDivElement>} tabIndex={-1} style={{ outline: 'none', display: 'flex', flexDirection: 'column', gap: 20 }}>
-                        <PatientBrief
-                          data={data}
-                          summary={summary}
-                          unseenCount={unseenIds.size}
-                          onReviewMeds={() => goSection('medicines')}
-                          onOpenChanges={() => changesRef.current?.focus()}
-                        />
-                        <ChangesPanel ref={changesRef} data={data} changes={changes} seen={seen} announcement={seenNote} onSeen={markSeen} onMarkAll={markAllSeen} />
-                      </div>
-                    </Rise>
-                  )}
-
-                  {section === 'labs' && (
-                    <Rise key="labs" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                      {showNewLab && (
-                        <div className="cloud-feature-card motion-alert-enter" style={{ padding: 28, background: 'var(--color-paper-white)', border: '1px solid var(--color-charcoal)' }}>
-                          <h3 className="text-card-heading" style={{ fontSize: 18, marginBottom: 16 }}>{isRtl ? 'طلب فحص مخبري جديد' : 'Order Laboratory Test'}</h3>
-                          <form onSubmit={handleCreateLabOrder}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 14 }}>
-                              <div className="form-group">
-                                <label className="form-label" htmlFor="lab-ar">{isRtl ? 'اسم الفحص بالعربية' : 'Test Name (Arabic)'} *</label>
-                                <input id="lab-ar" type="text" required placeholder="فحص وظائف الكبد الشامل" value={labTestNameAr} onChange={(e) => setLabTestNameAr(e.target.value)} className="form-input" />
-                              </div>
-                              <div className="form-group">
-                                <label className="form-label" htmlFor="lab-en">{isRtl ? 'اسم الفحص بالإنجليزية' : 'Test Name (English)'} *</label>
-                                <input id="lab-en" type="text" required placeholder="Comprehensive Liver Function Test" value={labTestNameEn} onChange={(e) => setLabTestNameEn(e.target.value)} className="form-input" />
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 18 }}>
-                              <button type="button" onClick={() => setShowNewLab(false)} className="btn-pill btn-pill-ghost" style={{ minHeight: 44 }}>{t.common.cancel}</button>
-                              <button type="submit" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }}>{isRtl ? 'تأكيد طلب الفحص' : 'Confirm Order'}</button>
-                            </div>
-                          </form>
-                        </div>
-                      )}
-                      <LabsPanel ref={panelRef} orders={data.labOrders} unseen={unseenIds} onOrder={() => setShowNewLab(true)} />
-                    </Rise>
-                  )}
-
-                  {section === 'medicines' && (
-                    <Rise key="meds" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                      {showNewRx && (
-                        <div className="cloud-feature-card motion-alert-enter" style={{ padding: 28, background: 'var(--color-paper-white)', border: '1px solid var(--color-charcoal)' }}>
-                          <h3 className="text-card-heading" style={{ fontSize: 18, marginBottom: 16 }}>{isRtl ? 'إصدار وصفة دوائية مرتبطة بالزيارة' : 'Issue Prescription for Consultation'}</h3>
-                          <form onSubmit={handleCreatePrescription}>
-                            {draftVisitList.length > 1 && (
-                              <div className="form-group">
-                                <label className="form-label" htmlFor="rx-visit">{D.sections.visits}</label>
-                                <select id="rx-visit" className="form-select" value={selectedVisitId} onChange={(e) => setSelectedVisitId(e.target.value)}>
-                                  {draftVisitList.map((v) => (
-                                    <option key={v.id} value={v.id}>{formatDate(v.visit_date, locale)} · {v.diagnosis}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            )}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 14 }}>
-                              <div className="form-group">
-                                <label className="form-label" htmlFor="rx-name">{isRtl ? 'اسم الدواء' : 'Medication Name'} *</label>
-                                <input id="rx-name" type="text" required placeholder="Amlodipine Besylate" value={medicationName} onChange={(e) => setMedicationName(e.target.value)} className="form-input latin" />
-                              </div>
-                              <div className="form-group">
-                                <label className="form-label" htmlFor="rx-dose">{isRtl ? 'الجرعة' : 'Dosage'} *</label>
-                                <input id="rx-dose" type="text" required placeholder="5 mg" value={dosage} onChange={(e) => setDosage(e.target.value)} className="form-input" />
-                              </div>
-                              <div className="form-group">
-                                <label className="form-label" htmlFor="rx-freq">{isRtl ? 'التكرار' : 'Frequency'} *</label>
-                                <input id="rx-freq" type="text" required placeholder={isRtl ? 'مرة واحدة صباحاً' : 'Once daily'} value={frequency} onChange={(e) => setFrequency(e.target.value)} className="form-input" />
-                              </div>
-                              <div className="form-group">
-                                <label className="form-label" htmlFor="rx-dur">{isRtl ? 'المدة' : 'Duration'} *</label>
-                                <input id="rx-dur" type="text" required placeholder={isRtl ? '30 يوماً' : '30 days'} value={duration} onChange={(e) => setDuration(e.target.value)} className="form-input" />
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 18 }}>
-                              <button type="button" onClick={() => setShowNewRx(false)} className="btn-pill btn-pill-ghost" style={{ minHeight: 44 }}>{t.common.cancel}</button>
-                              <button type="submit" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }}>{isRtl ? 'إصدار الوصفة' : 'Issue Prescription'}</button>
-                            </div>
-                          </form>
-                        </div>
-                      )}
-                      <MedsPanel ref={panelRef} prescriptions={data.prescriptions} interactions={summary.interactions} canAdd={draftVisitList.length > 0} onAdd={() => openRx()} />
-                    </Rise>
-                  )}
-
-                  {section === 'visits' && (
-                    <Rise key="visits" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                      {showNewVisit && (
-                        <VisitComposer
-                          allergies={patient.allergies ?? []}
-                          currentMedicines={currentMeds}
-                          onSubmit={handleCreateVisitDraft}
-                          onCancel={() => setShowNewVisit(false)}
-                        />
-                      )}
-
-                      <section ref={panelRef} tabIndex={-1} aria-labelledby="doctor-visits-title" style={{ display: 'flex', flexDirection: 'column', gap: 16, outline: 'none' }}>
-                        <h3 id="doctor-visits-title" className="text-card-heading" style={{ fontSize: 20 }}>{D.visits.title}</h3>
-                        {data.visits.length === 0 ? (
-                          <div className="cloud-feature-card" style={{ textAlign: 'center', padding: 36, color: 'var(--color-body-gray)' }}>
-                            <p style={{ marginBottom: 14 }}>{D.visits.empty}</p>
-                            <button type="button" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }} onClick={() => setShowNewVisit(true)}>
-                              + {D.visits.emptyAction}
-                            </button>
-                          </div>
-                        ) : (
-                          data.visits.map((v) => (
-                            <div key={v.id} className="cloud-feature-card" style={{ padding: 26 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                  <span style={{ fontWeight: 600, fontSize: 16, color: 'var(--color-ink)' }}>{formatDate(v.visit_date, locale)}</span>
-                                  <span className={`status-badge ${v.status === 'approved' ? 'badge-approved' : 'badge-draft'}`}>
-                                    {v.status === 'approved' ? Icon.check : Icon.circle}
-                                    <span>{v.status === 'approved' ? t.clinical.approved : t.clinical.draft}</span>
-                                  </span>
+                    {section === 'labs' && (
+                      <Rise key="labs" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        {showNewLab && (
+                          <div className="cloud-feature-card motion-alert-enter" style={{ padding: 28, background: 'var(--color-paper-white)', border: '1px solid var(--color-charcoal)' }}>
+                            <h3 className="text-card-heading" style={{ fontSize: 18, marginBottom: 16 }}>{isRtl ? 'طلب فحص مخبري جديد' : 'Order Laboratory Test'}</h3>
+                            <form onSubmit={handleCreateLabOrder}>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 14 }}>
+                                <div className="form-group">
+                                  <label className="form-label" htmlFor="lab-ar">{isRtl ? 'اسم الفحص بالعربية' : 'Test Name (Arabic)'} *</label>
+                                  <input id="lab-ar" type="text" required placeholder="فحص وظائف الكبد الشامل" value={labTestNameAr} onChange={(e) => setLabTestNameAr(e.target.value)} className="form-input" />
                                 </div>
-                                {v.status === 'draft' && (
-                                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                    <button type="button" onClick={() => openRx(v.id)} className="btn-pill btn-pill-cloud" style={{ fontSize: 12, minHeight: 44, background: 'var(--color-paper-white)' }}>
-                                      + {D.visits.addRx}
-                                    </button>
-                                    <button type="button" onClick={() => setApprovalVisitId(v.id)} className="btn-pill btn-pill-charcoal" style={{ fontSize: 12, minHeight: 44 }}>
-                                      ✓ {t.clinical.approveVisitBtn}
-                                    </button>
+                                <div className="form-group">
+                                  <label className="form-label" htmlFor="lab-en">{isRtl ? 'اسم الفحص بالإنجليزية' : 'Test Name (English)'} *</label>
+                                  <input id="lab-en" type="text" required placeholder="Comprehensive Liver Function Test" value={labTestNameEn} onChange={(e) => setLabTestNameEn(e.target.value)} className="form-input" />
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 18 }}>
+                                <button type="button" onClick={() => setShowNewLab(false)} className="btn-pill btn-pill-ghost" style={{ minHeight: 44 }}>{t.common.cancel}</button>
+                                <button type="submit" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }}>{isRtl ? 'تأكيد طلب الفحص' : 'Confirm Order'}</button>
+                              </div>
+                            </form>
+                          </div>
+                        )}
+                        <LabsPanel
+                          ref={panelRef}
+                          orders={data.labOrders}
+                          onOrder={() => setShowNewLab(true)}
+                          onApprove={(r) => setItemTarget({
+                            kind: 'lab',
+                            id: r.id,
+                            lines: [`${r.parameter_name}: ${r.value} ${r.unit}`.trim(), `${D.labs.range}: ${r.reference_range || '—'}`, r.is_abnormal ? D.labs.abnormal : D.labs.normal],
+                          })}
+                        />
+                      </Rise>
+                    )}
+
+                    {section === 'medicines' && (
+                      <Rise key="meds" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        {showNewRx && (
+                          <div className="cloud-feature-card motion-alert-enter" style={{ padding: 28, background: 'var(--color-paper-white)', border: '1px solid var(--color-charcoal)' }}>
+                            <h3 className="text-card-heading" style={{ fontSize: 18, marginBottom: 16 }}>{isRtl ? 'إصدار وصفة دوائية مرتبطة بالزيارة' : 'Issue Prescription for Consultation'}</h3>
+                            <form onSubmit={handleCreatePrescription}>
+                              {draftVisitList.length > 1 && (
+                                <div className="form-group">
+                                  <label className="form-label" htmlFor="rx-visit">{D.sections.visits}</label>
+                                  <select id="rx-visit" className="form-select" value={selectedVisitId} onChange={(e) => setSelectedVisitId(e.target.value)}>
+                                    {draftVisitList.map((v) => (
+                                      <option key={v.id} value={v.id}>{formatDate(v.visit_date, locale)} · {v.diagnosis}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )}
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 14 }}>
+                                <div className="form-group">
+                                  <label className="form-label" htmlFor="rx-name">{isRtl ? 'اسم الدواء' : 'Medication Name'} *</label>
+                                  <input id="rx-name" type="text" required placeholder="Amlodipine Besylate" value={medicationName} onChange={(e) => setMedicationName(e.target.value)} className="form-input latin" />
+                                </div>
+                                <div className="form-group">
+                                  <label className="form-label" htmlFor="rx-dose">{isRtl ? 'الجرعة' : 'Dosage'} *</label>
+                                  <input id="rx-dose" type="text" required placeholder="5 mg" value={dosage} onChange={(e) => setDosage(e.target.value)} className="form-input" />
+                                </div>
+                                <div className="form-group">
+                                  <label className="form-label" htmlFor="rx-freq">{isRtl ? 'التكرار' : 'Frequency'} *</label>
+                                  <input id="rx-freq" type="text" required placeholder={isRtl ? 'مرة واحدة صباحاً' : 'Once daily'} value={frequency} onChange={(e) => setFrequency(e.target.value)} className="form-input" />
+                                </div>
+                                <div className="form-group">
+                                  <label className="form-label" htmlFor="rx-dur">{isRtl ? 'المدة' : 'Duration'} *</label>
+                                  <input id="rx-dur" type="text" required placeholder={isRtl ? '30 يوماً' : '30 days'} value={duration} onChange={(e) => setDuration(e.target.value)} className="form-input" />
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 18 }}>
+                                <button type="button" onClick={() => setShowNewRx(false)} className="btn-pill btn-pill-ghost" style={{ minHeight: 44 }}>{t.common.cancel}</button>
+                                <button type="submit" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }}>{isRtl ? 'إصدار الوصفة' : 'Issue Prescription'}</button>
+                              </div>
+                            </form>
+                          </div>
+                        )}
+                        <MedsPanel
+                          ref={panelRef}
+                          prescriptions={data.prescriptions}
+                          canAdd={draftVisitList.length > 0}
+                          onAdd={() => openRx()}
+                          onApprove={(rx) => setItemTarget({
+                            kind: 'rx',
+                            id: rx.id,
+                            lines: rx.items.map((i) => `${i.medication_name} · ${i.dosage} · ${i.frequency} · ${i.duration}`),
+                          })}
+                        />
+                      </Rise>
+                    )}
+
+                    {section === 'visits' && (
+                      <Rise key="visits" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        {showNewVisit && <VisitComposer onSubmit={handleCreateVisitDraft} onCancel={() => setShowNewVisit(false)} />}
+
+                        <section ref={panelRef} tabIndex={-1} aria-labelledby="doctor-visits-title" style={{ display: 'flex', flexDirection: 'column', gap: 14, outline: 'none' }}>
+                          <h3 id="doctor-visits-title" className="text-card-heading" style={{ fontSize: 20 }}>{D.visits.title}</h3>
+                          {data.visits.length === 0 ? (
+                            <div className="cloud-feature-card" style={{ textAlign: 'center', padding: 36, color: 'var(--color-body-gray)' }}>
+                              <p style={{ marginBottom: 14 }}>{D.visits.empty}</p>
+                              <button type="button" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }} onClick={() => setShowNewVisit(true)}>
+                                + {D.visits.emptyAction}
+                              </button>
+                            </div>
+                          ) : (
+                            data.visits.map((v) => (
+                              <div key={v.id} className="cloud-feature-card" style={{ padding: 22 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                    <span style={{ fontWeight: 520, fontSize: 16, color: 'var(--color-ink)' }}>{formatDate(v.visit_date, locale)}</span>
+                                    <StatusChip status={v.status === 'approved' ? 'approved' : 'draft'} />
+                                    <VisibilityChip visible={v.status === 'approved'} />
+                                  </div>
+                                  {v.status === 'draft' && (
+                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                      <button type="button" onClick={() => openRx(v.id)} className="btn-pill btn-pill-cloud" style={{ fontSize: 12, minHeight: 44, background: 'var(--color-paper-white)' }}>
+                                        + {D.visits.addRx}
+                                      </button>
+                                      <button type="button" onClick={() => setApprovalVisitId(v.id)} className="btn-pill btn-pill-charcoal" style={{ fontSize: 12, minHeight: 44 }}>
+                                        ✓ {t.clinical.approveVisitBtn}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                                <p style={{ fontSize: 12, color: 'var(--color-body-gray)', marginBottom: 10 }}>
+                                  {v.status === 'approved' ? D.visits.approvedNote : `${D.visits.draftNote} ${D.visits.nextStep}`}
+                                </p>
+                                <div style={{ marginBottom: 10 }}>
+                                  <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>{t.clinical.chiefComplaint}:</div>
+                                  <div style={{ fontSize: 15, color: 'var(--color-ink)', overflowWrap: 'anywhere' }} dir="auto">{v.chief_complaint}</div>
+                                </div>
+                                <div style={{ marginBottom: 10 }}>
+                                  <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>{t.clinical.diagnosis}:</div>
+                                  <div style={{ fontSize: 15, fontWeight: 520, color: 'var(--color-metric-blue)', overflowWrap: 'anywhere' }} dir="auto">{v.diagnosis}</div>
+                                </div>
+                                {v.treatment_plan && (
+                                  <div style={{ marginTop: 10, padding: '12px 16px', background: 'var(--color-paper-white)', borderRadius: 12, fontSize: 14, color: 'var(--color-body-gray)', lineHeight: 1.5 }}>
+                                    <strong style={{ color: 'var(--color-ink)' }}>{t.clinical.treatmentPlan}:</strong>
+                                    <div style={{ marginTop: 2, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }} dir="auto">{v.treatment_plan}</div>
                                   </div>
                                 )}
                               </div>
-                              <div style={{ marginBottom: 10 }}>
-                                <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>{t.clinical.chiefComplaint}:</div>
-                                <div style={{ fontSize: 15, color: 'var(--color-ink)' }} dir="auto">{v.chief_complaint}</div>
-                              </div>
-                              <div style={{ marginBottom: 10 }}>
-                                <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>{t.clinical.diagnosis}:</div>
-                                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-metric-blue)' }} dir="auto">{v.diagnosis}</div>
-                              </div>
-                              {v.treatment_plan && (
-                                <div style={{ marginTop: 10, padding: '12px 16px', background: 'var(--color-paper-white)', borderRadius: 12, fontSize: 14, color: 'var(--color-body-gray)', lineHeight: 1.5 }}>
-                                  <strong style={{ color: 'var(--color-ink)' }}>{t.clinical.treatmentPlan}:</strong>
-                                  <div style={{ marginTop: 2, whiteSpace: 'pre-line' }} dir="auto">{v.treatment_plan}</div>
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        )}
-                      </section>
-                    </Rise>
-                  )}
-                </div>
-              )}
-            </LoadSwap>
+                            ))
+                          )}
+                        </section>
+                      </Rise>
+                    )}
+                  </div>
+                )}
+              </LoadSwap>
+            )}
           </div>
         ) : (
           <div className="cloud-feature-card" style={{ padding: 56, textAlign: 'center', color: 'var(--color-body-gray)' }}>
@@ -638,21 +637,14 @@ export const DoctorWorkspace: React.FC = () => {
       <ApprovalDialog
         open={!!approvalVisitId}
         visit={approvalVisit}
-        linkedRx={data?.prescriptions.filter((p) => p.visit_id === approvalVisitId) ?? []}
-        linkedLabs={data?.labOrders.filter((l) => l.visit_id === approvalVisitId) ?? []}
-        allergies={patient?.allergies ?? []}
-        otherMedicines={currentMeds}
+        linkedRxCount={data?.prescriptions.filter((p) => p.visit_id === approvalVisitId).length ?? 0}
+        linkedLabCount={data?.labOrders.filter((l) => l.visit_id === approvalVisitId).length ?? 0}
         onApprove={handleApproveVisit}
         onClose={() => setApprovalVisitId(null)}
         onNextPatient={nextWaiting ? () => { setApprovalVisitId(null); void selectPatient(nextWaiting.patient_id); } : undefined}
       />
-      <PatientSearch
-        open={searchOpen}
-        patients={patients}
-        waitingIds={waitingIds}
-        onSelect={(id) => void selectPatient(id)}
-        onClose={() => setSearchOpen(false)}
-      />
+      <ItemApprovalDialog target={itemTarget} onApprove={handleApproveItem} onClose={() => setItemTarget(null)} />
+      <PatientSearch open={searchOpen} patients={patients} waitingIds={waitingIds} onSelect={(id) => void selectPatient(id)} onClose={() => setSearchOpen(false)} />
       <ShortcutsDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
       <DemoTour />
     </div>

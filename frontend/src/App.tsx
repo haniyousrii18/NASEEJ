@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LangProvider } from './context/LangContext.js';
 import { ThemeProvider } from './context/ThemeContext.js';
-import { MotionRoot } from './components/motion.js';
+import { MotionRoot, PageTransition } from './components/motion.js';
 import { AuthProvider, useAuth } from './context/AuthContext.js';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
@@ -38,7 +38,7 @@ const MainContent: React.FC = () => {
       <Header currentView={currentView} setCurrentView={setCurrentView} />
 
       <main className="app-main" style={{ flex: 1 }}>
-        <div key={currentView} className="motion-view-enter" style={{ minHeight: '100%' }}>
+        <PageTransition key={currentView} style={{ minHeight: '100%' }}>
           {currentView === 'home' && <PublicHome setCurrentView={setCurrentView} />}
           {currentView === 'features' && <FeaturesPage />}
           {currentView === 'workflow' && <WorkflowPage />}
@@ -85,7 +85,7 @@ const MainContent: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
+        </PageTransition>
       </main>
 
       <Footer />

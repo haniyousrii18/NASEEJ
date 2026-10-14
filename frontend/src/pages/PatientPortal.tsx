@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LeafIcon, AlertIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
 
@@ -112,7 +113,7 @@ export const PatientPortal: React.FC = () => {
       }}>
         <div>
           <div className="recognition-laurel-item" style={{ marginBottom: 6 }}>
-            <span>🌿</span>
+            <LeafIcon />
             <span>{isRtl ? 'بوابة صحتي الموحدة · ملف المريض المعتمد' : 'Connected Patient Health Portal'}</span>
           </div>
           <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', margin: '8px 0 6px' }}>
@@ -166,9 +167,9 @@ export const PatientPortal: React.FC = () => {
             marginBottom: 28,
           }}
         >
-          <span style={{ fontSize: '1.6rem' }}>⚠️</span>
+          <span style={{ display: 'inline-flex', color: 'var(--color-status-draft-text)' }}><AlertIcon size={22} /></span>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-status-draft-text)' }}>
+            <div style={{ fontSize: 15, fontWeight: 560, color: 'var(--color-status-draft-text)' }}>
               {isRtl ? 'سجل الحساسيات المعتمد (Documented Patient Allergies)' : 'Documented Patient Allergies'}
             </div>
             <div style={{ fontSize: 14, color: 'var(--color-ink)', marginTop: 4 }}>
@@ -248,11 +249,11 @@ export const PatientPortal: React.FC = () => {
                     border: '1px solid var(--color-border-subtle)',
                   }}
                 >
-                  <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--color-ink)' }}>
+                  <div style={{ fontWeight: 520, fontSize: 16, color: 'var(--color-ink)' }}>
                     {isRtl ? c.name_ar : c.name_en}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--color-body-gray)', marginTop: 6 }}>
-                    {isRtl ? 'رقم السجل الطبي:' : 'MRN:'} <code style={{ color: 'var(--color-metric-blue)', fontWeight: 700 }}>{c.mrn}</code>
+                    {isRtl ? 'رقم السجل الطبي:' : 'MRN:'} <code style={{ color: 'var(--color-metric-blue)', fontWeight: 560 }}>{c.mrn}</code>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--color-body-gray)', marginTop: 4 }}>
                     {isRtl ? 'أول زيارة:' : 'First Visit:'} {c.first_visit_date || '2025-01-15'}
@@ -274,7 +275,7 @@ export const PatientPortal: React.FC = () => {
               </div>
               {summary?.visits?.length > 0 ? (
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 18, color: 'var(--color-ink)' }}>
+                  <div style={{ fontWeight: 520, fontSize: 18, color: 'var(--color-ink)' }}>
                     {summary.visits[0].diagnosis}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--color-body-gray)', marginTop: 4 }}>
@@ -299,10 +300,10 @@ export const PatientPortal: React.FC = () => {
               </div>
               {summary?.prescriptions?.length > 0 ? (
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 18, color: 'var(--color-ink)' }}>
+                  <div style={{ fontWeight: 520, fontSize: 18, color: 'var(--color-ink)' }}>
                     {summary.prescriptions[0].items?.[0]?.medication_name || 'Medication'}
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--color-metric-blue)', fontWeight: 600, marginTop: 4 }}>
+                  <div style={{ fontSize: 13, color: 'var(--color-metric-blue)', fontWeight: 520, marginTop: 4 }}>
                     {summary.prescriptions[0].items?.[0]?.dosage} · {summary.prescriptions[0].items?.[0]?.frequency}
                   </div>
                   <div style={{ fontSize: 14, color: 'var(--color-body-gray)', marginTop: 10, lineHeight: 1.5 }}>
@@ -329,7 +330,7 @@ export const PatientPortal: React.FC = () => {
             <div key={v.id} className="cloud-feature-card" style={{ padding: 28 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--color-ink)' }}>
+                  <div style={{ fontSize: 18, fontWeight: 520, color: 'var(--color-ink)' }}>
                     {v.diagnosis}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--color-body-gray)', marginTop: 4 }}>
@@ -390,8 +391,8 @@ export const PatientPortal: React.FC = () => {
                       border: '1px solid var(--color-border-subtle)',
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--color-ink)' }}>{item.medication_name}</div>
-                    <div style={{ fontSize: 13, color: 'var(--color-metric-blue)', fontWeight: 600, marginTop: 4 }}>
+                    <div style={{ fontWeight: 520, fontSize: 16, color: 'var(--color-ink)' }}>{item.medication_name}</div>
+                    <div style={{ fontSize: 13, color: 'var(--color-metric-blue)', fontWeight: 520, marginTop: 4 }}>
                       {item.dosage} · {item.frequency} · {item.duration}
                     </div>
                     {item.instructions && (
@@ -426,13 +427,19 @@ export const PatientPortal: React.FC = () => {
               <tbody>
                 {summary?.labResults?.map((lr: any) => (
                   <tr key={lr.id}>
-                    <td style={{ fontWeight: 600 }}>{lr.parameter_name}</td>
+                    <td style={{ fontWeight: 520 }}>{lr.parameter_name}</td>
                     <td>
                       <span style={{
-                        fontWeight: 700,
+                        fontWeight: 560,
                         color: lr.is_abnormal ? 'var(--color-coral-signal)' : 'var(--color-recovery-green)',
                       }}>
-                        {lr.value} {lr.is_abnormal ? '⚠️' : ''}
+                        {lr.value}{' '}
+                        {lr.is_abnormal ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
+                            <AlertIcon size={14} />
+                            {isRtl ? 'خارج المدى' : 'Out of range'}
+                          </span>
+                        ) : ''}
                       </span>
                     </td>
                     <td>{lr.unit}</td>
@@ -499,7 +506,7 @@ export const PatientPortal: React.FC = () => {
           {messages.map((m) => (
             <div key={m.id} className="cloud-feature-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--color-ink)' }}>{m.subject}</div>
+                <div style={{ fontWeight: 520, fontSize: 16, color: 'var(--color-ink)' }}>{m.subject}</div>
                 <span className={`status-badge ${m.status === 'resolved' ? 'badge-approved' : 'badge-draft'}`}>
                   {m.status}
                 </span>
@@ -577,7 +584,7 @@ export const PatientPortal: React.FC = () => {
           {symptoms.map((s) => (
             <div key={s.id} className="cloud-feature-card" style={{ padding: 22, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-ink)' }}>{s.symptom_description}</div>
+                <div style={{ fontWeight: 520, fontSize: 15, color: 'var(--color-ink)' }}>{s.symptom_description}</div>
                 <div style={{ fontSize: 12, color: 'var(--color-body-gray)', marginTop: 4 }}>
                   {new Date(s.onset_date).toLocaleString()}
                 </div>

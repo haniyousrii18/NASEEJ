@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LeafIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
 
@@ -81,7 +82,7 @@ export const ManagerDashboard: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
         <div>
           <div className="recognition-laurel-item" style={{ marginBottom: 4 }}>
-            <span>🌿</span>
+            <LeafIcon />
             <span>{isRtl ? 'لوحة إدارة المنشأة الطبية · Center Operations' : 'Facility Governance & Staff Operations'}</span>
           </div>
           <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', margin: '4px 0' }}>
@@ -99,28 +100,28 @@ export const ManagerDashboard: React.FC = () => {
       {/* Operational Stats Row (Cloud Feature Cards) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 20, marginBottom: 36 }}>
         <div className="cloud-feature-card" style={{ padding: 24 }}>
-          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'إجمالي الكادر الطبي والإداري' : 'Active Staff Count'}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 600, color: 'var(--color-ink)', marginTop: 8, letterSpacing: '-1px' }}>
+          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-ink)', marginTop: 8, letterSpacing: '-1px' }}>
             {staff.length}
           </div>
         </div>
 
         <div className="cloud-feature-card" style={{ padding: 24 }}>
-          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'المرضى في صالة الانتظار (Checked-In)' : 'Waiting Room (Checked-In)'}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 600, color: 'var(--color-recovery-green)', marginTop: 8, letterSpacing: '-1px' }}>
+          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-recovery-green)', marginTop: 8, letterSpacing: '-1px' }}>
             {checkedInCount}
           </div>
         </div>
 
         <div className="cloud-feature-card" style={{ padding: 24 }}>
-          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'المواعيد المؤكدة اليوم' : 'Confirmed Appointments'}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 600, color: 'var(--color-metric-blue)', marginTop: 8, letterSpacing: '-1px' }}>
+          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-metric-blue)', marginTop: 8, letterSpacing: '-1px' }}>
             {confirmedCount}
           </div>
         </div>
@@ -257,7 +258,7 @@ export const ManagerDashboard: React.FC = () => {
             <tbody>
               {staff.map((m) => (
                 <tr key={m.membership_id}>
-                  <td style={{ fontWeight: 600 }}>
+                  <td style={{ fontWeight: 520 }}>
                     {isRtl ? m.full_name_ar : m.full_name_en}
                   </td>
                   <td>

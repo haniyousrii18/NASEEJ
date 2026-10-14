@@ -1,4 +1,5 @@
 import React from 'react';
+import { LeafIcon, LockIcon } from '../components/LineIcon.js';
 import { useLang } from '../context/LangContext.js';
 
 interface PublicHomeProps {
@@ -29,15 +30,15 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
           {/* Recognition Laurel Pair per DESIGN (2).md */}
           <div className="recognition-laurel-pair">
             <div className="recognition-laurel-item">
-              <span>🌿</span>
+              <LeafIcon />
               <span>{isRtl ? 'جائزة الابتكار الصحي الرقمي 2026' : 'Digital Health Innovation Award 2026'}</span>
-              <span>🌿</span>
+              <LeafIcon />
             </div>
             <span style={{ color: 'var(--color-body-gray)', opacity: 0.5 }}>•</span>
             <div className="recognition-laurel-item">
-              <span>🌿</span>
+              <LeafIcon />
               <span>{isRtl ? 'معايير العزل السحابي الطبي المعتمد' : 'HIPAA & HL7/FHIR Architectural Standard'}</span>
-              <span>🌿</span>
+              <LeafIcon />
             </div>
           </div>
 
@@ -127,7 +128,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                 justifyContent: 'space-between',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-body-gray)', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: 13, fontWeight: 520, color: 'var(--color-body-gray)', textTransform: 'uppercase' }}>
                     {isRtl ? 'حلقات الرعاية الحيوية' : 'Health Metric Rings'}
                   </span>
                   <span className="status-badge badge-approved" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -153,7 +154,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
-                      <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', lineHeight: 1 }}>98%</span>
+                      <span style={{ fontSize: 20, fontWeight: 560, color: 'var(--color-ink)', lineHeight: 1 }}>98%</span>
                       <span style={{ fontSize: 10, color: 'var(--color-body-gray)', marginTop: 2 }}>
                         {isRtl ? 'توافق سريري' : 'Vitals Score'}
                       </span>
@@ -201,12 +202,12 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontWeight: 600,
+                      fontWeight: 520,
                     }}>
                       م.ع
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-ink)' }}>
+                      <div style={{ fontWeight: 520, fontSize: 15, color: 'var(--color-ink)' }}>
                         {isRtl ? 'محمد المنصور (المريض)' : 'Mohammed Al-Mansoor'}
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>
@@ -262,7 +263,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                   color: 'var(--color-body-gray)',
                 }}>
                   <span>{isRtl ? 'المركز المعالج: مركز النور التخصصي' : 'Attending: Noor Specialty Clinic'}</span>
-                  <span style={{ color: 'var(--color-recovery-green)', fontWeight: 600 }}>
+                  <span style={{ color: 'var(--color-recovery-green)', fontWeight: 520 }}>
                     {isRtl ? 'توقيع الطبيب معتمد ✓' : 'Signed by Dr. Faisal ✓'}
                   </span>
                 </div>
@@ -286,7 +287,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
           style={{
             marginBottom: 24,
             fontSize: 24,
-            fontWeight: 600,
+            fontWeight: 520,
             letterSpacing: '-0.24px',
             color: 'var(--color-ink)',
           }}
@@ -388,7 +389,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                 <span style={{ fontSize: 12, color: 'var(--color-body-gray)', display: 'block' }}>
                   {isRtl ? 'حاجز العزل' : 'Tenant Isolation Shield'}
                 </span>
-                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-metric-blue)' }}>
+                <span style={{ fontSize: 16, fontWeight: 520, color: 'var(--color-metric-blue)' }}>
                   X-Organization-Id
                 </span>
               </div>
@@ -434,7 +435,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                 <span style={{ fontSize: 12, color: 'var(--color-body-gray)', display: 'block' }}>
                   {isRtl ? 'حالة المسودة' : 'Draft Protocol'}
                 </span>
-                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-recovery-green)' }}>
+                <span style={{ fontSize: 16, fontWeight: 520, color: 'var(--color-recovery-green)' }}>
                   Human In-The-Loop
                 </span>
               </div>
@@ -480,7 +481,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                 <span style={{ fontSize: 12, color: 'var(--color-body-gray)', display: 'block' }}>
                   {isRtl ? 'فحص التعارض' : 'Conflict Prevention'}
                 </span>
-                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-sleep-lilac)' }}>
+                <span style={{ fontSize: 16, fontWeight: 520, color: 'var(--color-sleep-lilac)' }}>
                   Server Conflict Logic
                 </span>
               </div>
@@ -530,7 +531,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                 🩺
               </div>
               <div>
-                <h4 style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-ink)' }}>
+                <h4 style={{ fontSize: 16, fontWeight: 520, color: 'var(--color-ink)' }}>
                   {isRtl ? 'د. فيصل الشمري' : 'Dr. Faisal Al-Shammari'}
                 </h4>
                 <span style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>
@@ -565,7 +566,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                 🛎️
               </div>
               <div>
-                <h4 style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-ink)' }}>
+                <h4 style={{ fontSize: 16, fontWeight: 520, color: 'var(--color-ink)' }}>
                   {isRtl ? 'نورة القحطاني' : 'Noura Al-Qahtani'}
                 </h4>
                 <span style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>
@@ -600,7 +601,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                 🌟
               </div>
               <div>
-                <h4 style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-ink)' }}>
+                <h4 style={{ fontSize: 16, fontWeight: 520, color: 'var(--color-ink)' }}>
                   {isRtl ? 'محمد المنصور' : 'Mohammed Al-Mansoor'}
                 </h4>
                 <span style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>
@@ -647,13 +648,13 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
               background: 'color-mix(in srgb, var(--color-text-inverse) 15%, transparent)',
               color: 'var(--color-text-inverse)',
               fontSize: 12,
-              fontWeight: 600,
+              fontWeight: 520,
               marginBottom: 16,
             }}>
-              <span>🔒</span>
+              <LockIcon />
               <span>{isRtl ? 'المبدأ الجوهري لمنصة نسيج' : 'Core Architecture Commitment'}</span>
             </div>
-            <h3 style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.8px', color: 'var(--color-text-inverse)', marginBottom: 14 }}>
+            <h3 style={{ fontSize: 32, fontWeight: 520, letterSpacing: '-0.8px', color: 'var(--color-text-inverse)', marginBottom: 14 }}>
               {isRtl
                 ? 'الربط السحابي لا يعني فتح السجلات للجميع'
                 : 'Connecting Healthcare Never Means Exposing Patient Records'}
@@ -719,7 +720,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
               <div style={{ background: 'var(--color-forest-ink)', borderRadius: 2 }} />
             </div>
 
-            <div style={{ fontSize: 13, color: 'var(--color-text-inverse)', fontWeight: 500 }}>
+            <div style={{ fontSize: 13, color: 'var(--color-text-inverse)', fontWeight: 480 }}>
               {isRtl ? 'امسح للوصول السريع للجوال' : 'Scan for Mobile Portal'}
             </div>
 
@@ -731,7 +732,7 @@ export const PublicHome: React.FC<PublicHomeProps> = ({ setCurrentView }) => {
                 color: 'var(--color-charcoal)',
                 fontSize: 14,
                 padding: '8px 18px',
-                fontWeight: 600,
+                fontWeight: 520,
               }}
             >
               {t.hero.ctaDemo}

@@ -27,7 +27,7 @@
   color: var(--color-ink);
   font-family: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 520;
   text-align: center;
 }
 
@@ -59,7 +59,7 @@
   padding: 6px 18px;
   border-radius: var(--radius-pills);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 480;
   color: var(--color-body-gray);
 }
 
@@ -71,11 +71,6 @@
 .doctor-section-nav button:not([aria-current='true']):hover {
   background: var(--color-cloud-card-hover);
   color: var(--color-ink);
-}
-
-/* Focus mode hides the site header and footer. They are marked with data-chrome. */
-html[data-doctor-focus='1'] [data-chrome] {
-  display: none;
 }
 
 /* Workspace layout: narrow context rail + wide working area on desktop, stacked below 900px. */
@@ -90,4 +85,52 @@ html[data-doctor-focus='1'] [data-chrome] {
   .doctor-layout:not([data-focus='1']) {
     grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
   }
+}
+
+/* Phones: table rows become labelled cards so nothing is squeezed or scrolls sideways. */
+@media (max-width: 640px) {
+  .doctor-table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .data-table.doctor-table-stack {
+    min-width: 0;
+  }
+  .doctor-table-stack,
+  .doctor-table-stack tbody,
+  .doctor-table-stack tr,
+  .doctor-table-stack th,
+  .doctor-table-stack td {
+    display: block;
+    width: 100%;
+  }
+  .doctor-table-stack tr {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .doctor-table-stack tr:last-child {
+    border-bottom: none;
+  }
+  .doctor-table-stack th,
+  .doctor-table-stack td {
+    padding: 4px 0;
+    border: none;
+    background: transparent;
+  }
+  .doctor-table-stack td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 12px;
+    font-weight: 520;
+    color: var(--color-body-gray);
+  }
+}
+
+/* Decorative pictographs stay quiet: monochrome, never the loudest thing on the card. */
+.emoji-quiet {
+  filter: grayscale(1);
+  opacity: 0.85;
 }

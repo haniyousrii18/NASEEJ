@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LeafIcon } from '../components/LineIcon.js';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 
@@ -110,9 +111,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
       <div style={{ textAlign: 'center', marginBottom: 44 }}>
         <div className="recognition-laurel-pair">
           <div className="recognition-laurel-item">
-            <span>🌿</span>
+            <LeafIcon />
             <span>{isRtl ? 'الدخول الآمن والتحقق المعتمد' : 'Secure Authenticated Access'}</span>
-            <span>🌿</span>
+            <LeafIcon />
           </div>
         </div>
         <h1 className="text-display" style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', margin: '14px 0' }}>
@@ -170,7 +171,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>
+                  <div style={{ fontSize: 14, fontWeight: 520, color: 'var(--color-ink)' }}>
                     {p.name}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--color-body-gray)', marginTop: 2 }}>

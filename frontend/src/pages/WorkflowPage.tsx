@@ -1,4 +1,5 @@
 import React from 'react';
+import { LeafIcon } from '../components/LineIcon.js';
 import { useLang } from '../context/LangContext.js';
 
 export const WorkflowPage: React.FC = () => {
@@ -17,9 +18,9 @@ export const WorkflowPage: React.FC = () => {
       <div style={{ textAlign: 'center', marginBottom: 56 }}>
         <div className="recognition-laurel-pair">
           <div className="recognition-laurel-item">
-            <span>🌿</span>
+            <LeafIcon />
             <span>{isRtl ? 'تسلسل رحلة الرعاية السريرية' : 'End-to-End Care Journey'}</span>
-            <span>🌿</span>
+            <LeafIcon />
           </div>
         </div>
         <h1 className="text-display" style={{ fontSize: 'clamp(2.2rem, 4vw, 3.5rem)', margin: '14px 0' }}>
@@ -51,13 +52,13 @@ export const WorkflowPage: React.FC = () => {
               justifyContent: 'center',
               fontSize: '1.4rem',
             }}>
-              {s.icon}
+              <span className="emoji-quiet" aria-hidden="true">{s.icon}</span>
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                 <span style={{
                   fontSize: 13,
-                  fontWeight: 700,
+                  fontWeight: 560,
                   color: s.accent,
                   background: 'var(--color-paper-white)',
                   padding: '3px 10px',
