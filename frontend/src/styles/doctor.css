@@ -1,0 +1,93 @@
+/* Doctor workspace additions. Tokens only: no hard-coded colours. */
+
+.num {
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+.latin {
+  unicode-bidi: isolate;
+  direction: ltr;
+}
+
+/* Static placeholder block: it never animates, so it needs no reduced-motion variant. */
+.doctor-skeleton {
+  background: var(--color-cloud-card-hover);
+  opacity: 0.7;
+}
+
+.doctor-kbd {
+  display: inline-block;
+  min-width: 26px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-strong);
+  border-bottom-width: 2px;
+  background: var(--color-bg-elevated);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.doctor-row {
+  width: 100%;
+  min-height: 44px;
+  text-align: start;
+  color: inherit;
+  cursor: pointer;
+}
+
+.doctor-row:hover {
+  border-color: var(--color-charcoal);
+}
+
+.doctor-section-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px;
+  border-radius: var(--radius-pills);
+  background: var(--color-cloud-card);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.doctor-section-nav button {
+  min-height: 44px;
+  padding: 6px 18px;
+  border-radius: var(--radius-pills);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-body-gray);
+}
+
+.doctor-section-nav button[aria-current='true'] {
+  background: var(--color-charcoal);
+  color: var(--color-cloud-card);
+}
+
+.doctor-section-nav button:not([aria-current='true']):hover {
+  background: var(--color-cloud-card-hover);
+  color: var(--color-ink);
+}
+
+/* Focus mode hides the site header and footer. They are marked with data-chrome. */
+html[data-doctor-focus='1'] [data-chrome] {
+  display: none;
+}
+
+/* Workspace layout: narrow context rail + wide working area on desktop, stacked below 900px. */
+.doctor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .doctor-layout:not([data-focus='1']) {
+    grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+  }
+}

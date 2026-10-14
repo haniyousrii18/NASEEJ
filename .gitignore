@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.env
+*.log
+storage/protected/*
+!storage/protected/.gitkeep
+.DS_Store
+coverage/
+.agent/
+.agents/
+.gemini/
+.claude/
+.codex/

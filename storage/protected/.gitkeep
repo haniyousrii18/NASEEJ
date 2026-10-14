@@ -1,0 +1,2 @@
+# Naseej Protected Storage Directory
+# Files stored here are outside web server public directories and served only through authenticated APIs.
