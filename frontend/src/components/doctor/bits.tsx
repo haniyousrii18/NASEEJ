@@ -44,11 +44,14 @@ export const SeverityChip: React.FC<{ severity: Severity }> = ({ severity }) => 
   const { t } = useLang();
   const s = SEVERITY_STYLE[severity];
   return (
-    <span className={`status-badge ${s.cls}`} style={{ fontSize: 12, padding: '2px 10px' }}>
+    <span
+      className={`status-badge ${s.cls}`}
+      style={{ fontSize: 12, padding: '2px 10px' }}
+      title={`${t.doctor.severity.label}: ${t.doctor.severity[severity]}`}
+      aria-label={`${t.doctor.severity.label}: ${t.doctor.severity[severity]}`}
+    >
       {s.icon}
-      <span>
-        {t.doctor.severity.label}: {t.doctor.severity[severity]}
-      </span>
+      <span aria-hidden="true">{t.doctor.severity[severity]}</span>
     </span>
   );
 };
@@ -57,7 +60,8 @@ export const SourceChip: React.FC<{ kind: 'allergy' | 'lab' | 'rx' | 'visit' }> 
   const { t } = useLang();
   return (
     <span className="status-badge badge-info" style={{ fontSize: 11, padding: '2px 8px', fontWeight: 500 }}>
-      {t.doctor.brief.sourceLabel}: {t.doctor.source[kind]}
+      <span className="visually-hidden-text" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>{t.doctor.brief.sourceLabel}: </span>
+      {t.doctor.source[kind]}
     </span>
   );
 };

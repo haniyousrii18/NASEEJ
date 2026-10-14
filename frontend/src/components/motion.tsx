@@ -50,21 +50,20 @@ export const Stagger: React.FC<BoxProps> = ({ children, ...rest }) => (
   </div>
 );
 
-/** Cross-fades a skeleton into the real content. Keep a min-height on the parent to avoid layout shift. */
+/**
+ * Swaps a skeleton for the real content. The skeleton goes away immediately (content never waits on an
+ * exit animation) and the content fades in over 240ms. Keep a min-height on the parent to avoid layout shift.
+ */
 export const LoadSwap: React.FC<{ ready: boolean; skeleton: React.ReactNode; children: React.ReactNode; swapKey?: string }> = ({
   ready, skeleton, children, swapKey,
-}) => (
-  <AnimatePresence mode="wait" initial={false}>
-    <m.div
-      key={ready ? `ready-${swapKey ?? ''}` : 'skeleton'}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { duration: 0.24, ease: EASE_OUT } }}
-      exit={{ opacity: 0, transition: { duration: 0.12, ease: EASE_IN } }}
-    >
-      {ready ? children : skeleton}
+}) =>
+  ready ? (
+    <m.div key={`ready-${swapKey ?? ''}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24, ease: EASE_OUT }}>
+      {children}
     </m.div>
-  </AnimatePresence>
-);
+  ) : (
+    <div key="skeleton">{skeleton}</div>
+  );
 
 type PresenceKind = 'dialog' | 'popover' | 'panel';
 const presence = (kind: PresenceKind, dir: 1 | -1) => {

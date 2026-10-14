@@ -355,19 +355,16 @@ export const DoctorWorkspace: React.FC = () => {
   return (
     <div className="page-shell" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 24px 80px' }}>
       {/* Workspace header */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 2 }}>
-            <div className="recognition-laurel-item">
-              <span>🌿</span>
-              <span>{D.eyebrow}</span>
-            </div>
-            <span className="status-badge badge-lilac" title={D.syntheticHint} style={{ fontSize: 12 }}>
-              {Icon.spark}
-              <span>{D.syntheticBadge}</span>
-            </span>
-          </div>
-          <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.35rem, 2vw, 1.75rem)', margin: '2px 0' }}>{D.title}</h1>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px 14px', flexWrap: 'wrap' }}>
+          <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.25rem, 1.8vw, 1.6rem)', margin: 0 }}>
+            <span aria-hidden="true">🌿 </span>
+            {D.title}
+          </h1>
+          <span className="status-badge badge-lilac" title={D.syntheticHint} style={{ fontSize: 12 }}>
+            {Icon.spark}
+            <span>{D.syntheticBadge}</span>
+          </span>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => setSearchOpen(true)} className="btn-pill btn-pill-ghost" style={{ fontSize: 13, minHeight: 44 }} title={`${D.search.label} (/)`}>
@@ -378,12 +375,11 @@ export const DoctorWorkspace: React.FC = () => {
             {Icon.focus}
             <span>{focusMode ? D.focus.exit : D.focus.enter}</span>
           </button>
-          <button type="button" onClick={() => setHelpOpen(true)} className="btn-pill btn-pill-ghost" style={{ fontSize: 13, minHeight: 44 }} title={`${D.shortcuts.title} (?)`}>
+          <button type="button" onClick={() => setHelpOpen(true)} className="btn-pill btn-pill-ghost" style={{ minWidth: 44, minHeight: 44, padding: 0 }} title={`${D.shortcuts.title} (?)`} aria-label={D.shortcuts.title}>
             {Icon.keyboard}
-            <span>{D.shortcuts.title}</span>
           </button>
-          <button type="button" onClick={() => void loadData()} className="btn-pill btn-pill-cloud" style={{ fontSize: 13, minHeight: 44 }}>
-            ↻ {D.refresh}
+          <button type="button" onClick={() => void loadData()} className="btn-pill btn-pill-cloud" style={{ minWidth: 44, minHeight: 44, padding: 0 }} title={D.refresh} aria-label={D.refresh}>
+            <span aria-hidden="true">↻</span>
           </button>
         </div>
       </div>
@@ -415,7 +411,7 @@ export const DoctorWorkspace: React.FC = () => {
 
         {/* Active patient */}
         {selectedId ? (
-          <div key={selectedId} style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
+          <div key={selectedId} style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
             <LoadSwap
               ready={!!data && !loadingPatient && data.patient.id === selectedId}
               swapKey={selectedId}
@@ -427,9 +423,9 @@ export const DoctorWorkspace: React.FC = () => {
               }
             >
               {patient && data && summary && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {/* Patient header + allergy banner (FR-072) */}
-                  <div className="cloud-feature-card" style={{ padding: '20px 24px' }}>
+                  <div className="cloud-feature-card" style={{ padding: '16px 22px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
                       <div>
                         <h2 className="text-card-heading" style={{ fontSize: 22, margin: 0 }} dir="auto">
@@ -455,31 +451,29 @@ export const DoctorWorkspace: React.FC = () => {
                       <div
                         className="motion-alert-enter"
                         role="alert"
-                        style={{ marginTop: 14, padding: '10px 16px', borderRadius: 14, background: 'var(--color-status-draft-bg)', border: '1px solid var(--color-status-draft-border)', display: 'flex', alignItems: 'center', gap: 12 }}
+                        style={{ marginTop: 12, padding: '8px 14px', borderRadius: 14, background: 'var(--color-status-draft-bg)', border: '1px solid var(--color-status-draft-border)', display: 'flex', alignItems: 'center', gap: '4px 12px', flexWrap: 'wrap' }}
                       >
-                        <span style={{ fontSize: '1.4rem' }}>⚠️</span>
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-status-draft-text)' }}>{t.clinical.allergiesWarning}</div>
-                          <div style={{ fontSize: 13, color: 'var(--color-ink)', marginTop: 2 }}>
-                            {patient.allergies!.map((a) => (
-                              <span key={a.id} style={{ marginInlineEnd: 14 }} dir="auto">
-                                • {isRtl ? a.allergen_ar : a.allergen_en} ({a.severity})
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-status-draft-text)' }}>{t.clinical.allergiesWarning}</span>
+                        <span style={{ fontSize: 13, color: 'var(--color-ink)' }}>
+                          {patient.allergies!.map((a) => (
+                            <span key={a.id} style={{ marginInlineEnd: 14 }} dir="auto">
+                              • {isRtl ? a.allergen_ar : a.allergen_en} ({a.severity})
+                            </span>
+                          ))}
+                        </span>
                       </div>
                     )}
-                  </div>
 
-                  {/* Sections */}
-                  <nav aria-label={D.sections.nav} className="doctor-section-nav">
-                    {SECTIONS.map((s, i) => (
-                      <button key={s} type="button" aria-current={section === s ? 'true' : undefined} onClick={() => goSection(s, false)} title={i === 0 ? '[' : undefined}>
-                        {D.sections[s]}
-                      </button>
-                    ))}
-                  </nav>
+                    {/* Sections: [ and ] step through them */}
+                    <nav aria-label={D.sections.nav} className="doctor-section-nav" style={{ marginTop: 10 }}>
+                      {SECTIONS.map((s) => (
+                        <button key={s} type="button" aria-current={section === s ? 'true' : undefined} onClick={() => goSection(s, false)}>
+                          {D.sections[s]}
+                        </button>
+                      ))}
+                    </nav>
+                  </div>
 
                   {section === 'summary' && (
                     <Rise key="summary" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

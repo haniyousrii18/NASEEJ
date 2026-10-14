@@ -82,7 +82,7 @@ html[data-doctor-focus='1'] [data-chrome] {
 .doctor-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
+  gap: 16px;
   align-items: start;
 }
 
