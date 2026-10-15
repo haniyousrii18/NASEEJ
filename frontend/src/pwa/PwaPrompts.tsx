@@ -120,8 +120,8 @@ export const PwaPrompts: React.FC<{ currentView: string }> = ({ currentView }) =
 
   const standalone = isStandalone();
   const showUpdate = needRefresh && !updateDeferred;
-  const showInstall = !showUpdate && !standalone && !installDismissed && canPrompt;
-  const showIos = !showUpdate && !standalone && !canPrompt && ((!installDismissed && isIosSafari()) || showIosHelp);
+  const showInstall = false; // Hidden per user request
+  const showIos = false; // Hidden per user request
 
   return (
     <div
