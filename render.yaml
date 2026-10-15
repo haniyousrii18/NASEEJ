@@ -1,0 +1,50 @@
+# Render Blueprint: Postgres + the Naseej API.
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repo. See DEPLOY.md for the full steps.
+databases:
+  - name: naseej-db
+    plan: free
+    databaseName: naseej
+    user: naseej
+
+services:
+  - type: web
+    name: naseej-api
+    runtime: node
+    plan: free
+    # Built from the repo root because the lockfile belongs to the npm workspace.
+    buildCommand: npm install --include=dev && npm run build:backend
+    startCommand: npm --prefix backend start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        fromDatabase:
+          name: naseej-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: naseej-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: naseej-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: naseej-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: naseej-db
+          property: password
+      # The private connection inside Render needs no TLS. Set to "true" when connecting from outside.
+      - key: DB_SSL
+        value: "false"
+      # Generated once by Render. The code falls back to a published default when this is unset, so never remove it.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 24h
