@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowIcon, LeafIcon, LockIcon } from '../components/LineIcon.js';
-import { pickHero } from '../components/HeroVisual.js';
+import { ArrowIcon, EyeIcon, LockIcon, MailIcon } from '../components/LineIcon.js';
+import { AuthArt } from '../components/AuthArt.js';
+import { Collapse } from '../components/motion.js';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 
@@ -9,14 +10,16 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
-  const { t, isRtl, lang } = useLang();
+  const { t, isRtl } = useLang();
   const A = t.auth;
   const { login } = useAuth();
 
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('Password123!');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [demoOpen, setDemoOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const demoPersonas = [
     {
@@ -96,7 +99,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
         setCurrentView('home');
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Login error');
+      // fetch rejects with a TypeError when the server cannot be reached, and a gateway error body is not JSON.
+      setErrorMsg(err instanceof TypeError || err instanceof SyntaxError ? A.networkError : err.message || 'Login error');
     } finally {
       setLoading(false);
     }
@@ -108,113 +112,126 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
     handleLoginSubmit(undefined, personaEmail);
   };
 
-  const heroSrc = pickHero(lang);
-
   return (
     <div className="auth">
-      <section className="auth-story" aria-labelledby="auth-story-title">
-        {heroSrc && <img src={heroSrc} alt={t.landing.imageAlt} decoding="async" />}
-        <div className="auth-story-inner">
-          <span className="auth-story-eyebrow">
-            <LockIcon />
-            {A.eyebrow}
-          </span>
-          <h2 id="auth-story-title" className="auth-story-title">{A.panelTitle}</h2>
-          <p className="auth-story-lead">{A.panelLead}</p>
-          <ul className="auth-nodes">
-            <li>{A.nodePatients}</li>
-            <li>{A.nodeClinicians}</li>
-            <li>{A.nodeCenters}</li>
-          </ul>
+      <AuthArt />
+      <div className="auth-stage">
+        <div className="auth-brand" dir={isRtl ? 'rtl' : 'ltr'}>
+          <img className="auth-logo" src="/logo.png" alt="" width={84} height={84} />
+          <span className="auth-brand-name">{t.brand.name}</span>
+          <span className="auth-brand-sub">{t.brand.tagline}</span>
         </div>
-      </section>
 
-      <div className="auth-main">
-        <div className="auth-panel motion-stagger">
+        <div className="auth-card motion-stagger" dir={isRtl ? 'rtl' : 'ltr'}>
           <div className="auth-head">
-            <span className="auth-eyebrow">
-              <LeafIcon />
-              {A.eyebrow}
-            </span>
-            <h1 className="auth-title">{A.loginTitle}</h1>
-            <p className="auth-sub">{A.loginSubtitle}</p>
+            <h1 className="auth-title">{A.cardTitle}</h1>
+            <p className="auth-sub">{A.cardWelcome}</p>
           </div>
 
-          <div className="cloud-feature-card auth-card">
-            <h2 className="auth-card-title">{A.directLogin}</h2>
+          {errorMsg && (
+            <div id="login-error" className="auth-error motion-alert-enter" role="alert">
+              {errorMsg}
+            </div>
+          )}
 
-            {errorMsg && (
-              <div className="auth-error motion-alert-enter" role="alert">
-                {errorMsg}
-              </div>
-            )}
-
-            <form className="auth-form" onSubmit={handleLoginSubmit}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="login-email">{A.email}</label>
+          <form className="auth-form" onSubmit={handleLoginSubmit}>
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="login-email">{A.email}</label>
+              <div className="auth-input-wrap">
+                <span className="auth-input-icon"><MailIcon /></span>
                 <input
                   id="login-email"
                   type="email"
                   required
                   autoComplete="username"
-                  dir="ltr"
+                  aria-invalid={errorMsg ? true : undefined}
+                  aria-describedby={errorMsg ? 'login-error' : undefined}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="doctor.noor@naseej.health"
-                  className="form-input"
+                  className="auth-input"
                 />
               </div>
+            </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="login-password">{A.password}</label>
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="login-password">{A.password}</label>
+              <div className="auth-input-wrap">
+                <span className="auth-input-icon"><LockIcon /></span>
                 <input
                   id="login-password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="current-password"
-                  dir="ltr"
+                  aria-invalid={errorMsg ? true : undefined}
+                  aria-describedby={errorMsg ? 'login-error' : undefined}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password123!"
-                  className="form-input"
+                  placeholder="••••••••"
+                  className="auth-input auth-input--toggle"
                 />
+                <button
+                  type="button"
+                  className="auth-eye"
+                  aria-label={showPassword ? A.hidePassword : A.showPassword}
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((v) => !v)}
+                >
+                  <EyeIcon off={showPassword} />
+                </button>
               </div>
-
-              <button type="submit" disabled={loading} className="btn-pill btn-pill-charcoal auth-submit">
-                {loading ? t.common.loading : A.loginBtn}
-              </button>
-            </form>
-
-            <p className="auth-note">{A.passwordNote}</p>
-          </div>
-
-          <div className="cloud-feature-card auth-card">
-            <div className="auth-demo-head">
-              <h2 className="auth-card-title">{A.demoAccounts}</h2>
-              <span className="status-badge badge-approved" style={{ fontSize: 11 }}>{A.syntheticBadge}</span>
             </div>
-            <p className="auth-demo-lead">{A.demoLead}</p>
-            <ul className="auth-personas">
-              {demoPersonas.map((p) => (
-                <li key={p.roleKey}>
-                  <button type="button" className="auth-persona" disabled={loading} onClick={() => handleQuickLogin(p.email)}>
-                    <span className="auth-persona-text">
-                      <span className="auth-persona-name">{p.name}</span>
-                      <span className="auth-persona-desc">{p.desc}</span>
-                    </span>
-                    <span className={`status-badge ${p.badgeClass}`}>{p.badge}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          <button type="button" className="auth-back" onClick={() => setCurrentView('home')}>
-            <span aria-hidden="true" style={{ display: 'inline-flex', transform: isRtl ? undefined : 'scaleX(-1)' }}>
-              <ArrowIcon />
-            </span>
-            {A.backHome}
-          </button>
+            <button type="submit" disabled={loading} className="auth-submit">
+              {loading ? t.common.loading : A.loginBtn}
+            </button>
+          </form>
+
+          <p className="auth-aside">
+            {A.noAccess}{' '}
+            <button type="button" className="auth-link" onClick={() => setCurrentView('demo')}>
+              {A.requestDemo}
+            </button>
+          </p>
+          <p className="auth-help">{A.forgotHelp}</p>
+
+          <div className="auth-demo">
+            <button
+              type="button"
+              className="auth-demo-toggle"
+              aria-expanded={demoOpen}
+              aria-controls="auth-demo-panel"
+              onClick={() => setDemoOpen((o) => !o)}
+            >
+              {demoOpen ? A.hideDemo : A.tryDemo}
+              <span className="auth-demo-chevron" aria-hidden="true" data-open={demoOpen}>
+                <ArrowIcon />
+              </span>
+            </button>
+            <Collapse open={demoOpen} id="auth-demo-panel">
+              <div className="auth-demo-body">
+                <div className="auth-demo-head">
+                  <h2 className="auth-demo-title">{A.demoAccounts}</h2>
+                  <span className="auth-badge">{A.syntheticBadge}</span>
+                </div>
+                <p className="auth-demo-lead">{A.demoLead}</p>
+                <ul className="auth-personas">
+                  {demoPersonas.map((p) => (
+                    <li key={p.roleKey}>
+                      <button type="button" className="auth-persona" disabled={loading} onClick={() => handleQuickLogin(p.email)}>
+                        <span className="auth-persona-text">
+                          <span className="auth-persona-name">{p.name}</span>
+                          <span className="auth-persona-desc">{p.desc}</span>
+                        </span>
+                        <span className="auth-badge">{p.badge}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p className="auth-note">{A.passwordNote}</p>
+              </div>
+            </Collapse>
+          </div>
         </div>
       </div>
     </div>

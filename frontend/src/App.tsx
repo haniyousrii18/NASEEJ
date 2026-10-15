@@ -16,6 +16,7 @@ import { DoctorWorkspace } from './pages/DoctorWorkspace.js';
 import { ReceptionWorkspace } from './pages/ReceptionWorkspace.js';
 import { PatientPortal } from './pages/PatientPortal.js';
 import { PwaPrompts, PWA_RESTORE_KEY } from './pwa/PwaPrompts.js';
+import { InstallProvider } from './pwa/InstallContext.js';
 import './styles/theme.css';
 import './styles/shell.css';
 import './styles/landing.css';
@@ -105,7 +106,9 @@ export const App: React.FC = () => {
       <MotionRoot>
         <LangProvider>
           <AuthProvider>
-            <MainContent />
+            <InstallProvider>
+              <MainContent />
+            </InstallProvider>
           </AuthProvider>
         </LangProvider>
       </MotionRoot>

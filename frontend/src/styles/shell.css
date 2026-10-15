@@ -116,6 +116,23 @@
   font-size: 14px;
 }
 
+.site-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Mid-width bars are tight: the install button keeps only its icon (the name stays on aria-label). */
+@media (min-width: 960px) and (max-width: 1279px) {
+  .site-actions .site-install {
+    padding-inline: 12px;
+  }
+
+  .site-install-label {
+    display: none;
+  }
+}
+
 .site-org-select {
   width: auto;
   min-height: 44px;

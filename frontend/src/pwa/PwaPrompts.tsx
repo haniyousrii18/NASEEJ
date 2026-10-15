@@ -1,14 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { registerSW } from 'virtual:pwa-register';
 import { useLang } from '../context/LangContext.js';
+import { isIosSafari, isStandalone, useInstall } from './InstallContext.js';
 
 // Key used to carry the current view across an update reload (view name only, no user data).
 export const PWA_RESTORE_KEY = 'naseej_pwa_restore_view';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
 
 const INSTALL_DISMISSED_KEY = 'naseej_pwa_install_dismissed';
 
@@ -23,6 +19,7 @@ const copy = {
     install: 'تثبيت',
     dismiss: 'إخفاء',
     iosBody: 'اضغط زر المشاركة في سفاري ثم «إضافة إلى الشاشة الرئيسية».',
+    manualBody: 'من قائمة المتصفح (⋮ أو ⋯) اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية». التثبيت يعمل على النسخة المنشورة عبر HTTPS وليس على خادم التطوير.',
     offline: 'أنت غير متصل بالإنترنت. لا تتوفر بيانات حديثة، وقد لا تعمل الإجراءات التي تتطلب الاتصال.',
   },
   en: {
@@ -35,19 +32,10 @@ const copy = {
     install: 'Install',
     dismiss: 'Dismiss',
     iosBody: 'Tap the Share button in Safari, then "Add to Home Screen".',
+    manualBody: 'Open your browser menu (⋮ or ⋯) and choose "Install app" or "Add to Home Screen". Installing works on the published HTTPS build, not the dev server.',
     offline: 'You are offline. Live data is unavailable and actions that need a connection may not work.',
   },
 } as const;
-
-const isStandalone = () =>
-  window.matchMedia('(display-mode: standalone)').matches ||
-  (navigator as Navigator & { standalone?: boolean }).standalone === true;
-
-const isIosSafari = () => {
-  const ua = navigator.userAgent;
-  const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  return ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
-};
 
 const readDismissed = (): boolean => {
   try {
@@ -85,7 +73,7 @@ export const PwaPrompts: React.FC<{ currentView: string }> = ({ currentView }) =
   const [needRefresh, setNeedRefresh] = useState(false);
   const [updateDeferred, setUpdateDeferred] = useState(false);
   const [updateSW, setUpdateSW] = useState<((reload?: boolean) => Promise<void>) | null>(null);
-  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const { canPrompt, showIosHelp, closeIosHelp, install } = useInstall();
   const [installDismissed, setInstallDismissed] = useState(readDismissed);
   const [online, setOnline] = useState(() => navigator.onLine);
 
@@ -102,20 +90,11 @@ export const PwaPrompts: React.FC<{ currentView: string }> = ({ currentView }) =
   }, []);
 
   useEffect(() => {
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      setInstallEvent(e as BeforeInstallPromptEvent);
-    };
-    const onInstalled = () => setInstallEvent(null);
     const on = () => setOnline(true);
     const off = () => setOnline(false);
-    window.addEventListener('beforeinstallprompt', onPrompt);
-    window.addEventListener('appinstalled', onInstalled);
     window.addEventListener('online', on);
     window.addEventListener('offline', off);
     return () => {
-      window.removeEventListener('beforeinstallprompt', onPrompt);
-      window.removeEventListener('appinstalled', onInstalled);
       window.removeEventListener('online', on);
       window.removeEventListener('offline', off);
     };
@@ -130,13 +109,6 @@ export const PwaPrompts: React.FC<{ currentView: string }> = ({ currentView }) =
     }
   }, []);
 
-  const doInstall = async () => {
-    if (!installEvent) return;
-    await installEvent.prompt();
-    await installEvent.userChoice;
-    setInstallEvent(null); // the event can only be used once
-  };
-
   const doUpdate = () => {
     try {
       sessionStorage.setItem(PWA_RESTORE_KEY, currentView);
@@ -148,8 +120,8 @@ export const PwaPrompts: React.FC<{ currentView: string }> = ({ currentView }) =
 
   const standalone = isStandalone();
   const showUpdate = needRefresh && !updateDeferred;
-  const showInstall = !showUpdate && !standalone && !installDismissed && !!installEvent;
-  const showIos = !showUpdate && !standalone && !installDismissed && !installEvent && isIosSafari();
+  const showInstall = !showUpdate && !standalone && !installDismissed && canPrompt;
+  const showIos = !showUpdate && !standalone && !canPrompt && ((!installDismissed && isIosSafari()) || showIosHelp);
 
   return (
     <div
@@ -193,7 +165,7 @@ export const PwaPrompts: React.FC<{ currentView: string }> = ({ currentView }) =
           <strong style={{ fontSize: 15 }}>{c.installTitle}</strong>
           <span>{c.installBody}</span>
           <div style={row}>
-            <button type="button" className="btn-pill btn-pill-cloud" style={small} onClick={doInstall}>
+            <button type="button" className="btn-pill btn-pill-cloud" style={small} onClick={() => void install()}>
               {c.install}
             </button>
             <button type="button" className="btn-pill btn-pill-ghost" style={{ ...small, ...onDark }} onClick={dismissInstall}>
@@ -206,9 +178,9 @@ export const PwaPrompts: React.FC<{ currentView: string }> = ({ currentView }) =
       {showIos && (
         <div role="dialog" aria-label={c.installTitle} className="motion-toast-enter" style={{ ...cardStyle, maxWidth: 360 }}>
           <strong style={{ fontSize: 15 }}>{c.installTitle}</strong>
-          <span>{c.iosBody}</span>
+          <span>{isIosSafari() ? c.iosBody : c.manualBody}</span>
           <div style={row}>
-            <button type="button" className="btn-pill btn-pill-ghost" style={{ ...small, ...onDark }} onClick={dismissInstall}>
+            <button type="button" className="btn-pill btn-pill-ghost" style={{ ...small, ...onDark }} onClick={() => { dismissInstall(); closeIosHelp(); }}>
               {c.dismiss}
             </button>
           </div>

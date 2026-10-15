@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 import { ThemeToggle } from './ThemeToggle.js';
+import { DownloadIcon } from './LineIcon.js';
+import { useInstall } from '../pwa/InstallContext.js';
 
 interface HeaderProps {
   currentView: string;
@@ -21,6 +23,7 @@ const MenuIcon: React.FC<{ open: boolean }> = ({ open }) => (
 export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
   const { lang, setLang, t, isRtl } = useLang();
   const { user, logout, currentOrgId, setCurrentOrgId, currentRole } = useAuth();
+  const installApp = useInstall();
   const [open, setOpen] = useState(false);
 
   // Close the menu on navigation and with Escape.
@@ -116,6 +119,19 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
                   {t.nav.login}
                 </button>
               </>
+            )}
+
+            {installApp.available && (
+              <button
+                type="button"
+                onClick={() => void installApp.install()}
+                className="btn-pill btn-pill-cloud site-install"
+                aria-label={t.nav.install}
+                title={t.nav.install}
+              >
+                <DownloadIcon />
+                <span className="site-install-label">{t.nav.install}</span>
+              </button>
             )}
 
             <ThemeToggle />
