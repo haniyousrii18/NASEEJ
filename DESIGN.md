@@ -415,7 +415,7 @@ Only two non-sensitive UI values are stored in `localStorage`: the focus-mode fl
 
 ## Visual direction: Mercury adaptation (dark theme and shared structure)
 
-Adapted from `DESIGN (3).md` (a style reference, not product requirements). Naseej keeps its logo, bilingual behavior, light/dark themes and clinical content; only the visual system changed.
+Adapted from the Mercury style reference (not product requirements). Naseej keeps its logo, bilingual behavior, light/dark themes and clinical content; only the visual system changed.
 
 - **Dark theme** is the Mercury-style world in espresso brown: canvas `#1a1411`, cards `#241c18`, secondary fills `#2e2420`, warm ivory text `#f3ebe3`, secondary text `#cdbfb4`. Tokens: `--color-onyx`, `--color-graphite`, `--color-obsidian`, `--color-ivory`, `--color-ash`.
 - **One chromatic action:** `.btn-pill-charcoal` / `.btn-pill-brand` render orange `#c2410c` with white text (hover `#d9480f` in dark, `#9a3412` in light). Text-safe orange: `#b4380a` on light, `#fdba74` on dark. Secondary buttons are obsidian, ghost buttons are outlines. Selected navigation is a neutral pill, not orange. Focus ring on dark is `#fed7aa`.

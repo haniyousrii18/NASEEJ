@@ -49,13 +49,13 @@ Unlike generic EHRs that isolate data within a single clinic or monolithic enter
 
 - Name: **Naseej | نَسيج** (Weave / Fabric of Connected Healthcare)
 - Logo: Approved asset `logo.png` featuring interconnected medical nodes forming an "S" weave in turquoise to fresh green gradient.
-- Visual Language: Calm, human-centered luxury dark canvas (`#0e100f`, `#191919`, `#fffce1`) adapted from `DESIGN (1).md` with Naseej turquoise accents (`#00A896`, `#02C39A`).
+- Visual Language: Calm, human-centered luxury dark canvas (`#0e100f`, `#191919`, `#fffce1`) adapted from `DESIGN.md` with Naseej turquoise accents (`#00A896`, `#02C39A`).
 
 ## Evidence on Hand
 
 - `Naseej-PRD.md` — comprehensive requirements baseline.
 - `logo.png` — approved brand asset.
-- `DESIGN (1).md` — design language reference adapted for healthcare.
+- `DESIGN.md` — design language reference adapted for healthcare.
 
 ## Product Principles
 

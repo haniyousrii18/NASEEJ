@@ -35,7 +35,7 @@
 
 ## 2. Technology Stack
 
-- **Frontend**: React 18, Vite, TypeScript, Vanilla CSS design tokens adapted from `DESIGN (1).md` with dark obsidian canvas (`#0e100f`), warm cream typography (`#fffce1`), and Naseej brand turquoise (`#00a896`).
+- **Frontend**: React 18, Vite, TypeScript, Vanilla CSS design tokens adapted from `DESIGN.md` with dark obsidian canvas (`#0e100f`), warm cream typography (`#fffce1`), and Naseej brand turquoise (`#00a896`).
 - **Backend API**: Node.js, Express, TypeScript, pluggable authentication adapter pattern (`IAuthProvider`).
 - **Database**: PostgreSQL 16+ with 3NF relational schema, foreign key constraints, and multi-tenant scoping.
 - **Testing**: Vitest, Supertest for integration and security boundary verification.

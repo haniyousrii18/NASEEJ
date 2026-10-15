@@ -540,7 +540,7 @@ strong, b {
   letter-spacing: normal !important;
 }
 
-/* Typography Scale per DESIGN (2).md */
+/* Typography Scale per DESIGN.md */
 .text-hero-display {
   font-size: clamp(2.5rem, 6vw, 5rem);
   font-weight: 480;
@@ -659,7 +659,7 @@ strong, b {
   transition-duration: var(--motion-duration-instant);
 }
 
-/* Charcoal Pill per DESIGN (2).md */
+/* Charcoal Pill per DESIGN.md */
 .btn-pill-charcoal, .btn-pill-brand {
   background: var(--color-charcoal);
   color: var(--color-cloud-card);
@@ -746,7 +746,7 @@ strong, b {
   border: 1px solid var(--color-status-lilac-border);
 }
 
-/* Cloud Feature Card (NO border, NO heavy shadow per DESIGN (2).md) */
+/* Cloud Feature Card (NO border, NO heavy shadow per DESIGN.md) */
 .panel-card, .cloud-feature-card {
   background: var(--color-cloud-card);
   border-radius: var(--radius-cards);
@@ -770,7 +770,7 @@ strong, b {
   box-shadow: var(--shadow-card);
 }
 
-/* Elevated QR Card per DESIGN (2).md */
+/* Elevated QR Card per DESIGN.md */
 .elevated-qr-card {
   background: var(--color-surface-inverse);
   color: var(--color-text-inverse);
