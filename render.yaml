@@ -1,4 +1,4 @@
-# Render Blueprint: Postgres + the Naseej API.
+# Render Blueprint: Postgres + the Naseej API + the web app (static site).
 # Deploy: Render dashboard -> New -> Blueprint -> pick this repo. See DEPLOY.md for the full steps.
 databases:
   - name: naseej-db
@@ -7,6 +7,7 @@ databases:
     user: naseej
 
 services:
+  # ---------------------------------------------------------------- API
   - type: web
     name: naseej-api
     runtime: node
@@ -48,3 +49,35 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 24h
+
+  # ---------------------------------------------------------------- web app
+  - type: web
+    name: naseej-web
+    runtime: static
+    buildCommand: npm install --include=dev && npm --prefix frontend run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+    routes:
+      # The app calls /api on its own domain; Render forwards it to the API service.
+      # If your API ends up with a different address, change this one line (see DEPLOY.md).
+      - type: rewrite
+        source: /api/*
+        destination: https://naseej-api.onrender.com/api/*
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /manifest.webmanifest
+        name: Cache-Control
+        value: no-cache
