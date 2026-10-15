@@ -417,12 +417,26 @@ Only two non-sensitive UI values are stored in `localStorage`: the focus-mode fl
 
 Adapted from `DESIGN (3).md` (a style reference, not product requirements). Naseej keeps its logo, bilingual behavior, light/dark themes and clinical content; only the visual system changed.
 
-- **Dark theme** is the Mercury-style world: onyx canvas `#171721`, graphite cards `#1e1e2a`, obsidian secondary fills `#272735`, ivory text `#ededf3`, ash secondary text `#c3c3cc`. Tokens: `--color-onyx`, `--color-graphite`, `--color-obsidian`, `--color-ivory`, `--color-ash`, `--color-cobalt`, `--color-cobalt-text`.
-- **One chromatic action:** `.btn-pill-charcoal` / `.btn-pill-brand` render cobalt `#5266eb` with white text in dark. Secondary buttons are obsidian, ghost buttons are ivory outlines. Selected navigation is an ivory pill, not cobalt.
-- **Light theme** keeps the Naseej botanical palette (cream, forest, keylime) and primary action in forest green. It shares the new structure: flat surfaces, 12px cards, pill controls, measured weights.
+- **Dark theme** is the Mercury-style world in espresso brown: canvas `#1a1411`, cards `#241c18`, secondary fills `#2e2420`, warm ivory text `#f3ebe3`, secondary text `#cdbfb4`. Tokens: `--color-onyx`, `--color-graphite`, `--color-obsidian`, `--color-ivory`, `--color-ash`.
+- **One chromatic action:** `.btn-pill-charcoal` / `.btn-pill-brand` render orange `#c2410c` with white text (hover `#d9480f` in dark, `#9a3412` in light). Text-safe orange: `#b4380a` on light, `#fdba74` on dark. Secondary buttons are obsidian, ghost buttons are outlines. Selected navigation is a neutral pill, not orange. Focus ring on dark is `#fed7aa`.
+- **Light theme** is the same system on a warm ivory canvas (`#faf7f4`): white cards, warm ink (`#1f1a17`), secondary text (`#5e5650`), orange as the one chromatic action. The logo stays; no blue remains in the UI palette.
 - **Flat:** every decorative shadow token is `none`. Dialogs separate by border and scrim; light-theme dialogs keep one quiet shadow.
 - **Shape:** cards 12px, nav 40px, buttons and single-line inputs 32px pills, multi-line fields 20px.
 - **Type:** headings 480, emphasis 520/560, nothing bolder than 560. Latin headings get +0.01-0.015em tracking. Arabic is never letter-spaced (it breaks letter joining), enforced with `[dir='rtl'] body * { letter-spacing: normal !important }`. Fonts load as variable (`Cairo` and `Inter`, weight 300-700).
 - **Icons:** decorative emoji marks were replaced by line icons (`components/LineIcon.tsx`); remaining feature pictographs are rendered monochrome (`.emoji-quiet`). Warnings are an icon plus a word.
 - **Clinical status colors are not removed.** Draft, danger and approved keep muted tints because safety states cannot be monochrome; they always carry an icon and a word.
 - **Not applied (Mercury-specific):** the full-bleed photographic hero (no suitable asset), the banking copy and navigation, the email-capture pill form, and the rule "no green/red/orange" (conflicts with clinical status).
+
+### Motion in this direction
+- Entrances: `.motion-stagger` children rise in 70ms apart (capped), table rows cascade, the nav slides in, landing sections reveal on scroll (`Reveal`), views and tabs rise 16px.
+- Interaction: buttons and cards lift 2-3px on hover and press to 0.98; dashboard figures count up (`CountUp`).
+- Reduced motion: all of the above are switched off (`prefers-reduced-motion` in `theme.css`; `CountUp` shows the final value at once).
+
+## Site structure and landing page
+
+- **Shell:** a sticky site bar (`components/Header.tsx`, `styles/shell.css`): brand, primary navigation, account actions, theme and language. Below 960px the navigation and actions collapse into one menu (`aria-expanded`, closes on navigation and Escape). A skip link jumps to `#main`.
+- **Page header:** dashboards use `components/PageHeader.tsx` (eyebrow, one h1, optional subtitle, actions). The doctor workspace keeps its own header because it carries workspace controls.
+- **Landing (`pages/PublicHome.tsx`, `styles/landing.css`):** hero (message, two calls to action, three supported points, image-led visual) → why Naseej (three cards from the existing capability copy) → how it works (the five workflow steps) → who it serves (five roles) → privacy and trust (dark band, existing copy) → final call to action. No awards, ratings, testimonials, health metrics or compliance badges: none are supported by the product.
+- **Hero:** full width, like a banner. The photograph sits behind on the end side and fades into a dark surface on the text side (mirrored for RTL); the headline, supporting copy and two actions sit on that surface, and the supported points run along the bottom edge as pills under a hairline. Below 960px the photograph stacks on top and the text follows.
+- **Hero image:** `src/assets/hero/hero-ar.jpg` and `hero-en.jpg` (picked by page language; any other image there is a fallback). Without an image the hero shows a designed fallback (line weave plus product cards with synthetic data). No remote images are requested. See `src/assets/hero/README.md`.
+- **Layout rules:** containers max 1240-1280px with fluid side padding; sections 56-96px apart; cards 12px; hero panel and trust band 24px; the hero grid becomes one column below 960px and mirrors in RTL through logical properties.

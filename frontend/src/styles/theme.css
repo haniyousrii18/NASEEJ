@@ -25,7 +25,7 @@
   --color-signal-gold: var(--color-sage-mist);
   --color-coral-signal: #53686d;
   --color-recovery-green: var(--color-forest-ink);
-  --color-metric-blue: #395a63;
+  --color-metric-accent: #395a63;
   --color-sleep-lilac: #405d47;
   --color-hero-sky: var(--color-slate-hush);
   --gradient-hero-sky: linear-gradient(180deg, var(--color-slate-hush) 0%, var(--color-cream-paper) 100%);
@@ -165,6 +165,95 @@
 }
 
 /* =============================================================================
+   Light theme: the same system on a warm ivory canvas.
+   White cards sit one step above a pale canvas, ink is onyx, and the single
+   chromatic action is orange. These declarations replace the earlier botanical
+   values for every shared token name.
+   ============================================================================= */
+:root {
+  --color-onyx: #1f1a17;
+  --color-graphite: #ffffff;
+  --color-obsidian: #f1ebe6;
+  --color-ivory: #1f1a17;
+  --color-ash: #5e5650;
+  --color-accent: #c2410c;
+  --color-accent-hover: #9a3412;
+  --color-accent-text: #b4380a;
+
+  --color-paper-white: #faf7f4;
+  --color-charcoal: #1f1a17;
+  --color-ink: #1f1a17;
+  --color-cloud-card: #ffffff;
+  --color-cloud-card-hover: #f1ebe6;
+  --color-body-gray: #5e5650;
+  --color-signal-gold: #7a5f10;
+  --color-coral-signal: #a24e37;
+  --color-recovery-green: #26784a;
+  --color-metric-accent: var(--color-accent-text);
+  --color-sleep-lilac: #5e5650;
+  --color-hero-sky: #fdeee0;
+  --gradient-hero-sky: linear-gradient(180deg, #fdeee0 0%, #faf7f4 100%);
+  --gradient-brand: linear-gradient(135deg, #1f1a17 0%, #2e2420 100%);
+
+  --color-bg-canvas: #faf7f4;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #ffffff;
+  --color-bg-subtle: #f3eee9;
+
+  --color-text-primary: #1f1a17;
+  --color-text-secondary: #5e5650;
+  --color-text-muted: #6e655e;
+
+  --color-border-subtle: rgba(31, 26, 23, 0.1);
+  --color-border-strong: rgba(31, 26, 23, 0.3);
+  --color-border-focus: #1f1a17;
+
+  --color-brand-primary: #1f1a17;
+  --color-brand-accent: var(--color-accent-text);
+  --color-brand-light: #ffffff;
+
+  --color-status-draft-bg: rgba(184, 93, 69, 0.1);
+  --color-status-draft-text: #8f432f;
+  --color-status-draft-border: rgba(184, 93, 69, 0.34);
+
+  --color-status-approved-bg: rgba(38, 120, 74, 0.1);
+  --color-status-approved-text: #1d6a41;
+  --color-status-approved-border: rgba(38, 120, 74, 0.32);
+
+  --color-status-info-bg: rgba(194, 65, 12, 0.1);
+  --color-status-info-text: #b4380a;
+  --color-status-info-border: rgba(194, 65, 12, 0.3);
+
+  --color-status-danger-bg: rgba(184, 93, 69, 0.1);
+  --color-status-danger-text: #8f3a28;
+  --color-status-danger-border: rgba(184, 93, 69, 0.36);
+
+  --color-status-lilac-bg: rgba(31, 26, 23, 0.06);
+  --color-status-lilac-text: #4f463f;
+  --color-status-lilac-border: rgba(31, 26, 23, 0.2);
+
+  --surface-paper-white: #faf7f4;
+  --surface-cloud-card: #ffffff;
+  --surface-charcoal: #1f1a17;
+
+  --color-charcoal-hover: #3a312c;
+  --color-surface-inverse: #1f1a17;
+  --color-text-inverse: #f3ebe3;
+  --color-on-dark-ink: #1f1a17;
+  --color-glass: rgba(250, 247, 244, 0.86);
+  --color-glass-soft: rgba(255, 255, 255, 0.7);
+  --color-glass-border: rgba(31, 26, 23, 0.08);
+  --color-overlay: rgba(31, 26, 23, 0.5);
+  --color-focus-ring: #b4380a;
+  --color-focus-halo: rgba(180, 56, 10, 0.2);
+  --color-selection: rgba(194, 65, 12, 0.24);
+  --color-danger-bg-strong: rgba(184, 93, 69, 0.2);
+  --shadow-modal: 0 12px 32px rgba(31, 26, 23, 0.16);
+}
+
+
+
+/* =============================================================================
    Dark theme
    Applied by <html data-theme="dark"> (set before first paint by the inline
    script in index.html, then kept in sync by src/context/ThemeContext.tsx).
@@ -174,16 +263,16 @@
    ============================================================================= */
 :root[data-theme='dark'] {
   /* Onyx and graphite (adapted from the Mercury reference). Surfaces separate by value, not by shadow. */
-  --color-onyx: #171721;
-  --color-graphite: #1e1e2a;
-  --color-obsidian: #272735;
-  --color-slate: #70707d;
-  --color-mist: #e2e3ed;
-  --color-ash: #c3c3cc;
-  --color-ivory: #ededf3;
-  --color-cobalt: #5266eb;
-  --color-cobalt-hover: #6376f0;
-  --color-cobalt-text: #9ba8f7; /* cobalt tint that reads on onyx at text sizes */
+  --color-onyx: #1a1411;
+  --color-graphite: #241c18;
+  --color-obsidian: #2e2420;
+  --color-slate: #7a6d65;
+  --color-mist: #eadfd6;
+  --color-ash: #cdbfb4;
+  --color-ivory: #f3ebe3;
+  --color-accent: #c2410c;
+  --color-accent-hover: #d9480f;
+  --color-accent-text: #fdba74; /* orange tint that reads on the brown canvas at text sizes */
 
   --color-paper-white: var(--color-onyx);
   --color-charcoal: var(--color-ivory);
@@ -194,27 +283,27 @@
   --color-signal-gold: #d9c27a;
   --color-coral-signal: #e9a894;
   --color-recovery-green: #86d0a2;
-  --color-metric-blue: var(--color-cobalt-text);
+  --color-metric-accent: var(--color-accent-text);
   --color-sleep-lilac: #b3b3c9;
   --color-hero-sky: var(--color-graphite);
-  --gradient-hero-sky: linear-gradient(180deg, #1e1e2a 0%, #171721 100%);
-  --gradient-brand: linear-gradient(135deg, #272735 0%, #1e1e2a 100%);
+  --gradient-hero-sky: linear-gradient(180deg, #241c18 0%, #1a1411 100%);
+  --gradient-brand: linear-gradient(135deg, #2e2420 0%, #241c18 100%);
 
   --color-bg-canvas: var(--color-onyx);
   --color-bg-surface: var(--color-graphite);
   --color-bg-elevated: var(--color-graphite);
-  --color-bg-subtle: #1a1a25;
+  --color-bg-subtle: #1d1612;
 
   --color-text-primary: var(--color-ivory);
   --color-text-secondary: var(--color-ash);
-  --color-text-muted: #a6a6b4;
+  --color-text-muted: #b3a498;
 
-  --color-border-subtle: rgba(237, 237, 243, 0.1);
-  --color-border-strong: rgba(237, 237, 243, 0.34);
+  --color-border-subtle: rgba(243, 235, 227, 0.1);
+  --color-border-strong: rgba(243, 235, 227, 0.34);
   --color-border-focus: var(--color-ivory);
 
   --color-brand-primary: var(--color-ivory);
-  --color-brand-accent: var(--color-cobalt-text);
+  --color-brand-accent: var(--color-accent-text);
   --color-brand-light: var(--color-graphite);
 
   /* Clinical status tokens stay readable and are always paired with an icon and a word. Muted, not saturated. */
@@ -226,17 +315,17 @@
   --color-status-approved-text: #9edbb5;
   --color-status-approved-border: rgba(134, 208, 162, 0.36);
 
-  --color-status-info-bg: rgba(155, 168, 247, 0.13);
-  --color-status-info-text: #b4bffb;
-  --color-status-info-border: rgba(155, 168, 247, 0.36);
+  --color-status-info-bg: rgba(253, 186, 116, 0.13);
+  --color-status-info-text: #fdba74;
+  --color-status-info-border: rgba(253, 186, 116, 0.36);
 
   --color-status-danger-bg: rgba(233, 168, 148, 0.14);
   --color-status-danger-text: #f2b9a8;
   --color-status-danger-border: rgba(233, 168, 148, 0.4);
 
-  --color-status-lilac-bg: rgba(195, 195, 204, 0.1);
-  --color-status-lilac-text: #d3d3dd;
-  --color-status-lilac-border: rgba(195, 195, 204, 0.3);
+  --color-status-lilac-bg: rgba(205, 191, 180, 0.1);
+  --color-status-lilac-text: #e0d3c8;
+  --color-status-lilac-border: rgba(205, 191, 180, 0.3);
 
   /* Flat: no decorative shadows */
   --shadow-md: none;
@@ -254,13 +343,13 @@
   --color-charcoal-hover: #ffffff;
   --color-surface-inverse: var(--color-obsidian);
   --color-text-inverse: var(--color-ivory);
-  --color-glass: rgba(23, 23, 33, 0.82);
-  --color-glass-soft: rgba(30, 30, 42, 0.7);
-  --color-glass-border: rgba(237, 237, 243, 0.1);
-  --color-overlay: rgba(10, 10, 16, 0.66);
-  --color-focus-ring: #b8c2ff;
-  --color-focus-halo: rgba(184, 194, 255, 0.26);
-  --color-selection: rgba(82, 102, 235, 0.45);
+  --color-glass: rgba(26, 20, 17, 0.82);
+  --color-glass-soft: rgba(36, 28, 24, 0.7);
+  --color-glass-border: rgba(243, 235, 227, 0.1);
+  --color-overlay: rgba(12, 8, 6, 0.66);
+  --color-focus-ring: #fed7aa;
+  --color-focus-halo: rgba(254, 215, 170, 0.26);
+  --color-selection: rgba(234, 88, 12, 0.45);
   --color-danger-bg-strong: rgba(233, 168, 148, 0.24);
   --shadow-xs: none;
   --shadow-sm: none;
@@ -274,18 +363,18 @@
   color-scheme: dark;
 }
 
-/* Dark: the one chromatic action is cobalt. Everything else is ivory on graphite. */
+/* Dark: the one chromatic action is orange. Everything else is warm ivory on brown. */
 :root[data-theme='dark'] .btn-pill-charcoal,
 :root[data-theme='dark'] .btn-pill-brand {
-  background: var(--color-cobalt);
-  border-color: var(--color-cobalt);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
   color: #ffffff;
 }
 
 :root[data-theme='dark'] .btn-pill-charcoal:hover:not(:disabled),
 :root[data-theme='dark'] .btn-pill-brand:hover:not(:disabled) {
-  background: var(--color-cobalt-hover);
-  border-color: var(--color-cobalt-hover);
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
 }
 
 :root[data-theme='dark'] .btn-pill-cloud {
@@ -294,7 +383,7 @@
 }
 
 :root[data-theme='dark'] .btn-pill-cloud:hover:not(:disabled) {
-  background: #323244;
+  background: #3a2e28;
 }
 
 :root[data-theme='dark'] .btn-pill-ghost {
@@ -339,7 +428,6 @@
   }
 
   .btn-pill,
-  .site-header-nav button,
   .form-input,
   .form-select,
   .form-textarea,
@@ -713,20 +801,6 @@ strong, b {
 }
 
 /* Floating Capsule Navigation Bar */
-.floating-capsule-nav {
-  position: sticky;
-  top: 16px;
-  z-index: 100;
-  max-width: 1240px;
-  margin: 12px auto;
-  padding: 8px 16px;
-  background: var(--color-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: var(--radius-navigation);
-  box-shadow: var(--shadow-nav);
-  border: 1px solid var(--color-border-subtle);
-}
 
 /* Form Controls */
 .form-group {
@@ -1086,8 +1160,7 @@ strong, b {
 #root,
 .app-shell,
 .app-main,
-.page-shell,
-.home-page {
+.page-shell {
   width: 100%;
   min-width: 0;
 }
@@ -1102,8 +1175,6 @@ strong, b {
 }
 
 .page-shell > *,
-.home-page > *,
-.site-header > *,
 .site-footer-grid > * {
   min-width: 0;
 }
@@ -1146,22 +1217,6 @@ svg {
   overscroll-behavior: contain;
 }
 
-.site-header-shell {
-  top: max(8px, env(safe-area-inset-top)) !important;
-}
-
-.site-header-brand {
-  min-width: 0;
-}
-
-.site-header-nav,
-.site-header-actions,
-.site-header-auth {
-  min-width: 0;
-}
-
-.site-header-nav button,
-.site-header-actions button,
 .theme-toggle-button {
   min-height: 44px;
 }
@@ -1169,23 +1224,6 @@ svg {
 .theme-toggle-button {
   min-width: 40px !important;
   min-height: 40px !important;
-}
-
-.home-page > section {
-  padding-inline: clamp(1rem, 4vw, 1.5rem) !important;
-  min-width: 0;
-}
-
-.home-hero {
-  padding: clamp(2.5rem, 7vw, 4.5rem) clamp(1rem, 4vw, 2rem) !important;
-}
-
-.home-feature-grid {
-  min-width: 0;
-}
-
-.home-security-panel {
-  min-width: 0;
 }
 
 .site-footer {
@@ -1223,106 +1261,7 @@ svg {
   flex: 0 0 auto;
 }
 
-@media (max-width: 900px) {
-  .site-header {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "brand actions"
-      "nav nav";
-    align-items: center;
-    gap: 6px 12px !important;
-    padding: 8px 12px !important;
-    border-radius: 24px !important;
-  }
-
-  .site-header-brand { grid-area: brand; }
-  .site-header-nav {
-    grid-area: nav;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .site-header-actions {
-    grid-area: actions;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 6px !important;
-  }
-
-  .site-header-auth {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 6px !important;
-  }
-
-  .site-header-auth .btn-pill {
-    max-width: 100%;
-    white-space: normal;
-  }
-
-  .site-header-auth .btn-pill > span:first-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .site-header-actions .form-select {
-    max-width: min(42vw, 16rem);
-    text-overflow: ellipsis;
-  }
-}
-
 @media (max-width: 640px) {
-  .site-header-shell {
-    top: max(6px, env(safe-area-inset-top)) !important;
-    padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right)) !important;
-  }
-
-  .site-header {
-    grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-areas:
-      "brand"
-      "nav"
-      "actions";
-    gap: 6px !important;
-    padding: 8px !important;
-    border-radius: 20px !important;
-  }
-
-  .site-header-brand {
-    justify-self: center;
-    padding: 2px 4px !important;
-  }
-
-  .site-header-nav {
-    width: 100%;
-    justify-content: center;
-    gap: 2px !important;
-  }
-
-  .site-header-nav button {
-    flex: 1 1 auto;
-    padding: 6px 8px !important;
-    font-size: 14px !important;
-  }
-
-  .site-header-actions {
-    width: 100%;
-    justify-content: center;
-    gap: 6px !important;
-  }
-
-  .site-header-auth {
-    justify-content: center;
-  }
-
-  .site-header-auth .btn-pill,
-  .site-header-actions > .btn-pill {
-    padding-inline: 10px !important;
-    font-size: 13px !important;
-    white-space: normal;
-  }
 
   .page-shell {
     padding-inline: clamp(14px, 4vw, 20px) !important;
@@ -1343,30 +1282,6 @@ svg {
     flex-wrap: wrap;
   }
 
-  .home-page > section {
-    padding-block-end: 48px !important;
-  }
-
-  .home-hero {
-    border-radius: 24px !important;
-  }
-
-  .home-feature-grid {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .home-security-panel {
-    padding: 24px 20px !important;
-    gap: 20px !important;
-  }
-
-  .home-security-panel > * {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .home-page h1,
-  .home-page h2,
   .page-shell h1,
   .page-shell h2,
   .page-shell h3 {
@@ -1417,17 +1332,10 @@ svg {
 }
 
 @media (max-width: 380px) {
-  .site-header-brand > div > div:first-child span:last-child {
-    display: none;
-  }
 
   .btn-pill {
     white-space: normal;
     text-align: center;
-  }
-
-  .home-security-panel {
-    padding-inline: 16px !important;
   }
 }
 
@@ -1438,15 +1346,126 @@ svg {
   .form-textarea {
     min-height: 44px;
   }
+}
 
-  .site-header-nav button {
-    min-height: 44px;
+
+/* =============================================================================
+   Motion: staggered entrances, scroll-in blocks, row cascades, gentle lifts.
+   Every rule here is neutralised under prefers-reduced-motion at the bottom.
+   ============================================================================= */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Dark: chips that sit on the cobalt primary button keep white-on-cobalt contrast (the chip's inline colours are theme-agnostic). */
-:root[data-theme='dark'] .btn-pill-charcoal .status-badge,
-:root[data-theme='dark'] .btn-pill-brand .status-badge {
-  background: rgba(23, 23, 33, 0.34) !important;
+/* Direct children rise in one after another (60ms apart, capped at 8). */
+.motion-stagger > * {
+  animation: riseIn 460ms var(--motion-ease-out) both;
+}
+.motion-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(2) { animation-delay: 70ms; }
+.motion-stagger > *:nth-child(3) { animation-delay: 140ms; }
+.motion-stagger > *:nth-child(4) { animation-delay: 210ms; }
+.motion-stagger > *:nth-child(5) { animation-delay: 280ms; }
+.motion-stagger > *:nth-child(6) { animation-delay: 350ms; }
+.motion-stagger > *:nth-child(7) { animation-delay: 420ms; }
+.motion-stagger > *:nth-child(n + 8) { animation-delay: 490ms; }
+
+/* Table rows cascade in. */
+.data-table tbody tr {
+  animation: riseIn 380ms var(--motion-ease-out) both;
+}
+.data-table tbody tr:nth-child(1) { animation-delay: 0ms; }
+.data-table tbody tr:nth-child(2) { animation-delay: 45ms; }
+.data-table tbody tr:nth-child(3) { animation-delay: 90ms; }
+.data-table tbody tr:nth-child(4) { animation-delay: 135ms; }
+.data-table tbody tr:nth-child(5) { animation-delay: 180ms; }
+.data-table tbody tr:nth-child(6) { animation-delay: 225ms; }
+.data-table tbody tr:nth-child(n + 7) { animation-delay: 270ms; }
+
+/* Slightly longer, more visible view and tab entrances. */
+.motion-view-enter {
+  animation: riseIn 380ms var(--motion-ease-out) both;
+}
+.motion-tab-enter {
+  animation: riseIn 340ms var(--motion-ease-out) both;
+}
+
+/* Gentle lift on interactive surfaces. Colour changes carry the state; the lift is a small extra. */
+.btn-pill:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.cloud-feature-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-strong);
+}
+.community-story-tile:hover {
+  transform: translateY(-4px);
+}
+.doctor-row:hover {
+  transform: translateY(-1px);
+}
+.cloud-feature-card,
+.doctor-row {
+  transition: transform var(--motion-duration-normal) var(--motion-ease-out),
+              border-color var(--motion-duration-fast) var(--motion-ease-out),
+              background-color var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-stagger > *,
+  .data-table tbody tr,
+  .doctor-row:hover,
+  .btn-pill:hover:not(:disabled),
+  .cloud-feature-card:hover {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Pressing wins over the hover lift. */
+.btn-pill:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Placed after the base button rules so it wins in both themes. */
+/* The one chromatic action is orange in both themes. */
+.btn-pill-charcoal,
+.btn-pill-brand {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #ffffff;
+}
+
+.btn-pill-charcoal:hover:not(:disabled),
+.btn-pill-brand:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.btn-pill-cloud {
+  background: var(--color-obsidian);
+  color: var(--color-ink);
+}
+
+.btn-pill-ghost {
+  border-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+}
+
+.cloud-feature-card,
+.panel-card {
+  border: 1px solid var(--color-border-subtle);
+}
+
+.btn-pill-charcoal .status-badge,
+.btn-pill-brand .status-badge {
+  background: rgba(26, 20, 17, 0.34) !important;
   color: #ffffff !important;
 }

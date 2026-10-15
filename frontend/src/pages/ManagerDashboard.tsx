@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { PageHeader } from '../components/PageHeader.js';
+import { CountUp } from '../components/motion.js';
 import { LeafIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
@@ -79,32 +81,25 @@ export const ManagerDashboard: React.FC = () => {
 
   return (
     <div className="page-shell" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 24px 80px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
-        <div>
-          <div className="recognition-laurel-item" style={{ marginBottom: 4 }}>
-            <LeafIcon />
-            <span>{isRtl ? 'لوحة إدارة المنشأة الطبية · Center Operations' : 'Facility Governance & Staff Operations'}</span>
-          </div>
-          <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', margin: '4px 0' }}>
-            {isRtl ? 'إدارة الكادر الطبي والعمليات التشغيلية' : 'Staff Management & Clinical Operations'}
-          </h1>
-          <div style={{ fontSize: 13, color: 'var(--color-body-gray)', marginTop: 4 }}>
-            {isRtl ? 'النطاق المؤسسي: مركز النور الطبي التخصصي' : 'Tenant Scope: Al-Noor Specialized Medical Center'}
-          </div>
-        </div>
-        <button onClick={loadData} className="btn-pill btn-pill-cloud" style={{ fontSize: 13, padding: '8px 18px' }}>
-          ↻ {isRtl ? 'تحديث' : 'Refresh'}
-        </button>
-      </div>
+      <PageHeader
+        eyebrow={isRtl ? 'لوحة إدارة المنشأة الطبية' : 'Facility governance'}
+        title={isRtl ? 'إدارة الكادر الطبي والعمليات التشغيلية' : 'Staff Management & Clinical Operations'}
+        subtitle={isRtl ? 'النطاق المؤسسي: مركز النور الطبي التخصصي' : 'Tenant scope: Al-Noor Specialized Medical Center'}
+        actions={
+          <button type="button" onClick={loadData} className="btn-pill btn-pill-cloud" style={{ minHeight: 44 }}>
+            <span aria-hidden="true">↻</span> {isRtl ? 'تحديث' : 'Refresh'}
+          </button>
+        }
+      />
 
       {/* Operational Stats Row (Cloud Feature Cards) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 20, marginBottom: 36 }}>
+      <div className="motion-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 20, marginBottom: 36 }}>
         <div className="cloud-feature-card" style={{ padding: 24 }}>
           <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'إجمالي الكادر الطبي والإداري' : 'Active Staff Count'}
           </div>
           <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-ink)', marginTop: 8, letterSpacing: '-1px' }}>
-            {staff.length}
+            <CountUp value={staff.length} />
           </div>
         </div>
 
@@ -121,7 +116,7 @@ export const ManagerDashboard: React.FC = () => {
           <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'المواعيد المؤكدة اليوم' : 'Confirmed Appointments'}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-metric-blue)', marginTop: 8, letterSpacing: '-1px' }}>
+          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-metric-accent)', marginTop: 8, letterSpacing: '-1px' }}>
             {confirmedCount}
           </div>
         </div>

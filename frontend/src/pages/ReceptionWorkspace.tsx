@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PageHeader } from '../components/PageHeader.js';
 import { LeafIcon, AlertIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
@@ -122,33 +123,20 @@ export const ReceptionWorkspace: React.FC = () => {
   return (
     <div className="page-shell" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 24px 80px' }}>
       {/* Reception Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 32 }}>
-        <div>
-          <div className="recognition-laurel-item" style={{ marginBottom: 4 }}>
-            <LeafIcon />
-            <span>{isRtl ? 'الاستقبال وخدمات المرضى · Reception Services' : 'Reception & Patient Flow Desk'}</span>
-          </div>
-          <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', margin: '4px 0' }}>
-            {isRtl ? 'تسجيل المرضى، وجدولة المواعيد، وتأكيد الحضور' : 'Patient Registration, Scheduling & Arrival Check-In'}
-          </h1>
-        </div>
-        <div className="responsive-actions" style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={() => setShowNewPatient(true)}
-            className="btn-pill btn-pill-charcoal"
-            style={{ fontSize: 14, padding: '10px 20px' }}
-          >
-            + {t.clinical.newPatientBtn}
-          </button>
-          <button
-            onClick={() => setShowBooking(true)}
-            className="btn-pill btn-pill-cloud"
-            style={{ fontSize: 14, padding: '10px 20px', background: 'var(--color-cloud-card)' }}
-          >
-            + {t.clinical.newAppointmentBtn}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow={isRtl ? 'الاستقبال وخدمات المرضى' : 'Reception and patient flow'}
+        title={isRtl ? 'تسجيل المرضى، وجدولة المواعيد، وتأكيد الحضور' : 'Patient Registration, Scheduling & Arrival Check-In'}
+        actions={
+          <>
+            <button type="button" onClick={() => setShowNewPatient(true)} className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }}>
+              + {t.clinical.newPatientBtn}
+            </button>
+            <button type="button" onClick={() => setShowBooking(true)} className="btn-pill btn-pill-cloud" style={{ minHeight: 44 }}>
+              + {t.clinical.newAppointmentBtn}
+            </button>
+          </>
+        }
+      />
 
       {/* Booking Modal */}
       {showBooking && (
@@ -185,7 +173,7 @@ export const ReceptionWorkspace: React.FC = () => {
           )}
 
           <form onSubmit={handleBookAppointment}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16 }}>
+            <div className="motion-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16 }}>
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'المريض' : 'Patient'} *</label>
                 <select
@@ -295,7 +283,7 @@ export const ReceptionWorkspace: React.FC = () => {
           </div>
 
           <form onSubmit={handleCreatePatient}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16 }}>
+            <div className="motion-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16 }}>
               <div className="form-group">
                 <label className="form-label">{t.clinical.nationalId} *</label>
                 <input

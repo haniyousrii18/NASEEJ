@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LangProvider } from './context/LangContext.js';
+import { LangProvider, useLang } from './context/LangContext.js';
 import { ThemeProvider } from './context/ThemeContext.js';
 import { MotionRoot, PageTransition } from './components/motion.js';
 import { AuthProvider, useAuth } from './context/AuthContext.js';
@@ -17,6 +17,9 @@ import { ReceptionWorkspace } from './pages/ReceptionWorkspace.js';
 import { PatientPortal } from './pages/PatientPortal.js';
 import { PwaPrompts, PWA_RESTORE_KEY } from './pwa/PwaPrompts.js';
 import './styles/theme.css';
+import './styles/shell.css';
+import './styles/landing.css';
+import './styles/auth.css';
 import './styles/doctor.css';
 
 const MainContent: React.FC = () => {
@@ -32,12 +35,14 @@ const MainContent: React.FC = () => {
     return 'home';
   });
   const { user, currentRole } = useAuth();
+  const { t } = useLang();
 
   return (
     <div className="app-shell" style={{ display: 'flex', flexDirection: 'column' }}>
+      <a className="skip-link" href="#main">{t.landing.skip}</a>
       <Header currentView={currentView} setCurrentView={setCurrentView} />
 
-      <main className="app-main" style={{ flex: 1 }}>
+      <main id="main" tabIndex={-1} className="app-main" style={{ flex: 1, outline: 'none' }}>
         <PageTransition key={currentView} style={{ minHeight: '100%' }}>
           {currentView === 'home' && <PublicHome setCurrentView={setCurrentView} />}
           {currentView === 'features' && <FeaturesPage />}

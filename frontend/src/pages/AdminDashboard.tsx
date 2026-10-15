@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { PageHeader } from '../components/PageHeader.js';
+import { CountUp } from '../components/motion.js';
 import { LeafIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
@@ -64,20 +66,15 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="page-shell" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 24px 80px' }}>
       {/* Top Header & Clinical Wall Notice */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
-        <div>
-          <div className="recognition-laurel-item" style={{ marginBottom: 4 }}>
-            <LeafIcon />
-            <span>{isRtl ? 'لوحة تحكم المنصة · Platform Administration' : 'Platform Operations & System Architecture'}</span>
-          </div>
-          <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', margin: '4px 0' }}>
-            {isRtl ? 'إدارة المنظومة والمراكز الطبية المعتمدة' : 'Healthcare System & Organization Overview'}
-          </h1>
-        </div>
-        <button onClick={loadData} className="btn-pill btn-pill-cloud" style={{ fontSize: 13, padding: '8px 18px' }}>
-          ↻ {isRtl ? 'تحديث البيانات' : 'Refresh Data'}
-        </button>
-      </div>
+      <PageHeader
+        eyebrow={isRtl ? 'لوحة تحكم المنصة' : 'Platform operations'}
+        title={isRtl ? 'إدارة المنظومة والمراكز الطبية المعتمدة' : 'Healthcare System & Organization Overview'}
+        actions={
+          <button type="button" onClick={loadData} className="btn-pill btn-pill-cloud" style={{ minHeight: 44 }}>
+            <span aria-hidden="true">↻</span> {isRtl ? 'تحديث البيانات' : 'Refresh Data'}
+          </button>
+        }
+      />
 
       {/* Structural Isolation Wall Banner */}
       <div style={{
@@ -103,13 +100,13 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Metrics Row (Cloud Card Bins) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 20, marginBottom: 36 }}>
+      <div className="motion-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 20, marginBottom: 36 }}>
         <div className="cloud-feature-card" style={{ padding: 24 }}>
           <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'المراكز الطبية المسجلة' : 'Registered Centers'}
           </div>
           <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-ink)', marginTop: 8, letterSpacing: '-1px' }}>
-            {organizations.length}
+            <CountUp value={organizations.length} />
           </div>
         </div>
 
@@ -117,7 +114,7 @@ export const AdminDashboard: React.FC = () => {
           <div style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
             {isRtl ? 'طلبات العروض التجريبية' : 'Pending Demo Inquiries'}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-metric-blue)', marginTop: 8, letterSpacing: '-1px' }}>
+          <div style={{ fontSize: 36, fontWeight: 520, color: 'var(--color-metric-accent)', marginTop: 8, letterSpacing: '-1px' }}>
             {demoRequests.length}
           </div>
         </div>
@@ -139,7 +136,7 @@ export const AdminDashboard: React.FC = () => {
           className={`btn-pill ${activeTab === 'centers' ? 'btn-pill-charcoal' : 'btn-pill-cloud'}`}
           style={{ fontSize: 14, padding: '8px 18px' }}
         >
-          🏥 {isRtl ? 'المراكز الطبية' : 'Medical Centers'} ({organizations.length})
+          🏥 {isRtl ? 'المراكز الطبية' : 'Medical Centers'} (<CountUp value={organizations.length} />)
         </button>
         <button
           onClick={() => setActiveTab('requests')}
@@ -342,7 +339,7 @@ export const AdminDashboard: React.FC = () => {
                     </td>
                     <td>
                       <code style={{
-                        color: log.action.includes('SECURITY') ? 'var(--color-status-danger-text)' : 'var(--color-metric-blue)',
+                        color: log.action.includes('SECURITY') ? 'var(--color-status-danger-text)' : 'var(--color-metric-accent)',
                         background: 'var(--color-cloud-card)',
                         padding: '3px 8px',
                         borderRadius: 6,

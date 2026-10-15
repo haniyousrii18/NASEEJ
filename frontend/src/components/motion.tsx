@@ -1,7 +1,7 @@
 // Naseej motion system (Framer Motion). One vocabulary used everywhere, shared with the CSS layer in theme.css:
-//   enter    120-300ms, exponential ease-out, 8px travel, never from invisible-and-late
-//   stagger  30ms between siblings, capped at 6 so long lists never feel slow
-//   press    scale 0.98 on tap; no hover lift (the interface stays flat)
+//   enter    240-600ms, exponential ease-out, 14-28px travel; sections reveal on scroll
+//   stagger  50ms between siblings, capped at 8 so long lists never feel slow
+//   press    scale 0.98 on tap, plus a small lift on hover for interactive surfaces
 //   overlays fade in; side panels slide from their edge (flipped for RTL)
 //   urgent   alerts render immediately: <Rise urgent> skips delay and travel
 // <MotionRoot> sets reducedMotion="user", which removes transforms for people who ask the OS for less motion.
@@ -16,8 +16,8 @@ const EASE_IN = [0.7, 0, 0.84, 0] as const;
 export const SPRING = { type: 'spring', stiffness: 520, damping: 38 } as const;
 export const SPRING_SOFT = { type: 'spring', stiffness: 320, damping: 30 } as const;
 
-const STAGGER_STEP = 0.03;
-const STAGGER_CAP = 6;
+const STAGGER_STEP = 0.05;
+const STAGGER_CAP = 8;
 
 type Tag = keyof React.JSX.IntrinsicElements;
 interface BoxProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'> {
@@ -47,8 +47,8 @@ export const PageTransition: React.FC<BoxProps> = ({ children, as = 'div', ...re
 };
 
 const riseVariants = {
-  hidden: { opacity: 0, y: 8 },
-  show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: Math.min(i, STAGGER_CAP) * STAGGER_STEP, duration: 0.28, ease: EASE } }),
+  hidden: { opacity: 0, y: 14 },
+  show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: Math.min(i, STAGGER_CAP) * STAGGER_STEP, duration: 0.4, ease: EASE } }),
   now: { opacity: 1, y: 0, transition: { duration: 0 } },
 };
 
@@ -74,7 +74,7 @@ export const Stagger: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ childr
 );
 
 /** Scroll reveal: animates once when the block enters the viewport. */
-export const Reveal: React.FC<BoxProps & { i?: number; y?: number }> = ({ as = 'div', i = 0, y = 14, children, ...rest }) => {
+export const Reveal: React.FC<BoxProps & { i?: number; y?: number }> = ({ as = 'div', i = 0, y = 28, children, ...rest }) => {
   const Tag = tagOf(as);
   return (
     <Tag
@@ -82,7 +82,7 @@ export const Reveal: React.FC<BoxProps & { i?: number; y?: number }> = ({ as = '
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '0px 0px -60px 0px' }}
-      transition={{ delay: Math.min(i, 4) * 0.06, duration: 0.45, ease: EASE }}
+      transition={{ delay: Math.min(i, 4) * 0.08, duration: 0.6, ease: EASE }}
     >
       {children}
     </Tag>
@@ -183,8 +183,32 @@ export const Backdrop: React.FC<React.HTMLAttributes<HTMLDivElement> & { show: b
   </AnimatePresence>
 );
 
-/** Key figures render as they are: a number that animates up delays the one thing the reader came for. */
-export const CountUp: React.FC<{ value: React.ReactNode }> = ({ value }) => <span>{value}</span>;
+/** Key figures count up to their value (~0.9s). With reduced motion, or for non-numeric values, they show at once. */
+export const CountUp: React.FC<{ value: React.ReactNode }> = ({ value }) => {
+  const target = typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const [shown, setShown] = React.useState<number | null>(target === null ? null : 0);
+
+  React.useEffect(() => {
+    if (target === null) return;
+    const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || target === 0) {
+      setShown(target);
+      return;
+    }
+    let raf = 0;
+    const t0 = performance.now();
+    const dur = 900;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - t0) / dur);
+      setShown(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+
+  return <span className="num" aria-label={target === null ? undefined : String(target)}>{target === null ? value : shown}</span>;
+};
 
 /** A bar that fills to `value` (0..1). Used for progress and completion. */
 export const GrowBar: React.FC<{ value: number; className?: string; style?: React.CSSProperties }> = ({ value, className, style }) => (

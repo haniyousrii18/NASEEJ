@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 import { ThemeToggle } from './ThemeToggle.js';
@@ -8,231 +8,123 @@ interface HeaderProps {
   setCurrentView: (view: string) => void;
 }
 
+const MenuIcon: React.FC<{ open: boolean }> = ({ open }) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+    {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+  </svg>
+);
+
+/**
+ * Site bar: brand, primary navigation, account actions, theme and language.
+ * Below 960px the navigation and actions collapse into one menu that opens under the bar.
+ */
 export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
   const { lang, setLang, t, isRtl } = useLang();
   const { user, logout, currentOrgId, setCurrentOrgId, currentRole } = useAuth();
+  const [open, setOpen] = useState(false);
 
-  const toggleLang = () => {
-    setLang(lang === 'ar' ? 'en' : 'ar');
+  // Close the menu on navigation and with Escape.
+  useEffect(() => setOpen(false), [currentView]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  const go = (view: string) => {
+    setCurrentView(view);
+    setOpen(false);
   };
 
+  const goWorkspace = () => {
+    if (!user) return;
+    if (user.systemRole === 'platform_admin') go('admin');
+    else if (user.patientProfileId) go('portal');
+    else if (currentRole === 'doctor') go('doctor');
+    else if (currentRole === 'center_manager') go('manager');
+    else if (currentRole === 'reception') go('reception');
+    else go('workspace');
+  };
+
+  const links: Array<[string, string]> = [
+    ['home', t.nav.home],
+    ['features', t.nav.features],
+    ['workflow', t.nav.workflow],
+  ];
+
   return (
-    <div className="site-header-shell" style={{
-      position: 'sticky',
-      top: 12,
-      zIndex: 100,
-      padding: '0 16px',
-      pointerEvents: 'none',
-    }}>
-      <header
-        className="floating-capsule-nav site-header"
-        style={{
-          pointerEvents: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          background: 'var(--color-glass)',
-          borderRadius: 32,
-          padding: '8px 16px',
-          boxShadow: 'var(--shadow-nav)',
-          border: '1px solid var(--color-border-subtle)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-        }}
-      >
-        {/* Brand & Logo */}
-        <div
-          onClick={() => setCurrentView('home')}
-          className="site-header-brand"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            cursor: 'pointer',
-            padding: '4px 8px',
-          }}
-        >
-          <img
-            src="/logo.png"
-            alt="شعار نسيج | Naseej Logo"
-            style={{ width: 34, height: 34, objectFit: 'contain', borderRadius: 8 }}
-          />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span
-                style={{
-                  fontSize: 18,
-                  lineHeight: '25.2px',
-                  fontWeight: 480,
-                  letterSpacing: '0.162px',
-                  color: 'var(--color-ink)',
-                }}
-              >
-                {t.brand.name}
-              </span>
-              <span style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
-                · Naseej
-              </span>
-            </div>
-            <span style={{ fontSize: 11, color: 'var(--color-body-gray)', lineHeight: 1 }}>
-              {isRtl ? 'رعاية صحية متصلة' : 'Connected Health'}
+    <header className="site-bar">
+      <div className="site-bar-inner">
+        <button type="button" className="site-brand" onClick={() => go('home')} aria-label={`${t.brand.name} · ${t.nav.home}`}>
+          <img src="/logo.png" alt="" width={36} height={36} style={{ borderRadius: 8, objectFit: 'contain' }} />
+          <span className="site-brand-text">
+            <span className="site-brand-name">
+              {t.brand.name} <span className="site-brand-latin">· Naseej</span>
             </span>
+            <span className="site-brand-sub">{isRtl ? 'رعاية صحية متصلة' : 'Connected Health'}</span>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className="site-menu-btn"
+          aria-expanded={open}
+          aria-controls="site-menu"
+          aria-label={open ? t.landing.closeMenu : t.landing.menu}
+          onClick={() => setOpen((o) => !o)}
+        >
+          <MenuIcon open={open} />
+        </button>
+
+        <div id="site-menu" className="site-collapsible" data-open={open}>
+          <nav className="site-nav" aria-label={t.landing.menu}>
+            {links.map(([view, label]) => (
+              <button key={view} type="button" aria-current={currentView === view ? 'page' : undefined} onClick={() => go(view)}>
+                {label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="site-actions">
+            {user && user.memberships && user.memberships.length > 1 && (
+              <select value={currentOrgId || ''} onChange={(e) => setCurrentOrgId(e.target.value)} className="form-select site-org-select" aria-label={t.nav.workspaces}>
+                {user.memberships.map((m) => (
+                  <option key={m.organization_id} value={m.organization_id}>
+                    {isRtl ? m.organization_name_ar : m.organization_name_en} ({m.role})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {user ? (
+              <>
+                <button type="button" onClick={goWorkspace} className="btn-pill btn-pill-charcoal site-user">
+                  <span className="site-user-name">{isRtl ? user.fullNameAr : user.fullNameEn}</span>
+                  <span className="status-badge badge-approved site-user-role">{t.roles[currentRole as keyof typeof t.roles] || currentRole}</span>
+                </button>
+                <button type="button" onClick={logout} className="btn-pill btn-pill-ghost" title={t.nav.logout}>
+                  {t.nav.logout}
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => go('demo')} className="btn-pill btn-pill-ghost">
+                  {t.nav.demo}
+                </button>
+                <button type="button" onClick={() => go('login')} className="btn-pill btn-pill-charcoal">
+                  {t.nav.login}
+                </button>
+              </>
+            )}
+
+            <ThemeToggle />
+            <button type="button" onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="btn-pill btn-pill-cloud site-lang" lang={lang === 'ar' ? 'en' : 'ar'}>
+              {lang === 'ar' ? 'English' : 'العربية'}
+            </button>
           </div>
         </div>
-
-        {/* Public Navigation */}
-        <nav className="site-header-nav" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button
-            onClick={() => setCurrentView('home')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: 128,
-              fontSize: 16,
-              fontWeight: 480,
-              lineHeight: '22.4px',
-              color: currentView === 'home' ? 'var(--color-ink)' : 'var(--color-body-gray)',
-              background: currentView === 'home' ? 'var(--color-cloud-card)' : 'transparent',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {t.nav.home}
-          </button>
-          <button
-            onClick={() => setCurrentView('features')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: 128,
-              fontSize: 16,
-              fontWeight: 480,
-              lineHeight: '22.4px',
-              color: currentView === 'features' ? 'var(--color-ink)' : 'var(--color-body-gray)',
-              background: currentView === 'features' ? 'var(--color-cloud-card)' : 'transparent',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {t.nav.features}
-          </button>
-          <button
-            onClick={() => setCurrentView('workflow')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: 128,
-              fontSize: 16,
-              fontWeight: 480,
-              lineHeight: '22.4px',
-              color: currentView === 'workflow' ? 'var(--color-ink)' : 'var(--color-body-gray)',
-              background: currentView === 'workflow' ? 'var(--color-cloud-card)' : 'transparent',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {t.nav.workflow}
-          </button>
-        </nav>
-
-        {/* Right Actions: Center Switcher, Role Badge, Lang & Auth */}
-        <div className="site-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Active Tenant Switcher if multi-tenant memberships */}
-          {user && user.memberships && user.memberships.length > 1 && (
-            <select
-              value={currentOrgId || ''}
-              onChange={(e) => setCurrentOrgId(e.target.value)}
-              className="form-select"
-              style={{
-                width: 'auto',
-                padding: '6px 12px',
-                fontSize: 13,
-                borderRadius: 128,
-                background: 'var(--color-cloud-card)',
-                border: 'none',
-              }}
-            >
-              {user.memberships.map((m) => (
-                <option key={m.organization_id} value={m.organization_id}>
-                  {isRtl ? m.organization_name_ar : m.organization_name_en} ({m.role})
-                </option>
-              ))}
-            </select>
-          )}
-
-          {/* User state or Login Button */}
-          {user ? (
-            <div className="site-header-auth" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                onClick={() => {
-                  if (user.systemRole === 'platform_admin') setCurrentView('admin');
-                  else if (user.patientProfileId) setCurrentView('portal');
-                  else if (currentRole === 'doctor') setCurrentView('doctor');
-                  else if (currentRole === 'center_manager') setCurrentView('manager');
-                  else if (currentRole === 'reception') setCurrentView('reception');
-                  else setCurrentView('workspace');
-                }}
-                className="btn-pill btn-pill-charcoal"
-                style={{ fontSize: 14, padding: '6px 14px' }}
-              >
-                <span>{isRtl ? user.fullNameAr : user.fullNameEn}</span>
-                <span
-                  className="status-badge badge-approved"
-                  style={{
-                    fontSize: 11,
-                    padding: '2px 8px',
-                    background: 'color-mix(in srgb, var(--color-cloud-card) 22%, transparent)',
-                    color: 'var(--color-cloud-card)',
-                    border: 'none',
-                  }}
-                >
-                  {t.roles[currentRole as keyof typeof t.roles] || currentRole}
-                </span>
-              </button>
-              <button
-                onClick={logout}
-                className="btn-pill btn-pill-ghost"
-                style={{ fontSize: 13, padding: '6px 12px' }}
-                title={t.nav.logout}
-              >
-                {t.nav.logout}
-              </button>
-            </div>
-          ) : (
-            <div className="site-header-auth" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                onClick={() => setCurrentView('demo')}
-                className="btn-pill btn-pill-cloud"
-                style={{ fontSize: 14, padding: '8px 16px' }}
-              >
-                {t.nav.demo}
-              </button>
-              {/* Charcoal Download / Action Pill per DESIGN (2).md */}
-              <button
-                onClick={() => setCurrentView('login')}
-                className="btn-pill btn-pill-charcoal"
-                style={{ fontSize: 15, padding: '8px 18px' }}
-              >
-                {t.nav.login}
-              </button>
-            </div>
-          )}
-
-          <ThemeToggle />
-
-          {/* Language Toggle */}
-          <button
-            onClick={toggleLang}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 128,
-              fontSize: 13,
-              fontWeight: 480,
-              color: 'var(--color-ink)',
-              background: 'var(--color-cloud-card)',
-              border: 'none',
-              transition: 'background 0.2s ease',
-            }}
-          >
-            {lang === 'ar' ? 'English' : 'العربية'}
-          </button>
-        </div>
-      </header>
-    </div>
+      </div>
+    </header>
   );
 };

@@ -36,3 +36,15 @@ export const LockIcon: React.FC = () => (
     <path d="M8 11V8a4 4 0 0 1 8 0v3" />
   </svg>
 );
+
+export const CheckIcon: React.FC = () => (
+  <svg {...base} width={14} height={14}>
+    <path d="M5 12l5 5 9-10" />
+  </svg>
+);
+
+export const ArrowIcon: React.FC = () => (
+  <svg {...base} className="flip-rtl">
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);

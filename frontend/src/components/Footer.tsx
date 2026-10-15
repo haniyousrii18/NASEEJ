@@ -42,7 +42,7 @@ export const Footer: React.FC = () => {
               }}
             />
             <span style={{ fontSize: 13, color: 'var(--color-body-gray)', fontWeight: 480 }}>
-              {isRtl ? 'جميع الأنظمة السريرية تعمل بكفاءة' : 'All Clinical Nodes Operational'}
+              {t.landing.footerNote}
             </span>
           </div>
         </div>

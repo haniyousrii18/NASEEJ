@@ -6,7 +6,7 @@ export type ResolvedTheme = 'light' | 'dark';
 // Only the preference word is stored (never user data). The inline script in index.html reads
 // the same key before first paint so the right theme is applied without a flash.
 export const THEME_STORAGE_KEY = 'naseej_theme';
-const THEME_COLORS: Record<ResolvedTheme, string> = { light: '#0f3e17', dark: '#171721' };
+const THEME_COLORS: Record<ResolvedTheme, string> = { light: '#faf7f4', dark: '#1a1411' };
 
 interface ThemeContextValue {
   preference: ThemePreference;

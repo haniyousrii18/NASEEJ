@@ -237,7 +237,7 @@ export const PatientPortal: React.FC = () => {
             <h3 className="text-card-heading" style={{ fontSize: 20, marginBottom: 18 }}>
               {isRtl ? 'المراكز الطبية المرتبطة وسجلات الـ MRN' : 'Affiliated Medical Centers & Local MRNs'}
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 16 }}>
+            <div className="motion-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 16 }}>
               {summary?.affiliatedCenters?.map((c: any) => (
                 <div
                   key={c.id}
@@ -253,7 +253,7 @@ export const PatientPortal: React.FC = () => {
                     {isRtl ? c.name_ar : c.name_en}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--color-body-gray)', marginTop: 6 }}>
-                    {isRtl ? 'رقم السجل الطبي:' : 'MRN:'} <code style={{ color: 'var(--color-metric-blue)', fontWeight: 560 }}>{c.mrn}</code>
+                    {isRtl ? 'رقم السجل الطبي:' : 'MRN:'} <code style={{ color: 'var(--color-metric-accent)', fontWeight: 560 }}>{c.mrn}</code>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--color-body-gray)', marginTop: 4 }}>
                     {isRtl ? 'أول زيارة:' : 'First Visit:'} {c.first_visit_date || '2025-01-15'}
@@ -264,7 +264,7 @@ export const PatientPortal: React.FC = () => {
           </div>
 
           {/* Quick Snapshot Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 24 }}>
+          <div className="motion-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 24 }}>
             {/* Latest Approved Visit */}
             <div className="cloud-feature-card" style={{ padding: 28 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
@@ -303,7 +303,7 @@ export const PatientPortal: React.FC = () => {
                   <div style={{ fontWeight: 520, fontSize: 18, color: 'var(--color-ink)' }}>
                     {summary.prescriptions[0].items?.[0]?.medication_name || 'Medication'}
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--color-metric-blue)', fontWeight: 520, marginTop: 4 }}>
+                  <div style={{ fontSize: 13, color: 'var(--color-metric-accent)', fontWeight: 520, marginTop: 4 }}>
                     {summary.prescriptions[0].items?.[0]?.dosage} · {summary.prescriptions[0].items?.[0]?.frequency}
                   </div>
                   <div style={{ fontSize: 14, color: 'var(--color-body-gray)', marginTop: 10, lineHeight: 1.5 }}>
@@ -392,7 +392,7 @@ export const PatientPortal: React.FC = () => {
                     }}
                   >
                     <div style={{ fontWeight: 520, fontSize: 16, color: 'var(--color-ink)' }}>{item.medication_name}</div>
-                    <div style={{ fontSize: 13, color: 'var(--color-metric-blue)', fontWeight: 520, marginTop: 4 }}>
+                    <div style={{ fontSize: 13, color: 'var(--color-metric-accent)', fontWeight: 520, marginTop: 4 }}>
                       {item.dosage} · {item.frequency} · {item.duration}
                     </div>
                     {item.instructions && (

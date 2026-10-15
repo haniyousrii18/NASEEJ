@@ -1,4 +1,5 @@
 import React from 'react';
+import { Reveal } from '../components/motion.js';
 import { LeafIcon } from '../components/LineIcon.js';
 import { useLang } from '../context/LangContext.js';
 
@@ -10,7 +11,7 @@ export const FeaturesPage: React.FC = () => {
       id: 'multi-tenancy',
       tag: 'FR-020 — FR-026',
       badgeClass: 'badge-info',
-      accentColor: 'var(--color-metric-blue)',
+      accentColor: 'var(--color-metric-accent)',
       icon: '🏢',
       title: t.features.f1_title,
       summary: t.features.f1_desc,
@@ -102,7 +103,7 @@ export const FeaturesPage: React.FC = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
         {featureDeepDives.map((feat) => (
-          <div key={feat.id} className="cloud-feature-card" style={{ padding: '36px 40px' }}>
+          <Reveal key={feat.id} className="cloud-feature-card" style={{ padding: '36px 40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <span className="emoji-quiet" aria-hidden="true" style={{ fontSize: 28 }}>{feat.icon}</span>
@@ -135,7 +136,7 @@ export const FeaturesPage: React.FC = () => {
                 ))}
               </ul>
             </div>
-          </div>
+          </Reveal>
         ))}
       </div>
     </div>

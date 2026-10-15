@@ -1,4 +1,5 @@
 import React from 'react';
+import { Reveal } from '../components/motion.js';
 import { LeafIcon } from '../components/LineIcon.js';
 import { useLang } from '../context/LangContext.js';
 
@@ -6,7 +7,7 @@ export const WorkflowPage: React.FC = () => {
   const { t, isRtl } = useLang();
 
   const steps = [
-    { num: '01', title: t.workflow.step1_title, desc: t.workflow.step1_desc, icon: '🆔', accent: 'var(--color-metric-blue)' },
+    { num: '01', title: t.workflow.step1_title, desc: t.workflow.step1_desc, icon: '🆔', accent: 'var(--color-metric-accent)' },
     { num: '02', title: t.workflow.step2_title, desc: t.workflow.step2_desc, icon: '🗓️', accent: 'var(--color-sleep-lilac)' },
     { num: '03', title: t.workflow.step3_title, desc: t.workflow.step3_desc, icon: '🩺', accent: 'var(--color-recovery-green)' },
     { num: '04', title: t.workflow.step4_title, desc: t.workflow.step4_desc, icon: '💊', accent: 'var(--color-coral-signal)' },
@@ -35,7 +36,7 @@ export const WorkflowPage: React.FC = () => {
 
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {steps.map((s, idx) => (
-          <div key={idx} className="cloud-feature-card" style={{
+          <Reveal key={idx} i={idx} className="cloud-feature-card" style={{
             display: 'flex',
             alignItems: 'flex-start',
             gap: 24,
@@ -72,7 +73,7 @@ export const WorkflowPage: React.FC = () => {
                 {s.desc}
               </p>
             </div>
-          </div>
+          </Reveal>
         ))}
       </div>
     </div>

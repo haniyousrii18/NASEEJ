@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
-    <meta name="theme-color" content="#0f3e17" />
+    <meta name="theme-color" content="#faf7f4" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -20,7 +20,7 @@
           var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.dataset.theme = dark ? 'dark' : 'light';
           var m = document.querySelector('meta[name="theme-color"]');
-          if (m && dark) m.setAttribute('content', '#171721');
+          if (m && dark) m.setAttribute('content', '#1a1411');
         } catch (e) {}
       })();
     </script>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { LeafIcon } from '../components/LineIcon.js';
+import { ArrowIcon, LeafIcon, LockIcon } from '../components/LineIcon.js';
+import { pickHero } from '../components/HeroVisual.js';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 
@@ -8,7 +9,8 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
-  const { t, isRtl } = useLang();
+  const { t, isRtl, lang } = useLang();
+  const A = t.auth;
   const { login } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -106,158 +108,113 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
     handleLoginSubmit(undefined, personaEmail);
   };
 
+  const heroSrc = pickHero(lang);
+
   return (
-    <div className="page-shell" style={{ maxWidth: 960, margin: '0 auto', padding: '40px 24px 80px' }}>
-      <div style={{ textAlign: 'center', marginBottom: 44 }}>
-        <div className="recognition-laurel-pair">
-          <div className="recognition-laurel-item">
-            <LeafIcon />
-            <span>{isRtl ? 'الدخول الآمن والتحقق المعتمد' : 'Secure Authenticated Access'}</span>
-            <LeafIcon />
-          </div>
+    <div className="auth">
+      <section className="auth-story" aria-labelledby="auth-story-title">
+        {heroSrc && <img src={heroSrc} alt={t.landing.imageAlt} decoding="async" />}
+        <div className="auth-story-inner">
+          <span className="auth-story-eyebrow">
+            <LockIcon />
+            {A.eyebrow}
+          </span>
+          <h2 id="auth-story-title" className="auth-story-title">{A.panelTitle}</h2>
+          <p className="auth-story-lead">{A.panelLead}</p>
+          <ul className="auth-nodes">
+            <li>{A.nodePatients}</li>
+            <li>{A.nodeClinicians}</li>
+            <li>{A.nodeCenters}</li>
+          </ul>
         </div>
-        <h1 className="text-display" style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', margin: '14px 0' }}>
-          {t.auth.loginTitle}
-        </h1>
-        <p className="text-subhead">
-          {t.auth.loginSubtitle}
-        </p>
-      </div>
+      </section>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
-        gap: 28,
-        alignItems: 'start',
-      }}>
-        {/* Quick Fill Demo Personas Box */}
-        <div className="cloud-feature-card" style={{ padding: '32px 28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <h3 className="text-card-heading" style={{ fontSize: 20, margin: 0 }}>
-              {t.auth.demoAccounts}
-            </h3>
-            <span className="status-badge badge-approved" style={{ fontSize: 11 }}>
-              100% Synthetic
+      <div className="auth-main">
+        <div className="auth-panel motion-stagger">
+          <div className="auth-head">
+            <span className="auth-eyebrow">
+              <LeafIcon />
+              {A.eyebrow}
             </span>
+            <h1 className="auth-title">{A.loginTitle}</h1>
+            <p className="auth-sub">{A.loginSubtitle}</p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {demoPersonas.map((p) => (
-              <div
-                key={p.roleKey}
-                onClick={() => handleQuickLogin(p.email)}
-                style={{
-                  padding: '14px 16px',
-                  borderRadius: 16,
-                  background: 'var(--color-paper-white)',
-                  border: '1px solid var(--color-border-subtle)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  boxShadow: 'var(--shadow-xs)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-charcoal)';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 520, color: 'var(--color-ink)' }}>
-                    {p.name}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--color-body-gray)', marginTop: 2 }}>
-                    {p.desc}
-                  </div>
-                </div>
-                <span className={`status-badge ${p.badgeClass}`} style={{ fontSize: 11 }}>
-                  {p.badge}
-                </span>
+          <div className="cloud-feature-card auth-card">
+            <h2 className="auth-card-title">{A.directLogin}</h2>
+
+            {errorMsg && (
+              <div className="auth-error motion-alert-enter" role="alert">
+                {errorMsg}
               </div>
-            ))}
+            )}
+
+            <form className="auth-form" onSubmit={handleLoginSubmit}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="login-email">{A.email}</label>
+                <input
+                  id="login-email"
+                  type="email"
+                  required
+                  autoComplete="username"
+                  dir="ltr"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="doctor.noor@naseej.health"
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="login-password">{A.password}</label>
+                <input
+                  id="login-password"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  dir="ltr"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password123!"
+                  className="form-input"
+                />
+              </div>
+
+              <button type="submit" disabled={loading} className="btn-pill btn-pill-charcoal auth-submit">
+                {loading ? t.common.loading : A.loginBtn}
+              </button>
+            </form>
+
+            <p className="auth-note">{A.passwordNote}</p>
           </div>
-        </div>
 
-        {/* Credentials Form Box */}
-        <div className="cloud-feature-card" style={{ padding: '36px 32px' }}>
-          <h3 className="text-card-heading" style={{ fontSize: 20, marginBottom: 20 }}>
-            {isRtl ? 'تسجيل الدخول المباشر' : 'Direct Credentials Login'}
-          </h3>
-
-          {errorMsg && (
-            <div
-              className="motion-alert-enter"
-              style={{
-                background: 'var(--color-status-danger-bg)',
-                border: '1px solid var(--color-status-danger-border)',
-                borderRadius: 12,
-                padding: '10px 14px',
-                color: 'var(--color-status-danger-text)',
-                fontSize: 14,
-                marginBottom: 18,
-              }}
-            >
-              {errorMsg}
+          <div className="cloud-feature-card auth-card">
+            <div className="auth-demo-head">
+              <h2 className="auth-card-title">{A.demoAccounts}</h2>
+              <span className="status-badge badge-approved" style={{ fontSize: 11 }}>{A.syntheticBadge}</span>
             </div>
-          )}
-
-          <form onSubmit={handleLoginSubmit}>
-            <div className="form-group">
-              <label className="form-label">{t.auth.email}</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="doctor.noor@naseej.health"
-                className="form-input"
-              />
-            </div>
-
-            <div className="form-group" style={{ marginTop: 14 }}>
-              <label className="form-label">{t.auth.password}</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password123!"
-                className="form-input"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-pill btn-pill-charcoal"
-              style={{ width: '100%', marginTop: 24, padding: '12px', fontSize: 16 }}
-            >
-              {loading ? t.common.loading : t.auth.loginBtn}
-            </button>
-          </form>
-
-          <div style={{
-            marginTop: 24,
-            padding: '12px 16px',
-            background: 'var(--color-paper-white)',
-            borderRadius: 14,
-            textAlign: 'center',
-            fontSize: 12,
-            color: 'var(--color-body-gray)',
-            border: '1px solid var(--color-border-subtle)',
-          }}>
-            {isRtl
-              ? 'كلمة المرور الموحدة لجميع الحسابات التجريبية: Password123!'
-              : 'Default password for all synthetic accounts: Password123!'}
+            <p className="auth-demo-lead">{A.demoLead}</p>
+            <ul className="auth-personas">
+              {demoPersonas.map((p) => (
+                <li key={p.roleKey}>
+                  <button type="button" className="auth-persona" disabled={loading} onClick={() => handleQuickLogin(p.email)}>
+                    <span className="auth-persona-text">
+                      <span className="auth-persona-name">{p.name}</span>
+                      <span className="auth-persona-desc">{p.desc}</span>
+                    </span>
+                    <span className={`status-badge ${p.badgeClass}`}>{p.badge}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
+
+          <button type="button" className="auth-back" onClick={() => setCurrentView('home')}>
+            <span aria-hidden="true" style={{ display: 'inline-flex', transform: isRtl ? undefined : 'scaleX(-1)' }}>
+              <ArrowIcon />
+            </span>
+            {A.backHome}
+          </button>
         </div>
       </div>
     </div>

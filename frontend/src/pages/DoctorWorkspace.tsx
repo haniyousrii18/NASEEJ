@@ -271,7 +271,7 @@ export const DoctorWorkspace: React.FC = () => {
         <span style={{ display: 'block', fontSize: 14, fontWeight: 520, color: 'var(--color-ink)', overflowWrap: 'anywhere' }} dir="auto">{p.name}</span>
         <span style={{ display: 'block', fontSize: 12, color: 'var(--color-body-gray)', marginTop: 2, overflowWrap: 'anywhere' }}>{p.sub}</span>
       </span>
-      <bdi className="num" style={{ fontSize: 12, color: 'var(--color-metric-blue)', fontWeight: 560 }}>{p.meta}</bdi>
+      <bdi className="num" style={{ fontSize: 12, color: 'var(--color-metric-accent)', fontWeight: 560 }}>{p.meta}</bdi>
     </button>
   );
 
@@ -608,7 +608,7 @@ export const DoctorWorkspace: React.FC = () => {
                                 </div>
                                 <div style={{ marginBottom: 10 }}>
                                   <div style={{ fontSize: 12, color: 'var(--color-body-gray)' }}>{t.clinical.diagnosis}:</div>
-                                  <div style={{ fontSize: 15, fontWeight: 520, color: 'var(--color-metric-blue)', overflowWrap: 'anywhere' }} dir="auto">{v.diagnosis}</div>
+                                  <div style={{ fontSize: 15, fontWeight: 520, color: 'var(--color-metric-accent)', overflowWrap: 'anywhere' }} dir="auto">{v.diagnosis}</div>
                                 </div>
                                 {v.treatment_plan && (
                                   <div style={{ marginTop: 10, padding: '12px 16px', background: 'var(--color-paper-white)', borderRadius: 12, fontSize: 14, color: 'var(--color-body-gray)', lineHeight: 1.5 }}>
