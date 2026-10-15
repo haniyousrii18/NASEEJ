@@ -94,7 +94,7 @@ const MainContent: React.FC = () => {
         </PageTransition>
       </main>
 
-      <Footer />
+      {currentView !== 'login' && <Footer />}
       <PwaPrompts currentView={currentView} />
     </div>
   );
