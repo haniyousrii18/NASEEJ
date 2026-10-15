@@ -52,6 +52,12 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
     setOpen(false);
   };
 
+  // Ending the session also leaves the protected page, so one click lands on the login page.
+  const handleLogout = () => {
+    logout();
+    go('login');
+  };
+
   const goWorkspace = () => {
     if (!user) return;
     if (user.systemRole === 'platform_admin') go('admin');
@@ -147,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
                       <span className="site-account-role">{roleName}</span>
                     </span>
                   </button>
-                  <button type="button" onClick={logout} className="site-link" title={t.nav.logout}>
+                  <button type="button" onClick={handleLogout} className="site-link" title={t.nav.logout}>
                     {t.nav.logout}
                   </button>
                 </>
