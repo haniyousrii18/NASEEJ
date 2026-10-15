@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-export type ThemePreference = 'light' | 'dark' | 'system';
+export type ThemePreference = 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
 
 // Only the preference word is stored (never user data). The inline script in index.html reads
@@ -12,6 +12,7 @@ interface ThemeContextValue {
   preference: ThemePreference;
   resolved: ResolvedTheme;
   setPreference: (pref: ThemePreference) => void;
+  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -19,16 +20,19 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 const readPreference = (): ThemePreference => {
   try {
     const v = localStorage.getItem(THEME_STORAGE_KEY);
-    if (v === 'light' || v === 'dark' || v === 'system') return v;
+    if (v === 'light' || v === 'dark') return v;
   } catch {
-    /* storage blocked: fall back to the system setting */
+    /* storage blocked */
   }
-  return 'system';
+  try {
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+  } catch {
+    /* fallback to light */
+  }
+  return 'light';
 };
-
-const systemQuery = () => window.matchMedia('(prefers-color-scheme: dark)');
-const resolve = (pref: ThemePreference): ResolvedTheme =>
-  pref === 'system' ? (systemQuery().matches ? 'dark' : 'light') : pref;
 
 const applyTheme = (theme: ResolvedTheme, animate: boolean) => {
   const root = document.documentElement;
@@ -43,7 +47,7 @@ const applyTheme = (theme: ResolvedTheme, animate: boolean) => {
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [preference, setPreferenceState] = useState<ThemePreference>(readPreference);
-  const [resolved, setResolved] = useState<ResolvedTheme>(() => resolve(readPreference()));
+  const [resolved, setResolved] = useState<ResolvedTheme>(readPreference);
 
   const setPreference = useCallback((pref: ThemePreference) => {
     try {
@@ -54,19 +58,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setPreferenceState(pref);
   }, []);
 
-  // Apply whenever the preference changes, and follow the OS only while on "system".
+  const toggleTheme = useCallback(() => {
+    setPreference(preference === 'dark' ? 'light' : 'dark');
+  }, [preference, setPreference]);
+
+  // Apply whenever the preference changes
   useEffect(() => {
-    const sync = (animate: boolean) => {
-      const next = resolve(preference);
-      setResolved(next);
-      applyTheme(next, animate);
-    };
-    sync(true);
-    if (preference !== 'system') return;
-    const mq = systemQuery();
-    const onChange = () => sync(true);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+    setResolved(preference);
+    applyTheme(preference, true);
   }, [preference]);
 
   // Keep other open tabs in step with a change made in this one.
@@ -78,7 +77,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const value = useMemo(() => ({ preference, resolved, setPreference }), [preference, resolved, setPreference]);
+  const value = useMemo(
+    () => ({ preference, resolved, setPreference, toggleTheme }),
+    [preference, resolved, setPreference, toggleTheme],
+  );
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 

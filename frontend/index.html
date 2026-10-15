@@ -11,13 +11,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script>
-      // Apply the saved/system theme before first paint to avoid a flash of the wrong theme.
+      // Apply the saved theme (light / dark) before first paint to avoid a flash.
       // Keep in sync with src/context/ThemeContext.tsx.
       (function () {
         try {
           var pref = localStorage.getItem('naseej_theme');
-          if (pref !== 'light' && pref !== 'dark') pref = 'system';
-          var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var dark = pref === 'dark' || (!pref && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.dataset.theme = dark ? 'dark' : 'light';
           var m = document.querySelector('meta[name="theme-color"]');
           if (m && dark) m.setAttribute('content', '#1a1411');

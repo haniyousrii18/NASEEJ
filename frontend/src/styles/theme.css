@@ -1310,7 +1310,11 @@ svg {
   .btn-pill,
   .form-input,
   .form-select,
-  .form-textarea {
+  .form-textarea,
+  .na-btn,
+  .na-input,
+  .na-select,
+  .na-tab {
     min-height: 44px;
   }
 }

@@ -117,7 +117,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
       <AuthArt />
       <div className="auth-stage">
         <div className="auth-brand" dir={isRtl ? 'rtl' : 'ltr'}>
-          <img className="auth-logo" src="/logo.png" alt="" width={84} height={84} />
+          <img className="auth-logo" src="/logo-mark.svg" alt={t.brand.name} width={120} height={120} />
           <span className="auth-brand-name">{t.brand.name}</span>
           <span className="auth-brand-sub">{t.brand.tagline}</span>
         </div>

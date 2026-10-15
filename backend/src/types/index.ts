@@ -1,6 +1,6 @@
 export type SystemRole = 'platform_admin' | 'user';
 
-export type CenterRole = 'center_manager' | 'doctor' | 'reception' | 'caregiver';
+export type CenterRole = 'center_manager' | 'doctor' | 'reception' | 'caregiver' | 'care_coordinator';
 
 export interface User {
   id: string;

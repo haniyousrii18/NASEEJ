@@ -3,6 +3,10 @@ import { ENV } from './env.js';
 
 const { Pool } = pg;
 
+// A calendar DATE (appointment day, birth date) has no time zone. Returned as the plain "YYYY-MM-DD" text instead of a
+// JavaScript Date, it cannot shift by a day when the server and the browser sit in different zones.
+pg.types.setTypeParser(1082, (value: string) => value);
+
 export const pool = new Pool({
   host: ENV.DB_HOST,
   port: ENV.DB_PORT,
@@ -18,6 +22,29 @@ export const pool = new Pool({
 pool.on('error', (err) => {
   console.error('[PostgreSQL Error] Unexpected error on idle client:', err);
 });
+
+/**
+ * Runs `work` inside one database transaction (BEGIN / COMMIT, ROLLBACK on error).
+ * Use it for multi-step changes that must stay consistent, e.g. check-then-insert under an advisory lock.
+ */
+export async function withTransaction<T>(work: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await work(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    try {
+      await client.query('ROLLBACK');
+    } catch {
+      /* the original error is the useful one */
+    }
+    throw err;
+  } finally {
+    client.release();
+  }
+}
 
 export async function query<T extends pg.QueryResultRow = any>(text: string, params?: any[]): Promise<pg.QueryResult<T>> {
   const start = Date.now();

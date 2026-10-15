@@ -2,12 +2,14 @@ import { Router, Request, Response } from 'express';
 import { query } from '../config/db.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireTenant } from '../middleware/tenant.js';
-import { blockPlatformAdminFromClinical } from '../middleware/rbac.js';
+import { blockPlatformAdminFromClinical, requireClinicalReader } from '../middleware/rbac.js';
+import { isPatientLinkedToOrg } from '../services/accessService.js';
+import { isUuid } from '../services/validation.js';
 import { logAuditEvent } from '../services/auditService.js';
 
 export const visitRouter = Router();
 
-visitRouter.use(authenticate, requireTenant, blockPlatformAdminFromClinical);
+visitRouter.use(authenticate, requireTenant, blockPlatformAdminFromClinical, requireClinicalReader);
 
 // GET /api/visits (List visits in center)
 visitRouter.get('/', async (req: Request, res: Response): Promise<void> => {
@@ -69,6 +71,23 @@ visitRouter.post('/', async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
+    // The patient must be registered at THIS center, and a linked appointment must be this patient's, here.
+    if (!isUuid(patient_id) || !(await isPatientLinkedToOrg(patient_id, orgId))) {
+      res.status(404).json({ success: false, error: { code: 'PATIENT_NOT_FOUND', message: 'Patient not found in this medical center.' } });
+      return;
+    }
+    if (appointment_id) {
+      const appt = await query('SELECT 1 FROM appointments WHERE id = $1 AND organization_id = $2 AND patient_id = $3', [
+        isUuid(appointment_id) ? appointment_id : '00000000-0000-0000-0000-000000000000',
+        orgId,
+        patient_id,
+      ]);
+      if (appt.rowCount === 0) {
+        res.status(400).json({ success: false, error: { code: 'INVALID_APPOINTMENT', message: 'The appointment does not belong to this patient at this center.' } });
+        return;
+      }
+    }
+
     const insertRes = await query(
       `INSERT INTO visits (
          organization_id, patient_id, clinician_id, appointment_id, chief_complaint, vital_signs, examination_notes, diagnosis, treatment_plan, status

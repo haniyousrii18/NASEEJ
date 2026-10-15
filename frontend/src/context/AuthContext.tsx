@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 export interface UserMembership {
   id: string;
   organization_id: string;
-  role: 'center_manager' | 'doctor' | 'reception' | 'caregiver';
+  role: 'center_manager' | 'doctor' | 'reception' | 'caregiver' | 'care_coordinator';
   specialty_ar?: string;
   specialty_en?: string;
   organization_name_ar: string;

@@ -2,12 +2,14 @@ import { Router, Request, Response } from 'express';
 import { query } from '../config/db.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireTenant } from '../middleware/tenant.js';
-import { blockPlatformAdminFromClinical } from '../middleware/rbac.js';
+import { blockPlatformAdminFromClinical, requireClinicalReader } from '../middleware/rbac.js';
+import { isPatientLinkedToOrg } from '../services/accessService.js';
+import { isUuid } from '../services/validation.js';
 import { logAuditEvent } from '../services/auditService.js';
 
 export const labRouter = Router();
 
-labRouter.use(authenticate, requireTenant, blockPlatformAdminFromClinical);
+labRouter.use(authenticate, requireTenant, blockPlatformAdminFromClinical, requireClinicalReader);
 
 // GET /api/labs/orders
 labRouter.get('/orders', async (req: Request, res: Response): Promise<void> => {
@@ -84,6 +86,18 @@ labRouter.post('/orders', async (req: Request, res: Response): Promise<void> => 
   }
 
   try {
+    if (!isUuid(patient_id) || !(await isPatientLinkedToOrg(patient_id, orgId))) {
+      res.status(404).json({ success: false, error: { code: 'PATIENT_NOT_FOUND', message: 'Patient not found in this medical center.' } });
+      return;
+    }
+    if (visit_id) {
+      const visitCheck = await query('SELECT 1 FROM visits WHERE id = $1 AND organization_id = $2 AND patient_id = $3', [isUuid(visit_id) ? visit_id : '00000000-0000-0000-0000-000000000000', orgId, patient_id]);
+      if (visitCheck.rowCount === 0) {
+        res.status(404).json({ success: false, error: { code: 'VISIT_NOT_FOUND', message: 'Visit not found for this patient in this medical center.' } });
+        return;
+      }
+    }
+
     const insertRes = await query(
       `INSERT INTO lab_orders (organization_id, visit_id, patient_id, clinician_id, test_name_ar, test_name_en, test_category, clinical_notes, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
@@ -113,7 +127,16 @@ labRouter.post('/orders', async (req: Request, res: Response): Promise<void> => 
 labRouter.post('/orders/:id/results', async (req: Request, res: Response): Promise<void> => {
   const orgId = req.tenantId!;
   const orderId = req.params.id;
-  const { parameter_name, value, unit, reference_range, is_abnormal } = req.body;
+  const { parameter_name, value, unit, reference_range, is_abnormal } = req.body || {};
+
+  // Entering results is clinical work. Previously any member of the center (or a linked patient) could post here.
+  if (req.currentMembership?.role !== 'doctor') {
+    res.status(403).json({
+      success: false,
+      error: { code: 'FORBIDDEN_ROLE', message: 'Only clinicians can enter laboratory results.' },
+    });
+    return;
+  }
 
   if (!parameter_name || !value || !unit) {
     res.status(400).json({
@@ -124,6 +147,12 @@ labRouter.post('/orders/:id/results', async (req: Request, res: Response): Promi
   }
 
   try {
+    const orderCheck = await query('SELECT 1 FROM lab_orders WHERE id = $1 AND organization_id = $2', [isUuid(orderId) ? orderId : '00000000-0000-0000-0000-000000000000', orgId]);
+    if (orderCheck.rowCount === 0) {
+      res.status(404).json({ success: false, error: { code: 'LAB_ORDER_NOT_FOUND', message: 'Laboratory order not found in this medical center.' } });
+      return;
+    }
+
     const resultRes = await query(
       `INSERT INTO lab_results (organization_id, lab_order_id, parameter_name, value, unit, reference_range, is_abnormal, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 'draft')

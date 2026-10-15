@@ -37,6 +37,13 @@ export function requireTenant(req: Request, res: Response, next: NextFunction): 
   const membership = user.memberships.find((m) => m.organization_id === requestedOrgId);
 
   if (membership) {
+    if (membership.organization_status === 'suspended') {
+      res.status(403).json({
+        success: false,
+        error: { code: 'ORGANIZATION_SUSPENDED', message: 'This medical center is suspended. Contact the platform administrator.' },
+      });
+      return;
+    }
     req.tenantId = requestedOrgId;
     req.currentMembership = membership;
     next();
@@ -48,10 +55,19 @@ export function requireTenant(req: Request, res: Response, next: NextFunction): 
     import('../config/db.js').then(async ({ query }) => {
       try {
         const linkRes = await query(
-          'SELECT * FROM patient_center_links WHERE organization_id = $1 AND patient_id = $2 AND status = $3',
+          `SELECT l.*, o.status AS organization_status
+           FROM patient_center_links l JOIN organizations o ON o.id = l.organization_id
+           WHERE l.organization_id = $1 AND l.patient_id = $2 AND l.status = $3`,
           [requestedOrgId, user.patientProfileId, 'active']
         );
         if (linkRes.rowCount && linkRes.rowCount > 0) {
+          if (linkRes.rows[0].organization_status === 'suspended') {
+            res.status(403).json({
+              success: false,
+              error: { code: 'ORGANIZATION_SUSPENDED', message: 'This medical center is suspended.' },
+            });
+            return;
+          }
           req.tenantId = requestedOrgId;
           next();
           return;

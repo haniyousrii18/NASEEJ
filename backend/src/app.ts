@@ -10,11 +10,19 @@ import { labRouter } from './routes/labRoutes.js';
 import { portalRouter } from './routes/portalRoutes.js';
 import { auditRouter } from './routes/auditRoutes.js';
 import { publicRouter } from './routes/publicRoutes.js';
+import { documentRouter } from './routes/documentRoutes.js';
+import { consentRouter } from './routes/consentRoutes.js';
+import { coordinationRouter } from './routes/coordinationRoutes.js';
+import { centerRouter } from './routes/centerRoutes.js';
+import { adminRouter } from './routes/adminRoutes.js';
+import { doctorRouter } from './routes/doctorRoutes.js';
 
 export const app: Express = express();
 
 // Middlewares
 app.use(cors({ origin: true, credentials: true }));
+// Uploads arrive as base64 JSON (about 4 MB of file), so only the documents route gets a larger body limit.
+app.use('/api/documents', express.json({ limit: '6mb' }));
 app.use(express.json());
 
 // Health Check
@@ -38,6 +46,12 @@ app.use('/api/labs', labRouter);
 app.use('/api/portal', portalRouter);
 app.use('/api/audit-logs', auditRouter);
 app.use('/api/public', publicRouter);
+app.use('/api/portal/consents', consentRouter);
+app.use('/api/documents', documentRouter);
+app.use('/api/coordination', coordinationRouter);
+app.use('/api/center', centerRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/doctor', doctorRouter);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {
@@ -52,6 +66,18 @@ app.use((req: Request, res: Response) => {
 
 // Global Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  // Malformed JSON and oversized bodies are the client's error, not a server fault.
+  const clientStatus = typeof err?.status === 'number' && err.status >= 400 && err.status < 500 ? err.status : null;
+  if (clientStatus) {
+    res.status(clientStatus).json({
+      success: false,
+      error: {
+        code: clientStatus === 413 ? 'PAYLOAD_TOO_LARGE' : 'BAD_REQUEST',
+        message: clientStatus === 413 ? 'The request body is too large.' : 'The request could not be processed.',
+      },
+    });
+    return;
+  }
   console.error('[Unhandled Server Error]:', err);
   res.status(500).json({
     success: false,
