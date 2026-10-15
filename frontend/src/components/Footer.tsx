@@ -63,7 +63,6 @@ export const Footer: React.FC = () => {
           <ul className="sf-meta">
             <li>PostgreSQL Multi-Tenant</li>
             <li>Role-Based Security</li>
-            <li>HL7 / FHIR Ready</li>
           </ul>
         </div>
       </div>

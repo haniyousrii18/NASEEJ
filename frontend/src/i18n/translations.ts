@@ -587,7 +587,7 @@ export const translations = {
       footerPrivacy: 'Privacy & Security',
       footerRoles: 'System Personas',
       footerPrototype: 'Academic Prototype',
-      footerPrototypeNote: 'University Academic Prototype. All demonstration data is strictly synthetic. Designed on modern Cloudlight principles.',
+      footerPrototypeNote: 'University Academic Prototype. All demonstration data is strictly synthetic.',
       footerRights: 'All rights reserved.',
       menu: 'Menu',
       closeMenu: 'Close menu',
