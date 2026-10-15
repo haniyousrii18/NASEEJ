@@ -19,6 +19,12 @@ const MenuIcon: React.FC<{ open: boolean }> = ({ open }) => (
   </svg>
 );
 
+const CloseIcon: React.FC = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
 /**
  * Site bar. Hierarchy, start to end: brand, primary links, quiet utilities (install, theme, language),
  * then one account area with a single primary action. Below 960px everything folds into one menu.
@@ -83,25 +89,70 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
     <header className="site-bar" data-overlay={OVERLAY_VIEWS.includes(currentView)} data-scrolled={scrolled} data-menu={open}>
       <div className="site-bar-inner">
         <button type="button" className="site-brand" onClick={() => go('home')} aria-label={`${t.brand.name} · ${t.nav.home}`}>
-          <img className="site-logo" src="/logo-mark.png" alt="" width={54} height={54} />
+          <img className="site-logo" src="/logo-mark.svg" alt="" width={54} height={54} />
           <span className="site-brand-text">
             <span className="site-brand-name">{t.brand.name}</span>
             <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'Naseej' : 'نَسيج'}</span>
           </span>
         </button>
 
-        <button
-          type="button"
-          className="site-menu-btn"
-          aria-expanded={open}
-          aria-controls="site-menu"
-          aria-label={open ? t.landing.closeMenu : t.landing.menu}
-          onClick={() => setOpen((o) => !o)}
-        >
-          <MenuIcon open={open} />
-        </button>
+        {/* On Login page on mobile, show language and theme switchers directly in the top navbar */}
+        {currentView === 'login' && (
+          <div className="site-login-direct-tools">
+            <ThemeToggle compact />
+            <button
+              type="button"
+              className="site-util site-util--direct"
+              onClick={() => setLang(otherLang)}
+              lang={otherLang}
+              aria-label={otherLangName}
+              title={otherLangName}
+            >
+              <GlobeIcon />
+              <span className="site-util-code" aria-hidden="true">{otherLang === 'en' ? 'EN' : 'ع'}</span>
+            </button>
+          </div>
+        )}
 
-        <div id="site-menu" className="site-collapsible" data-open={open}>
+        {currentView !== 'login' && (
+          <button
+            type="button"
+            className="site-menu-btn"
+            aria-expanded={open}
+            aria-controls="site-menu"
+            aria-label={open ? t.landing.closeMenu : t.landing.menu}
+            onClick={() => setOpen((o) => !o)}
+          >
+            <MenuIcon open={open} />
+          </button>
+        )}
+
+        {/* Blurred Backdrop for Mobile Sidebar Drawer */}
+        <div
+          className={`site-drawer-backdrop${open ? ' is-active' : ''}`}
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
+
+        <div id="site-menu" className={`site-collapsible${open ? ' is-open' : ''}`} data-open={open}>
+          <div className="site-drawer-header">
+            <div className="site-drawer-brand">
+              <img className="site-logo" src="/logo-mark.svg" alt="" width={40} height={40} />
+              <div className="site-brand-text">
+                <span className="site-brand-name">{t.brand.name}</span>
+                <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'Naseej' : 'نَسيج'}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="site-drawer-close"
+              onClick={() => setOpen(false)}
+              aria-label={t.landing.closeMenu}
+            >
+              <CloseIcon />
+            </button>
+          </div>
+
           <nav className="site-nav" aria-label={t.landing.menu}>
             {links.map(([view, label]) => (
               <button key={view} type="button" aria-current={currentView === view ? 'page' : undefined} onClick={() => go(view)}>

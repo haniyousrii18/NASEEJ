@@ -46,7 +46,10 @@
 .doctor-section-nav {
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   padding: 4px;
   border-radius: var(--radius-pills);
   background: var(--color-cloud-card);
@@ -54,7 +57,13 @@
   max-width: 100%;
 }
 
+.doctor-section-nav::-webkit-scrollbar {
+  display: none;
+}
+
 .doctor-section-nav button {
+  flex-shrink: 0;
+  white-space: nowrap;
   min-height: 44px;
   padding: 6px 18px;
   border-radius: var(--radius-pills);
@@ -73,7 +82,7 @@
   color: var(--color-ink);
 }
 
-/* Workspace layout: narrow context rail + wide working area on desktop, stacked below 900px. */
+/* Workspace layout: narrow context rail + wide working area on desktop, stacked below 960px. */
 .doctor-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -81,9 +90,15 @@
   align-items: start;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 960px) {
   .doctor-layout:not([data-focus='1']) {
-    grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1240px) {
+  .doctor-layout:not([data-focus='1']) {
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   }
 }
 

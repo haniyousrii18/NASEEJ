@@ -1,0 +1,124 @@
+// Navigation labels, grouped by task. One entry per sidebar item, per role.
+
+const ar = {
+  groups: {
+    overview: 'نظرة عامة',
+    myRecord: 'سجلي الصحي',
+    care: 'الرعاية',
+    patients: 'المرضى',
+    day: 'يومي',
+    coordination: 'التنسيق',
+    front: 'مكتب الاستقبال',
+    operations: 'التشغيل',
+    people: 'الفريق',
+    platform: 'المنصة',
+    oversight: 'الرقابة',
+  },
+  items: {
+    patientHome: 'الرئيسية',
+    patientSummary: 'ملخصي الصحي',
+    patientTimeline: 'الخط الزمني الصحي',
+    patientDocuments: 'المستندات والنتائج',
+    patientMedications: 'الأدوية المسجَّلة',
+    patientAppointments: 'المواعيد',
+    patientMessages: 'الأسئلة والأعراض',
+    patientConsents: 'الموافقات والمشاركة',
+
+    doctorHome: 'لوحة الطبيب',
+    doctorAppointments: 'مواعيدي',
+    doctorPatients: 'البحث عن مريض',
+    doctorPending: 'بانتظار الاعتماد',
+
+    coordHome: 'لوحة التنسيق',
+    coordCases: 'الحالات التي أتابعها',
+    coordTasks: 'المهام',
+    coordReferrals: 'الإحالات والانتقالات',
+    coordLog: 'سجل المتابعة',
+
+    receptionHome: 'لوحة الاستقبال',
+    receptionSchedule: 'جدول اليوم',
+    receptionBook: 'حجز موعد',
+    receptionArrivals: 'الوصول والانتظار',
+    receptionPatients: 'بحث إداري عن مريض',
+
+    managerHome: 'لوحة المركز',
+    managerSchedule: 'المواعيد والموارد',
+    managerStaff: 'الأطباء والفريق',
+    managerServices: 'الخدمات والتخصصات',
+    managerReports: 'التقارير التشغيلية',
+    managerCoordination: 'التنسيق والمتابعة',
+    managerActivity: 'سجل النشاط',
+
+    adminHome: 'لوحة المنصة',
+    adminCenters: 'المراكز الطبية',
+    adminAccounts: 'الحسابات والأدوار',
+    adminRequests: 'طلبات العروض التجريبية',
+    adminAudit: 'سجل التدقيق',
+  },
+  noWorkspaceTitle: 'لا توجد مساحة عمل لحسابك بعد',
+  noWorkspaceBody: 'لم يُسنَد لحسابك دور في هذا المركز. تواصل مع مدير المركز أو مسؤول المنصة.',
+  centerLabel: 'المركز',
+};
+
+const en: typeof ar = {
+  groups: {
+    overview: 'Overview',
+    myRecord: 'My health record',
+    care: 'Care',
+    patients: 'Patients',
+    day: 'My day',
+    coordination: 'Coordination',
+    front: 'Front desk',
+    operations: 'Operations',
+    people: 'Team',
+    platform: 'Platform',
+    oversight: 'Oversight',
+  },
+  items: {
+    patientHome: 'Home',
+    patientSummary: 'My Health Summary',
+    patientTimeline: 'Health Timeline',
+    patientDocuments: 'Documents and Results',
+    patientMedications: 'Recorded Medications',
+    patientAppointments: 'Appointments',
+    patientMessages: 'Questions and Symptoms',
+    patientConsents: 'Consents and Sharing',
+
+    doctorHome: 'Doctor Dashboard',
+    doctorAppointments: 'My Appointments',
+    doctorPatients: 'Find a Patient',
+    doctorPending: 'Pending Sign-off',
+
+    coordHome: 'Coordination Dashboard',
+    coordCases: 'Cases I Follow',
+    coordTasks: 'Tasks',
+    coordReferrals: 'Referrals and Transitions',
+    coordLog: 'Follow-up Log',
+
+    receptionHome: 'Reception Dashboard',
+    receptionSchedule: "Today's Schedule",
+    receptionBook: 'Book Appointment',
+    receptionArrivals: 'Arrival and Waiting',
+    receptionPatients: 'Administrative Patient Search',
+
+    managerHome: 'Center Dashboard',
+    managerSchedule: 'Appointments and Resources',
+    managerStaff: 'Practitioners and Staff',
+    managerServices: 'Services and Specialties',
+    managerReports: 'Operational Reports',
+    managerCoordination: 'Coordination Oversight',
+    managerActivity: 'Activity Log',
+
+    adminHome: 'Platform Dashboard',
+    adminCenters: 'Medical Centers',
+    adminAccounts: 'Accounts and Roles',
+    adminRequests: 'Demo Requests',
+    adminAudit: 'Audit Log',
+  },
+  noWorkspaceTitle: 'There is no workspace for your account yet',
+  noWorkspaceBody: 'Your account has no role at this center. Contact the center manager or the platform administrator.',
+  centerLabel: 'Center',
+};
+
+export const navT = { ar, en };
+export type NavStrings = typeof ar;

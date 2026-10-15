@@ -16,7 +16,7 @@ export const Footer: React.FC = () => {
           {/* Brand */}
           <div className="sf-brand">
             <div className="sf-brand-row">
-              <img className="sf-logo" src="/logo-mark.png" alt="" width={44} height={44} />
+              <img className="sf-logo" src="/logo-mark.svg" alt="" width={44} height={44} />
               <span className="sf-name">{t.brand.fullName}</span>
             </div>
             <p className="sf-lead">{t.brand.subtitle}</p>

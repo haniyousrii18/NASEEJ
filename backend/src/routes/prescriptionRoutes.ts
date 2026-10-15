@@ -2,12 +2,14 @@ import { Router, Request, Response } from 'express';
 import { query } from '../config/db.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireTenant } from '../middleware/tenant.js';
-import { blockPlatformAdminFromClinical } from '../middleware/rbac.js';
+import { blockPlatformAdminFromClinical, requireClinicalReader } from '../middleware/rbac.js';
+import { isPatientLinkedToOrg } from '../services/accessService.js';
+import { isUuid } from '../services/validation.js';
 import { logAuditEvent } from '../services/auditService.js';
 
 export const prescriptionRouter = Router();
 
-prescriptionRouter.use(authenticate, requireTenant, blockPlatformAdminFromClinical);
+prescriptionRouter.use(authenticate, requireTenant, blockPlatformAdminFromClinical, requireClinicalReader);
 
 // GET /api/prescriptions
 prescriptionRouter.get('/', async (req: Request, res: Response): Promise<void> => {
@@ -80,6 +82,17 @@ prescriptionRouter.post('/', async (req: Request, res: Response): Promise<void> 
   }
 
   try {
+    // The visit must exist at this center and belong to this patient; the patient must be registered here.
+    if (!isUuid(visit_id) || !isUuid(patient_id) || !(await isPatientLinkedToOrg(patient_id, orgId))) {
+      res.status(404).json({ success: false, error: { code: 'PATIENT_NOT_FOUND', message: 'Patient or visit not found in this medical center.' } });
+      return;
+    }
+    const visitCheck = await query('SELECT 1 FROM visits WHERE id = $1 AND organization_id = $2 AND patient_id = $3', [visit_id, orgId, patient_id]);
+    if (visitCheck.rowCount === 0) {
+      res.status(404).json({ success: false, error: { code: 'VISIT_NOT_FOUND', message: 'Visit not found for this patient in this medical center.' } });
+      return;
+    }
+
     // 1. Fetch patient allergies for safety check verification
     const allergiesRes = await query('SELECT allergen_en, severity FROM patient_allergies WHERE patient_id = $1', [patient_id]);
 

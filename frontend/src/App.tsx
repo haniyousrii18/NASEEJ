@@ -22,6 +22,9 @@ import './styles/shell.css';
 import './styles/landing.css';
 import './styles/auth.css';
 import './styles/doctor.css';
+import './styles/app.css';
+import { AppShell } from './app/AppShell.js';
+import { AUTHENTICATED_VIEWS } from './app/nav.js';
 
 const MainContent: React.FC = () => {
   const [currentView, setCurrentView] = useState(() => {
@@ -33,10 +36,23 @@ const MainContent: React.FC = () => {
     } catch {
       /* ignore */
     }
+    // A signed-in user reloading an authenticated deep link (e.g. "#/doctor/appointments") returns to their workspace.
+    try {
+      if (window.location.hash.startsWith('#/') && localStorage.getItem('naseej_token')) return 'workspace';
+    } catch {
+      /* ignore */
+    }
     return 'home';
   });
   const { user, currentRole } = useAuth();
   const { t } = useLang();
+
+  const isAuthView = AUTHENTICATED_VIEWS.has(currentView);
+
+  // Authenticated workspace uses the dedicated authenticated AppShell with responsive sidebar drawer
+  if (isAuthView && user) {
+    return <AppShell currentView={currentView} setCurrentView={setCurrentView} />;
+  }
 
   return (
     <div className="app-shell" data-view={currentView} style={{ display: 'flex', flexDirection: 'column' }}>
@@ -51,7 +67,7 @@ const MainContent: React.FC = () => {
           {currentView === 'demo' && <DemoRequestPage />}
           {currentView === 'login' && <LoginPage setCurrentView={setCurrentView} />}
 
-          {/* Protected Role Views */}
+          {/* Protected Role Views fallback if signed out */}
           {currentView === 'admin' && <AdminDashboard />}
           {currentView === 'manager' && <ManagerDashboard />}
           {currentView === 'doctor' && <DoctorWorkspace />}

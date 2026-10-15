@@ -6,16 +6,14 @@ const labels = {
   ar: {
     group: 'مظهر الموقع',
     switchTo: 'التبديل إلى',
-    light: 'الوضع الفاتح',
-    dark: 'الوضع الداكن',
-    system: 'إعداد النظام',
+    light: 'الوضع النهاري',
+    dark: 'الوضع الليلي',
   },
   en: {
     group: 'Theme',
     switchTo: 'Switch to',
-    light: 'Light mode',
-    dark: 'Dark mode',
-    system: 'System setting',
+    light: 'Day mode',
+    dark: 'Night mode',
   },
 } as const;
 
@@ -44,22 +42,20 @@ const icons: Record<ThemePreference, React.ReactNode> = {
       <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
     </svg>
   ),
-  system: (
-    <svg {...iconProps}>
-      <rect x="3" y="4" width="18" height="12" rx="2" />
-      <path d="M8 20h8M12 16v4" />
-    </svg>
-  ),
 };
 
-// Light -> dark -> system -> light. All three preferences stay reachable from one control.
-const next: Record<ThemePreference, ThemePreference> = { light: 'dark', dark: 'system', system: 'light' };
+// Direct 2-way toggle between light (day) and dark (night)
+const next: Record<ThemePreference, ThemePreference> = { light: 'dark', dark: 'light' };
+
+interface ThemeToggleProps {
+  compact?: boolean;
+}
 
 /**
- * One compact button that shows the current theme preference and cycles to the next.
- * The visible label (shown in the mobile menu) names the current preference.
+ * One compact button that toggles between day and night mode.
+ * When compact=true, only the icon is rendered, omitting the text label.
  */
-export const ThemeToggle: React.FC = () => {
+export const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact }) => {
   const { lang } = useLang();
   const { preference, setPreference } = useTheme();
   const c = labels[lang];
@@ -67,11 +63,19 @@ export const ThemeToggle: React.FC = () => {
   const description = `${c.group}: ${c[preference]}. ${c.switchTo} ${c[target]}`;
 
   return (
-    <button type="button" className="site-util" aria-label={description} title={description} onClick={() => setPreference(target)}>
+    <button
+      type="button"
+      className={`site-util${compact ? ' site-util--compact' : ''}`}
+      aria-label={description}
+      title={description}
+      onClick={() => setPreference(target)}
+    >
       {icons[preference]}
-      <span className="site-util-label">
-        {c.group}: {c[preference]}
-      </span>
+      {!compact && (
+        <span className="site-util-label">
+          {c.group}: {c[preference]}
+        </span>
+      )}
     </button>
   );
 };

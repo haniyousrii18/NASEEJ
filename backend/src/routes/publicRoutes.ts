@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/db.js';
+import { authenticate } from '../middleware/auth.js';
+import { requirePlatformAdmin } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 
 export const publicRouter = Router();
@@ -70,8 +72,9 @@ publicRouter.post('/contact', async (req: Request, res: Response): Promise<void>
   });
 });
 
-// GET /api/public/demo-requests (Platform Admin view)
-publicRouter.get('/demo-requests', async (req: Request, res: Response): Promise<void> => {
+// GET /api/public/demo-requests (Platform Admin view). The list holds contact names, emails and phone numbers,
+// so unlike the POST above it is closed to everyone but platform administrators.
+publicRouter.get('/demo-requests', authenticate, requirePlatformAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const requestsRes = await query('SELECT * FROM demo_requests ORDER BY created_at DESC');
     res.json({ success: true, data: requestsRes.rows });

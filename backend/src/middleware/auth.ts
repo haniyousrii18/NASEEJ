@@ -4,7 +4,7 @@ import { query } from '../config/db.js';
 import { User, OrganizationMembership, SystemRole } from '../types/index.js';
 
 export interface AuthenticatedUser extends User {
-  memberships: (OrganizationMembership & { organization_name_ar: string; organization_name_en: string; organization_code: string })[];
+  memberships: (OrganizationMembership & { organization_name_ar: string; organization_name_en: string; organization_code: string; organization_status: string })[];
   patientProfileId?: string;
 }
 
@@ -56,7 +56,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 
     // Fetch user organization memberships
     const memRes = await query(
-      `SELECT m.*, o.name_ar as organization_name_ar, o.name_en as organization_name_en, o.code as organization_code 
+      `SELECT m.*, o.name_ar as organization_name_ar, o.name_en as organization_name_en, o.code as organization_code, o.status as organization_status 
        FROM organization_memberships m
        JOIN organizations o ON m.organization_id = o.id
        WHERE m.user_id = $1 AND m.status = 'active'`,

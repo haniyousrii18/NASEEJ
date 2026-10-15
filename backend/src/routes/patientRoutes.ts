@@ -2,22 +2,32 @@ import { Router, Request, Response } from 'express';
 import { query } from '../config/db.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireTenant } from '../middleware/tenant.js';
-import { blockPlatformAdminFromClinical } from '../middleware/rbac.js';
+import { blockPlatformAdminFromClinical, requireRole } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
+import { isPatientLinkedToOrg } from '../services/accessService.js';
+import { buildTimeline, parseTimelineQuery } from '../services/recordService.js';
+import { apiError, isUuid, serverError } from '../services/validation.js';
 
 export const patientRouter = Router();
 
-// Apply auth, tenant, and platform admin clinical block
-patientRouter.use(authenticate, requireTenant, blockPlatformAdminFromClinical);
+// Staff who work with patients day to day. Center managers, coordinators and patients themselves are refused:
+// a manager's operational reports are aggregates, and a patient reads their own record through /api/portal.
+patientRouter.use(authenticate, requireTenant, blockPlatformAdminFromClinical, requireRole(['doctor', 'reception']));
 
-// GET /api/patients (Scoped to active medical center)
+// Identity and contact data a front desk needs. No blood type, no allergies, nothing clinical.
+const ADMIN_FIELDS = `p.id, p.national_id, p.full_name_ar, p.full_name_en, p.date_of_birth, p.gender, p.phone, p.email,
+       p.emergency_contact_name, p.emergency_contact_phone, p.created_at, p.updated_at`;
+
+const isDoctor = (req: Request) => req.currentMembership?.role === 'doctor';
+
+// GET /api/patients (scoped to the active medical center)
 patientRouter.get('/', async (req: Request, res: Response): Promise<void> => {
   const orgId = req.tenantId!;
   const search = (req.query.search as string) || '';
 
   try {
     let text = `
-      SELECT p.*, l.mrn, l.first_visit_date, l.status as link_status
+      SELECT ${isDoctor(req) ? 'p.*' : ADMIN_FIELDS}, l.mrn, l.first_visit_date, l.status as link_status
       FROM patient_profiles p
       JOIN patient_center_links l ON p.id = l.patient_id
       WHERE l.organization_id = $1
@@ -29,31 +39,30 @@ patientRouter.get('/', async (req: Request, res: Response): Promise<void> => {
       text += ` AND (LOWER(p.full_name_ar) LIKE $2 OR LOWER(p.full_name_en) LIKE $2 OR p.national_id LIKE $2 OR LOWER(l.mrn) LIKE $2)`;
     }
 
-    text += ' ORDER BY p.created_at DESC';
+    text += ' ORDER BY p.created_at DESC LIMIT 200';
 
     const result = await query(text, params);
     res.json({ success: true, data: result.rows });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
+    res.status(500).json(serverError(err));
   }
 });
 
-// POST /api/patients (Register patient & create center link with MRN)
+// POST /api/patients (register a patient and link them to this center with a center-scoped MRN)
 patientRouter.post('/', async (req: Request, res: Response): Promise<void> => {
   const orgId = req.tenantId!;
-  const { national_id, full_name_ar, full_name_en, date_of_birth, gender, blood_type, phone, email, emergency_contact_name, emergency_contact_phone } = req.body;
+  const { national_id, full_name_ar, full_name_en, date_of_birth, gender, blood_type, phone, email, emergency_contact_name, emergency_contact_phone } = req.body || {};
 
   if (!national_id || !full_name_ar || !full_name_en || !date_of_birth || !gender || !phone) {
-    res.status(400).json({
-      success: false,
-      error: { code: 'VALIDATION_ERROR', message: 'Missing required fields for patient registration.' },
-    });
+    res.status(400).json(apiError('VALIDATION_ERROR', 'Missing required fields for patient registration.'));
     return;
   }
+  // Blood type is clinical: only a doctor records it.
+  const bloodType = isDoctor(req) ? blood_type : undefined;
 
   try {
     // 1. Check if patient profile already exists by National ID
-    let patientRes = await query('SELECT * FROM patient_profiles WHERE national_id = $1', [national_id.trim()]);
+    const patientRes = await query('SELECT * FROM patient_profiles WHERE national_id = $1', [String(national_id).trim()]);
     let patientId: string;
     let isNewProfile = false;
 
@@ -61,8 +70,8 @@ patientRouter.post('/', async (req: Request, res: Response): Promise<void> => {
       const insertRes = await query(
         `INSERT INTO patient_profiles (national_id, full_name_ar, full_name_en, date_of_birth, gender, blood_type, phone, email, emergency_contact_name, emergency_contact_phone)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         RETURNING *`,
-        [national_id.trim(), full_name_ar, full_name_en, date_of_birth, gender, blood_type, phone, email, emergency_contact_name, emergency_contact_phone]
+         RETURNING id`,
+        [String(national_id).trim(), full_name_ar, full_name_en, date_of_birth, gender, bloodType, phone, email, emergency_contact_name, emergency_contact_phone]
       );
       patientId = insertRes.rows[0].id;
       isNewProfile = true;
@@ -71,10 +80,7 @@ patientRouter.post('/', async (req: Request, res: Response): Promise<void> => {
     }
 
     // 2. Check if link already exists with this center
-    const linkRes = await query(
-      'SELECT * FROM patient_center_links WHERE organization_id = $1 AND patient_id = $2',
-      [orgId, patientId]
-    );
+    const linkRes = await query('SELECT * FROM patient_center_links WHERE organization_id = $1 AND patient_id = $2', [orgId, patientId]);
 
     let mrn: string;
     if (linkRes.rowCount && linkRes.rowCount > 0) {
@@ -104,17 +110,10 @@ patientRouter.post('/', async (req: Request, res: Response): Promise<void> => {
       details: { mrn, nationalId: national_id },
     });
 
-    res.status(201).json({
-      success: true,
-      data: {
-        patientId,
-        mrn,
-        isNewProfile,
-      },
-    });
+    res.status(201).json({ success: true, data: { patientId, mrn, isNewProfile } });
   } catch (err: any) {
     console.error('Patient create error:', err);
-    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
+    res.status(500).json(serverError(err));
   }
 });
 
@@ -123,10 +122,15 @@ patientRouter.get('/:id', async (req: Request, res: Response): Promise<void> => 
   const orgId = req.tenantId!;
   const patientId = req.params.id;
 
+  if (!isUuid(patientId)) {
+    res.status(404).json(apiError('PATIENT_NOT_FOUND', 'Patient not found in this medical center.'));
+    return;
+  }
+
   try {
     // Strict isolation: must have an active link in THIS center
     const patientRes = await query(
-      `SELECT p.*, l.mrn, l.first_visit_date, l.status as link_status
+      `SELECT ${isDoctor(req) ? 'p.*' : ADMIN_FIELDS}, l.mrn, l.first_visit_date, l.status as link_status
        FROM patient_profiles p
        JOIN patient_center_links l ON p.id = l.patient_id
        WHERE p.id = $1 AND l.organization_id = $2`,
@@ -134,55 +138,55 @@ patientRouter.get('/:id', async (req: Request, res: Response): Promise<void> => 
     );
 
     if (patientRes.rowCount === 0) {
-      res.status(404).json({
-        success: false,
-        error: { code: 'PATIENT_NOT_FOUND', message: 'Patient not found in this medical center.' },
-      });
+      res.status(404).json(apiError('PATIENT_NOT_FOUND', 'Patient not found in this medical center.'));
       return;
     }
 
-    // Fetch allergies
-    const allergiesRes = await query(
-      'SELECT * FROM patient_allergies WHERE patient_id = $1 ORDER BY created_at DESC',
-      [patientId]
-    );
+    if (!isDoctor(req)) {
+      res.json({ success: true, data: patientRes.rows[0] });
+      return;
+    }
 
-    res.json({
-      success: true,
-      data: {
-        ...patientRes.rows[0],
-        allergies: allergiesRes.rows,
-      },
-    });
+    const allergiesRes = await query('SELECT * FROM patient_allergies WHERE patient_id = $1 ORDER BY created_at DESC', [patientId]);
+    res.json({ success: true, data: { ...patientRes.rows[0], allergies: allergiesRes.rows } });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
+    res.status(500).json(serverError(err));
   }
 });
 
+// Allergies are clinical content: doctors only, and only for patients linked to the doctor's center.
+const doctorOnly = requireRole(['doctor']);
+
 // GET /api/patients/:id/allergies
-patientRouter.get('/:id/allergies', async (req: Request, res: Response): Promise<void> => {
+patientRouter.get('/:id/allergies', doctorOnly, async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
+  if (!isUuid(id) || !(await isPatientLinkedToOrg(id, req.tenantId!))) {
+    res.status(404).json(apiError('PATIENT_NOT_FOUND', 'Patient not found in this medical center.'));
+    return;
+  }
   try {
-    const allergiesRes = await query(
-      'SELECT * FROM patient_allergies WHERE patient_id = $1 ORDER BY created_at DESC',
-      [id]
-    );
+    const allergiesRes = await query('SELECT * FROM patient_allergies WHERE patient_id = $1 ORDER BY created_at DESC', [id]);
     res.json({ success: true, data: allergiesRes.rows });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
+    res.status(500).json(serverError(err));
   }
 });
 
 // POST /api/patients/:id/allergies
-patientRouter.post('/:id/allergies', async (req: Request, res: Response): Promise<void> => {
+patientRouter.post('/:id/allergies', doctorOnly, async (req: Request, res: Response): Promise<void> => {
   const patientId = req.params.id;
-  const { allergen_ar, allergen_en, reaction_ar, reaction_en, severity, diagnosed_at } = req.body;
+  const { allergen_ar, allergen_en, reaction_ar, reaction_en, severity, diagnosed_at } = req.body || {};
 
   if (!allergen_ar || !allergen_en || !severity) {
-    res.status(400).json({
-      success: false,
-      error: { code: 'VALIDATION_ERROR', message: 'allergen_ar, allergen_en, and severity are required.' },
-    });
+    res.status(400).json(apiError('VALIDATION_ERROR', 'allergen_ar, allergen_en, and severity are required.'));
+    return;
+  }
+  if (!['mild', 'moderate', 'severe', 'life_threatening'].includes(severity)) {
+    res.status(400).json(apiError('VALIDATION_ERROR', 'severity must be mild, moderate, severe or life_threatening.'));
+    return;
+  }
+  if (!isUuid(patientId) || !(await isPatientLinkedToOrg(patientId, req.tenantId!))) {
+    res.status(404).json(apiError('PATIENT_NOT_FOUND', 'Patient not found in this medical center.'));
     return;
   }
 
@@ -208,6 +212,57 @@ patientRouter.post('/:id/allergies', async (req: Request, res: Response): Promis
 
     res.status(201).json({ success: true, data: insertRes.rows[0] });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
+    res.status(500).json(serverError(err));
+  }
+});
+
+// GET /api/patients/:id/timeline (doctor): the patient's record as this clinician may see it.
+// Their own center's records are shown in every state (drafts flagged). Other centers' records appear only
+// under an effective patient consent, only in approved form, and each such read is written to the audit log.
+patientRouter.get('/:id/timeline', doctorOnly, async (req: Request, res: Response): Promise<void> => {
+  const patientId = req.params.id;
+  const orgId = req.tenantId!;
+
+  if (!isUuid(patientId) || !(await isPatientLinkedToOrg(patientId, orgId))) {
+    res.status(404).json(apiError('PATIENT_NOT_FOUND', 'Patient not found in this medical center.'));
+    return;
+  }
+  const parsed = parseTimelineQuery(req.query);
+  if ('error' in parsed) {
+    res.status(400).json(apiError('VALIDATION_ERROR', parsed.error));
+    return;
+  }
+
+  try {
+    const result = await buildTimeline({ kind: 'clinician', patientId, orgId }, parsed.options);
+
+    if (result.consentIds.length > 0) {
+      logAuditEvent({
+        organizationId: orgId,
+        actorId: req.user!.id,
+        actorEmail: req.user!.email,
+        actorRole: 'doctor',
+        action: 'CROSS_CENTER_RECORD_ACCESS',
+        resourceType: 'patient_record',
+        resourceId: patientId,
+        ipAddress: req.ip,
+        details: {
+          patientId,
+          fromOrganizationIds: result.externalOrganizationIds,
+          consentIds: result.consentIds,
+          types: [...new Set(result.items.filter((i) => i.isExternal).map((i) => i.type))],
+          count: result.items.filter((i) => i.isExternal).length,
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.items,
+      meta: { limit: parsed.options.limit, hasMore: result.hasMore, nextBefore: result.nextBefore, externalCenters: result.externalOrganizationIds.length },
+    });
+  } catch (err: any) {
+    console.error('Patient timeline error:', err);
+    res.status(500).json(serverError(err));
   }
 });

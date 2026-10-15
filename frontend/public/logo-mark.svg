@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Naseej Signature Medical Weave Gradient -->
+    <linearGradient id="naseejWeave" x1="15%" y1="5%" x2="85%" y2="95%">
+      <stop offset="0%" stop-color="#00C4D8" />
+      <stop offset="28%" stop-color="#00A896" />
+      <stop offset="68%" stop-color="#02C39A" />
+      <stop offset="100%" stop-color="#7ECC4D" />
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00A896" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <g filter="url(#softGlow)">
+    <!-- Fiber 1: Top weave down into center -->
+    <path
+      d="M 76 21 L 53 9 L 30 21 L 30 48 L 53 61"
+      stroke="url(#naseejWeave)"
+      stroke-width="3.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Fiber 2: Center weave down and around bottom -->
+    <path
+      d="M 53 35 L 76 48 L 76 75 L 53 88 L 30 75"
+      stroke="url(#naseejWeave)"
+      stroke-width="3.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Interconnected Network Nodes -->
+    <!-- Top Row -->
+    <circle cx="53" cy="9" r="6.2" fill="#00C4D8" />
+    <circle cx="30" cy="21" r="5.6" fill="#00B6BD" />
+    <circle cx="76" cy="21" r="5.8" fill="#05BDD1" />
+
+    <!-- Center Interlocking Nodes -->
+    <circle cx="53" cy="35" r="6.4" fill="#00A896" />
+    <circle cx="30" cy="48" r="6.4" fill="#00BFA2" />
+    <circle cx="76" cy="48" r="6.4" fill="#1AC4AC" />
+    <circle cx="53" cy="61" r="6.4" fill="#29C59B" />
+
+    <!-- Bottom Row -->
+    <circle cx="30" cy="75" r="6.0" fill="#58C87E" />
+    <circle cx="76" cy="75" r="6.0" fill="#46C78E" />
+    <circle cx="53" cy="88" r="6.4" fill="#7ECC4D" />
+
+    <!-- Left Data Transmission Particles -->
+    <circle cx="21" cy="54" r="2.6" fill="#00C4D8" />
+    <circle cx="14" cy="53" r="2.0" fill="#00B6BD" />
+    <circle cx="8" cy="47" r="1.8" fill="#00BFA2" />
+    <circle cx="5" cy="56" r="1.6" fill="#46C78E" />
+    <circle cx="11" cy="63" r="2.2" fill="#29C59B" />
+    <circle cx="20" cy="70" r="2.6" fill="#00AFA3" />
+    <circle cx="7" cy="74" r="1.8" fill="#7ECC4D" />
+    <circle cx="23" cy="79" r="3.0" fill="#58C87E" />
+  </g>
+</svg>

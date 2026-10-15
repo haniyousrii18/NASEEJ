@@ -25,7 +25,12 @@ const SECTION_FOR: Record<PendingKind, Section> = { visit: 'visits', rx: 'medici
 // A single non-sensitive UI preference: no user or patient identifiers in the key or the value.
 const FOCUS_KEY = 'naseej_doctor_focus_mode';
 
-export const DoctorWorkspace: React.FC = () => {
+/**
+ * `initialPatientId` opens the workspace on one patient chosen elsewhere (the authenticated shell's patient page):
+ * the patient directory and workspace header are left out, the visit, prescription, lab and approval flows are unchanged.
+ */
+export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initialPatientId }) => {
+  const embedded = !!initialPatientId;
   const { apiFetch, currentOrgId } = useAuth();
   const { t, isRtl } = useLang();
   const D = t.doctor;
@@ -110,16 +115,18 @@ export const DoctorWorkspace: React.FC = () => {
       const [ptsRes, apptsRes] = await Promise.all([apiFetch('/api/patients'), apiFetch('/api/appointments?status=checked_in')]);
       setPatients((ptsRes.data || []) as Patient[]);
       setAppointments((apptsRes.data || []) as Appointment[]);
-      if (ptsRes.data?.length > 0 && !selectedId) void selectPatient(ptsRes.data[0].id);
+      if (initialPatientId) {
+        if (initialPatientId !== selectedId) void selectPatient(initialPatientId);
+      } else if (ptsRes.data?.length > 0 && !selectedId) void selectPatient(ptsRes.data[0].id);
     } catch (err) {
       console.error('Error loading doctor workspace:', err);
       setActionError(D.actionFailed);
     }
-  }, [currentOrgId, apiFetch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentOrgId, apiFetch, initialPatientId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     void loadData();
-  }, [currentOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentOrgId, initialPatientId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleFocus = useCallback(() => {
     setFocusMode((f) => {
@@ -338,9 +345,9 @@ export const DoctorWorkspace: React.FC = () => {
   const patient = data?.patient;
 
   return (
-    <div className="page-shell" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 24px 80px' }}>
+    <div className="page-shell" style={embedded ? undefined : { maxWidth: 1280, margin: '0 auto', padding: '32px 24px 80px' }}>
       {/* Workspace header */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
+      {!embedded && <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px 14px', flexWrap: 'wrap' }}>
           <h1 className="text-card-heading" style={{ fontSize: 'clamp(1.25rem, 1.8vw, 1.6rem)', margin: 0 }}>
             {D.title}
@@ -366,7 +373,7 @@ export const DoctorWorkspace: React.FC = () => {
             <span aria-hidden="true">↻</span>
           </button>
         </div>
-      </div>
+      </div>}
 
       <div role="status" aria-live="polite">
         {notice && (
@@ -386,12 +393,14 @@ export const DoctorWorkspace: React.FC = () => {
         </div>
       )}
 
-      <div className="doctor-layout" data-focus={focusMode ? '1' : undefined} style={{ marginTop: 10 }}>
+      <div className="doctor-layout" data-focus={focusMode || embedded ? '1' : undefined} style={{ marginTop: 10 }}>
         {/* Context rail: focus mode hides this only. The allergy alert and site navigation stay visible. */}
-        <Presence show={!focusMode} kind="panel" slide={isRtl ? -1 : 1} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {waitingList}
-          {directory}
-        </Presence>
+        {!embedded && (
+          <Presence show={!focusMode} kind="panel" slide={isRtl ? -1 : 1} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {waitingList}
+            {directory}
+          </Presence>
+        )}
 
         {/* Active patient */}
         {selectedId ? (
