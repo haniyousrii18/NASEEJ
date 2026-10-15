@@ -17,6 +17,10 @@
 }
 
 /* ------------------------------------------------------------------ site bar */
+:root {
+  --bar-h: 64px;
+}
+
 .site-bar {
   position: sticky;
   top: 0;
@@ -26,134 +30,277 @@
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--color-border-subtle);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Over a full-bleed first screen (home, login) the bar is transparent until the page scrolls or the menu opens. */
+.site-bar[data-overlay='true']:not([data-scrolled='true']):not([data-menu='true']) {
+  background: transparent;
+  border-bottom-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell[data-view='home'] .app-main,
+.app-shell[data-view='login'] .app-main {
+  margin-top: calc(var(--bar-h) * -1);
 }
 
 .site-bar-inner {
   position: relative;
   max-width: 1280px;
+  min-height: var(--bar-h);
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 10px clamp(16px, 3vw, 28px);
+  gap: 28px;
+  padding: 0 clamp(16px, 3vw, 28px);
 }
 
+/* brand */
 .site-brand {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0;
   color: inherit;
   text-align: start;
   flex: none;
+  border-radius: 12px;
+}
+
+/* The mark (logo-mark.png) is the Naseej "S" with its white tile removed, so it sits straight on the page. */
+.site-logo {
+  width: 54px;
+  height: 54px;
+  margin-inline-end: -2px;
+  object-fit: contain;
 }
 
 .site-brand-text {
   display: flex;
   flex-direction: column;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .site-brand-name {
-  font-size: 18px;
-  font-weight: 520;
+  font-size: 22px;
+  font-weight: 620;
   color: var(--color-ink);
 }
 
-.site-brand-latin,
 .site-brand-sub {
   font-size: 12px;
-  font-weight: 400;
+  font-weight: 460;
+  letter-spacing: 0.04em;
   color: var(--color-body-gray);
 }
 
+/* layout of the collapsible region: links, then the end cluster */
 .site-collapsible {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
 }
 
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .site-nav button {
+  position: relative;
   min-height: 44px;
-  padding: 6px 16px;
-  border-radius: var(--radius-pills);
+  padding: 0 14px;
+  border-radius: 10px;
   font-size: 15px;
   color: var(--color-body-gray);
-  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+  transition: color var(--t-fast) var(--ease);
+}
+
+.site-nav button::after {
+  content: '';
+  position: absolute;
+  inset-inline: 14px;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-brand-accent);
+  transform: scaleX(0);
+  transition: transform var(--t-fast) var(--ease);
 }
 
 .site-nav button:hover {
   color: var(--color-ink);
-  background: var(--color-cloud-card-hover);
 }
 
 .site-nav button[aria-current='page'] {
   color: var(--color-ink);
-  background: var(--color-cloud-card-hover);
-  font-weight: 520;
+  font-weight: 560;
 }
 
-.site-actions {
+.site-nav button[aria-current='page']::after {
+  transform: scaleX(1);
+}
+
+.site-end {
+  margin-inline-start: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 }
 
-.site-actions .btn-pill {
-  min-height: 44px;
-  padding: 6px 18px;
-  font-size: 14px;
+/* utilities: install, theme, language. Quiet icon buttons with no fill until hovered. */
+.site-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
-.site-install {
+.site-util {
+  min-width: 44px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  padding: 0 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 520;
+  color: var(--color-body-gray);
+  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
 
-/* Mid-width bars are tight: the install button keeps only its icon (the name stays on aria-label). */
-@media (min-width: 960px) and (max-width: 1279px) {
-  .site-actions .site-install {
-    padding-inline: 12px;
-  }
+.site-util:hover {
+  color: var(--color-ink);
+  background: var(--color-cloud-card-hover);
+}
 
-  .site-install-label {
-    display: none;
-  }
+.site-util-label {
+  display: none;
+}
+
+.site-util-code {
+  font-size: 13px;
+  font-weight: 620;
+  letter-spacing: 0.04em;
+}
+
+/* account area: one divider, one primary action */
+.site-auth {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: 6px;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--color-border-subtle);
+  min-width: 0;
+}
+
+.site-link {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 520;
+  color: var(--color-body-gray);
+  white-space: nowrap;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.site-link:hover {
+  color: var(--color-ink);
+}
+
+.site-cta {
+  min-height: 44px;
+  padding: 0 22px;
+  font-size: 14px;
 }
 
 .site-org-select {
   width: auto;
   min-height: 44px;
+  max-width: 200px;
   font-size: 13px;
 }
 
-.site-user {
+.site-account {
+  min-height: 44px;
+  max-width: 260px;
+  display: inline-flex;
+  align-items: center;
   gap: 10px;
-  max-width: 280px;
+  padding: 0 14px 0 6px;
+  border-radius: 999px;
+  text-align: start;
+  background: var(--color-cloud-card-hover);
+  transition: background-color var(--t-fast) var(--ease);
 }
 
-.site-user-name {
+[dir='rtl'] .site-account {
+  padding: 0 6px 0 14px;
+}
+
+.site-account:hover {
+  background: var(--color-obsidian);
+}
+
+.site-account-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 620;
+  color: #fff;
+  background: var(--color-accent);
+}
+
+.site-account-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.site-account-name,
+.site-account-role {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.site-user-role {
-  font-size: 11px;
-  padding: 2px 8px;
-  white-space: nowrap;
+.site-account-name {
+  font-size: 14px;
+  font-weight: 560;
+  color: var(--color-ink);
+}
+
+.site-account-role {
+  font-size: 11.5px;
+  color: var(--color-body-gray);
+}
+
+/* visible keyboard focus on every bar control */
+.site-brand:focus-visible,
+.site-nav button:focus-visible,
+.site-util:focus-visible,
+.site-link:focus-visible,
+.site-account:focus-visible,
+.site-cta:focus-visible,
+.site-menu-btn:focus-visible,
+.site-org-select:focus-visible {
+  outline: 2px solid var(--color-brand-accent);
+  outline-offset: 2px;
 }
 
 .site-menu-btn {
@@ -163,9 +310,31 @@
   width: 44px;
   height: 44px;
   margin-inline-start: auto;
-  border-radius: 50%;
+  border-radius: 12px;
   color: var(--color-ink);
+}
+
+.site-menu-btn:hover {
   background: var(--color-cloud-card-hover);
+}
+
+/* mid widths: drop the secondary line under the account name to keep the bar on one row */
+@media (min-width: 960px) and (max-width: 1139px) {
+  .site-account-role {
+    display: none;
+  }
+
+  .site-bar-inner {
+    gap: 20px;
+  }
+
+  .site-nav button {
+    padding: 0 10px;
+  }
+
+  .site-nav button::after {
+    inset-inline: 10px;
+  }
 }
 
 @media (max-width: 959px) {
@@ -181,10 +350,10 @@
     flex-direction: column;
     align-items: stretch;
     gap: 18px;
-    padding: 16px clamp(16px, 3vw, 28px) 24px;
+    padding: 12px clamp(16px, 3vw, 28px) 24px;
     background: var(--color-bg-canvas);
     border-bottom: 1px solid var(--color-border-subtle);
-    max-height: calc(100dvh - 72px);
+    max-height: calc(100dvh - var(--bar-h));
     overflow-y: auto;
   }
 
@@ -199,16 +368,87 @@
 
   .site-nav button {
     text-align: start;
-    justify-content: flex-start;
     font-size: 16px;
+    padding: 0 14px;
+    min-height: 48px;
   }
 
-  .site-actions {
-    flex-wrap: wrap;
+  .site-nav button::after {
+    display: none;
   }
 
-  .site-user {
-    max-width: 100%;
+  .site-nav button[aria-current='page'] {
+    background: var(--color-cloud-card-hover);
+  }
+
+  /* account first (the primary action), utilities after */
+  .site-end {
+    margin: 0;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .site-auth {
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    gap: 8px;
+  }
+
+  .site-cta {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .site-link {
+    text-align: center;
+  }
+
+  .site-account {
+    max-width: none;
+    width: 100%;
+  }
+
+  .site-org-select {
+    max-width: none;
+    width: 100%;
+  }
+
+  .site-tools {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .site-util {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 1px solid var(--color-border-subtle);
+    font-size: 15px;
+  }
+
+  .site-util-label {
+    display: inline;
+  }
+
+  .site-util-code {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-bar,
+  .site-nav button,
+  .site-nav button::after,
+  .site-util,
+  .site-link,
+  .site-account {
+    transition: none;
   }
 }
 

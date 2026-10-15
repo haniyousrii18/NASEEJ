@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 import { ThemeToggle } from './ThemeToggle.js';
-import { DownloadIcon } from './LineIcon.js';
+import { DownloadIcon, GlobeIcon } from './LineIcon.js';
 import { useInstall } from '../pwa/InstallContext.js';
 
 interface HeaderProps {
   currentView: string;
   setCurrentView: (view: string) => void;
 }
+
+// Views whose first screen is full-bleed art. The bar floats transparent over them until the page scrolls.
+const OVERLAY_VIEWS = ['home', 'login'];
 
 const MenuIcon: React.FC<{ open: boolean }> = ({ open }) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
@@ -17,14 +20,15 @@ const MenuIcon: React.FC<{ open: boolean }> = ({ open }) => (
 );
 
 /**
- * Site bar: brand, primary navigation, account actions, theme and language.
- * Below 960px the navigation and actions collapse into one menu that opens under the bar.
+ * Site bar. Hierarchy, start to end: brand, primary links, quiet utilities (install, theme, language),
+ * then one account area with a single primary action. Below 960px everything folds into one menu.
  */
 export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
   const { lang, setLang, t, isRtl } = useLang();
   const { user, logout, currentOrgId, setCurrentOrgId, currentRole } = useAuth();
   const installApp = useInstall();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // Close the menu on navigation and with Escape.
   useEffect(() => setOpen(false), [currentView]);
@@ -34,6 +38,14 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
+
+  // The bar turns solid once the page has moved.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const go = (view: string) => {
     setCurrentView(view);
@@ -56,16 +68,19 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
     ['workflow', t.nav.workflow],
   ];
 
+  const otherLang = lang === 'ar' ? 'en' : 'ar';
+  const otherLangName = lang === 'ar' ? 'English' : 'العربية';
+  const displayName = user ? (isRtl ? user.fullNameAr : user.fullNameEn) : '';
+  const roleName = user ? t.roles[currentRole as keyof typeof t.roles] || currentRole : '';
+
   return (
-    <header className="site-bar">
+    <header className="site-bar" data-overlay={OVERLAY_VIEWS.includes(currentView)} data-scrolled={scrolled} data-menu={open}>
       <div className="site-bar-inner">
         <button type="button" className="site-brand" onClick={() => go('home')} aria-label={`${t.brand.name} · ${t.nav.home}`}>
-          <img src="/logo.png" alt="" width={36} height={36} style={{ borderRadius: 8, objectFit: 'contain' }} />
+          <img className="site-logo" src="/logo-mark.png" alt="" width={54} height={54} />
           <span className="site-brand-text">
-            <span className="site-brand-name">
-              {t.brand.name} <span className="site-brand-latin">· Naseej</span>
-            </span>
-            <span className="site-brand-sub">{isRtl ? 'رعاية صحية متصلة' : 'Connected Health'}</span>
+            <span className="site-brand-name">{t.brand.name}</span>
+            <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'Naseej' : 'نَسيج'}</span>
           </span>
         </button>
 
@@ -89,55 +104,64 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
             ))}
           </nav>
 
-          <div className="site-actions">
-            {user && user.memberships && user.memberships.length > 1 && (
-              <select value={currentOrgId || ''} onChange={(e) => setCurrentOrgId(e.target.value)} className="form-select site-org-select" aria-label={t.nav.workspaces}>
-                {user.memberships.map((m) => (
-                  <option key={m.organization_id} value={m.organization_id}>
-                    {isRtl ? m.organization_name_ar : m.organization_name_en} ({m.role})
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {user ? (
-              <>
-                <button type="button" onClick={goWorkspace} className="btn-pill btn-pill-charcoal site-user">
-                  <span className="site-user-name">{isRtl ? user.fullNameAr : user.fullNameEn}</span>
-                  <span className="status-badge badge-approved site-user-role">{t.roles[currentRole as keyof typeof t.roles] || currentRole}</span>
+          <div className="site-end">
+            <div className="site-tools">
+              {installApp.available && (
+                <button type="button" className="site-util" onClick={() => void installApp.install()} aria-label={t.nav.install} title={t.nav.install}>
+                  <DownloadIcon />
+                  <span className="site-util-label">{t.nav.install}</span>
                 </button>
-                <button type="button" onClick={logout} className="btn-pill btn-pill-ghost" title={t.nav.logout}>
-                  {t.nav.logout}
-                </button>
-              </>
-            ) : (
-              <>
-                <button type="button" onClick={() => go('demo')} className="btn-pill btn-pill-ghost">
-                  {t.nav.demo}
-                </button>
-                <button type="button" onClick={() => go('login')} className="btn-pill btn-pill-charcoal">
-                  {t.nav.login}
-                </button>
-              </>
-            )}
-
-            {installApp.available && (
+              )}
+              <ThemeToggle />
               <button
                 type="button"
-                onClick={() => void installApp.install()}
-                className="btn-pill btn-pill-cloud site-install"
-                aria-label={t.nav.install}
-                title={t.nav.install}
+                className="site-util"
+                onClick={() => setLang(otherLang)}
+                lang={otherLang}
+                aria-label={otherLangName}
+                title={otherLangName}
               >
-                <DownloadIcon />
-                <span className="site-install-label">{t.nav.install}</span>
+                <GlobeIcon />
+                <span className="site-util-code" aria-hidden="true">{otherLang === 'en' ? 'EN' : 'ع'}</span>
+                <span className="site-util-label">{otherLangName}</span>
               </button>
-            )}
+            </div>
 
-            <ThemeToggle />
-            <button type="button" onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="btn-pill btn-pill-cloud site-lang" lang={lang === 'ar' ? 'en' : 'ar'}>
-              {lang === 'ar' ? 'English' : 'العربية'}
-            </button>
+            <div className="site-auth">
+              {user && user.memberships && user.memberships.length > 1 && (
+                <select value={currentOrgId || ''} onChange={(e) => setCurrentOrgId(e.target.value)} className="form-select site-org-select" aria-label={t.nav.workspaces}>
+                  {user.memberships.map((m) => (
+                    <option key={m.organization_id} value={m.organization_id}>
+                      {isRtl ? m.organization_name_ar : m.organization_name_en} ({m.role})
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {user ? (
+                <>
+                  <button type="button" onClick={goWorkspace} className="site-account">
+                    <span className="site-account-avatar" aria-hidden="true">{displayName.trim().charAt(0)}</span>
+                    <span className="site-account-text">
+                      <span className="site-account-name">{displayName}</span>
+                      <span className="site-account-role">{roleName}</span>
+                    </span>
+                  </button>
+                  <button type="button" onClick={logout} className="site-link" title={t.nav.logout}>
+                    {t.nav.logout}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" onClick={() => go('demo')} className="site-link" aria-current={currentView === 'demo' ? 'page' : undefined}>
+                    {t.nav.demo}
+                  </button>
+                  <button type="button" onClick={() => go('login')} className="btn-pill btn-pill-charcoal site-cta">
+                    {t.nav.login}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

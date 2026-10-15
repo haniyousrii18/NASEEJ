@@ -39,7 +39,7 @@ const MainContent: React.FC = () => {
   const { t } = useLang();
 
   return (
-    <div className="app-shell" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="app-shell" data-view={currentView} style={{ display: 'flex', flexDirection: 'column' }}>
       <a className="skip-link" href="#main">{t.landing.skip}</a>
       <Header currentView={currentView} setCurrentView={setCurrentView} />
 

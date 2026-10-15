@@ -115,7 +115,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: min(calc(100dvh - 56px), 720px);
+  min-height: min(100dvh, 780px);
+  padding-top: var(--bar-h);
   background: var(--hero-bg);
   color: var(--hero-ink);
 }
@@ -189,7 +190,7 @@
   justify-content: center;
   gap: 10px;
   padding: clamp(16px, 3vw, 40px);
-  padding-block-end: 96px;
+  padding-block: calc(var(--bar-h) + 16px) 96px;
 }
 
 .hero-visual-note {
@@ -706,7 +707,7 @@
     width: 100%;
     order: -1;
     z-index: 0;
-    padding: 24px 16px 0;
+    padding: 16px 16px 0;
   }
 
   .scene {

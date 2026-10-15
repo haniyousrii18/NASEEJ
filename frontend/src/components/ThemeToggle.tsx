@@ -5,28 +5,31 @@ import { useTheme, ThemePreference } from '../context/ThemeContext.js';
 const labels = {
   ar: {
     group: 'مظهر الموقع',
+    switchTo: 'التبديل إلى',
     light: 'الوضع الفاتح',
     dark: 'الوضع الداكن',
-    system: 'استخدام إعداد النظام',
+    system: 'إعداد النظام',
   },
   en: {
     group: 'Theme',
+    switchTo: 'Switch to',
     light: 'Light mode',
     dark: 'Dark mode',
-    system: 'Use system setting',
+    system: 'System setting',
   },
 } as const;
 
 const iconProps = {
-  width: 16,
-  height: 16,
+  width: 18,
+  height: 18,
   viewBox: '0 0 24 24',
   fill: 'none',
   stroke: 'currentColor',
-  strokeWidth: 2,
+  strokeWidth: 1.9,
   strokeLinecap: 'round' as const,
   strokeLinejoin: 'round' as const,
   'aria-hidden': true,
+  focusable: false,
 };
 
 const icons: Record<ThemePreference, React.ReactNode> = {
@@ -49,53 +52,26 @@ const icons: Record<ThemePreference, React.ReactNode> = {
   ),
 };
 
-const options: ThemePreference[] = ['light', 'system', 'dark'];
+// Light -> dark -> system -> light. All three preferences stay reachable from one control.
+const next: Record<ThemePreference, ThemePreference> = { light: 'dark', dark: 'system', system: 'light' };
 
+/**
+ * One compact button that shows the current theme preference and cycles to the next.
+ * The visible label (shown in the mobile menu) names the current preference.
+ */
 export const ThemeToggle: React.FC = () => {
   const { lang } = useLang();
   const { preference, setPreference } = useTheme();
   const c = labels[lang];
+  const target = next[preference];
+  const description = `${c.group}: ${c[preference]}. ${c.switchTo} ${c[target]}`;
 
   return (
-    <div
-      role="group"
-      aria-label={c.group}
-      className="theme-toggle"
-      style={{
-        display: 'inline-flex',
-        padding: 2,
-        gap: 2,
-        borderRadius: 128,
-        background: 'var(--color-cloud-card)',
-      }}
-    >
-      {options.map((opt) => {
-        const active = preference === opt;
-        return (
-          <button
-            key={opt}
-            type="button"
-            className="theme-toggle-button"
-            aria-pressed={active}
-            aria-label={c[opt]}
-            title={c[opt]}
-            onClick={() => setPreference(opt)}
-            style={{
-              width: 30,
-              height: 30,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '50%',
-              color: active ? 'var(--color-cloud-card)' : 'var(--color-body-gray)',
-              background: active ? 'var(--color-charcoal)' : 'transparent',
-              transition: 'background 0.2s ease, color 0.2s ease',
-            }}
-          >
-            {icons[opt]}
-          </button>
-        );
-      })}
-    </div>
+    <button type="button" className="site-util" aria-label={description} title={description} onClick={() => setPreference(target)}>
+      {icons[preference]}
+      <span className="site-util-label">
+        {c.group}: {c[preference]}
+      </span>
+    </button>
   );
 };
