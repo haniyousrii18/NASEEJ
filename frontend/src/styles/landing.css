@@ -882,3 +882,234 @@
 .l-role:hover {
   transform: none;
 }
+
+/* ------------------------------------------------------------------ landing backdrop (the weave) */
+.landing-body {
+  position: relative;
+  isolation: isolate;
+}
+
+.lb {
+  --lb-scroll: 0;
+  --lb-thread: rgba(194, 65, 12, 0.2);
+  --lb-thread-weft: rgba(194, 65, 12, 0.13);
+  --lb-link: rgba(194, 65, 12, 0.18);
+  --lb-node: rgba(194, 65, 12, 0.5);
+  --lb-ring: rgba(194, 65, 12, 0.35);
+  --lb-pulse: #f97316;
+  --lb-glow: rgba(249, 115, 22, 0.35);
+  --lb-blob-a: rgba(251, 146, 60, 0.2);
+  --lb-blob-b: rgba(253, 186, 116, 0.3);
+
+  position: sticky;
+  top: 0;
+  z-index: -1;
+  height: 100dvh;
+  margin-bottom: -100dvh;
+  overflow: hidden;
+  pointer-events: none;
+  /* soften the top edge so the weave appears out of the hero instead of starting on a line */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 140px, #000 calc(100% - 80px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 140px, #000 calc(100% - 80px), transparent 100%);
+}
+
+:root[data-theme='dark'] .lb {
+  --lb-thread: rgba(253, 186, 116, 0.17);
+  --lb-thread-weft: rgba(253, 186, 116, 0.11);
+  --lb-link: rgba(253, 186, 116, 0.18);
+  --lb-node: rgba(240, 190, 130, 0.75);
+  --lb-ring: rgba(253, 186, 116, 0.4);
+  --lb-pulse: #fdba74;
+  --lb-glow: rgba(253, 186, 116, 0.55);
+  --lb-blob-a: rgba(150, 88, 40, 0.32);
+  --lb-blob-b: rgba(120, 70, 30, 0.28);
+}
+
+.lb-blob {
+  position: absolute;
+  width: 62vmax;
+  height: 62vmax;
+  border-radius: 50%;
+  filter: blur(40px);
+}
+
+.lb-blob--a {
+  inset-inline-start: -18vmax;
+  top: -14vmax;
+  background: radial-gradient(circle, var(--lb-blob-a) 0%, transparent 65%);
+  animation: lbDrift 34s ease-in-out infinite alternate;
+}
+
+.lb-blob--b {
+  inset-inline-end: -22vmax;
+  bottom: -20vmax;
+  background: radial-gradient(circle, var(--lb-blob-b) 0%, transparent 65%);
+  animation: lbDrift 41s ease-in-out -12s infinite alternate-reverse;
+}
+
+.lb-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.lb-layer--back {
+  transform: translateY(calc(var(--lb-scroll) * -0.03px));
+}
+
+.lb-layer--front {
+  transform: translateY(calc(var(--lb-scroll) * -0.07px));
+}
+
+.lb-warp,
+.lb-weft,
+.lb-link {
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.lb-warp {
+  stroke: var(--lb-thread);
+  stroke-width: 1.4;
+}
+
+.lb-warp-group {
+  animation: lbSway 16s ease-in-out infinite alternate;
+}
+
+.lb-weft {
+  stroke: var(--lb-thread-weft);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 11;
+  animation: lbSwayY 19s ease-in-out infinite alternate, lbFlow 24s linear infinite;
+}
+
+.lb-link {
+  stroke: var(--lb-link);
+  stroke-width: 1;
+}
+
+.lb-link--flow {
+  stroke-dasharray: 4 9;
+  animation: lbFlow 14s linear infinite;
+}
+
+.lb-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lbBreathe 7s ease-in-out infinite;
+}
+
+.lb-dot {
+  fill: var(--lb-node);
+}
+
+.lb-ring {
+  stroke: var(--lb-ring);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lbRing 5.5s ease-out infinite;
+}
+
+.lb-pulse-halo {
+  fill: var(--lb-glow);
+  opacity: 0.45;
+  filter: blur(3px);
+}
+
+.lb-pulse-core {
+  fill: var(--lb-pulse);
+}
+
+@keyframes lbSway {
+  from {
+    transform: translate(-14px, 6px);
+  }
+
+  to {
+    transform: translate(14px, -8px);
+  }
+}
+
+@keyframes lbSwayY {
+  from {
+    transform: translate(8px, -10px);
+  }
+
+  to {
+    transform: translate(-8px, 10px);
+  }
+}
+
+@keyframes lbFlow {
+  to {
+    stroke-dashoffset: -56;
+  }
+}
+
+@keyframes lbBreathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes lbRing {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.8);
+  }
+
+  80%,
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+@keyframes lbDrift {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+
+  to {
+    transform: translate(6vmax, 5vmax) scale(1.12);
+  }
+}
+
+/* The tinted band shows the weave faintly through it instead of hiding it. */
+.l-section--tint {
+  background: color-mix(in srgb, var(--color-bg-subtle) 72%, transparent);
+}
+
+@media (max-width: 719px) {
+  .lb-blob {
+    width: 90vmax;
+    height: 90vmax;
+  }
+
+  .lb-layer--back,
+  .lb-layer--front {
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lb *,
+  .lb {
+    animation: none !important;
+  }
+
+  .lb-layer--back,
+  .lb-layer--front {
+    transform: none;
+  }
+}

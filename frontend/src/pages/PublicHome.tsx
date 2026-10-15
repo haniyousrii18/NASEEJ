@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLang } from '../context/LangContext.js';
 import { HeroVisual } from '../components/HeroVisual.js';
+import { LandingBackdrop } from '../components/LandingBackdrop.js';
 import { ArrowIcon, CheckIcon, LeafIcon, LockIcon } from '../components/LineIcon.js';
 import { Reveal } from '../components/motion.js';
 
@@ -78,6 +79,9 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
           </ul>
         </div>
       </section>
+
+      <div className="landing-body">
+        <LandingBackdrop />
 
       {/* ------------------------------------------------------------ why Naseej */}
       <Reveal as="section" className="l-section" aria-labelledby="value-title">
@@ -174,6 +178,7 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
           </div>
         </div>
       </Reveal>
+      </div>
     </div>
   );
 };
