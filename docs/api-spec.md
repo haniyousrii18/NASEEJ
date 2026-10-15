@@ -82,3 +82,21 @@
 
 ### 2.9 Security & Audit Logs
 - `GET /api/audit-logs` — Platform Admin (system-wide) / Center Manager (center-scoped). Read-only.
+
+## 3. Longitudinal Record, Consent, Coordination and Operations (migration 002)
+
+All routes return the standard `{ success, data, meta?, error? }` envelope. Authorization is enforced on the server (authenticate → tenant → role); the UI only hides what the server would refuse.
+
+| Method & path | Roles | Notes |
+|---|---|---|
+| `GET /api/portal/timeline` | patient | Own record, approved/released items only, all centers. Filters `type`, `organizationId`, `from`, `to`; cursor paging `limit`, `before` (`meta.nextBefore`). |
+| `GET /api/patients/:id/timeline` | doctor | Own center in every state (drafts flagged); other centers approved-only under an effective consent, each such read audited (`CROSS_CENTER_RECORD_ACCESS`). |
+| `GET/POST /api/portal/consents`, `POST /api/portal/consents/:id/revoke` | patient | Grant by scope/duration between two centers the patient is registered at; revocation is immediate. |
+| `GET/POST /api/documents`, `GET /api/documents/:id`, `GET /api/documents/:id/download`, `POST /api/documents/:id/review` | patient, doctor | JSON/base64 upload (PDF/PNG/JPEG ≤ 4 MB, type sniffed from bytes). Patient uploads are `patient_uploaded`/`unreviewed`; a doctor reviews and optionally releases. Downloads are audited, `no-store`. |
+| `GET /api/doctor/overview`, `GET /api/doctor/pending` | doctor | Own day; own drafts awaiting approval. |
+| `GET /api/center/overview`, `/reports/appointments`, `/specialties` | center_manager | Aggregates only; no patient records. |
+| `GET /api/admin/overview`, `/users`, `PATCH /users/:id`, `GET/PATCH /api/admin/demo-requests` | platform_admin | Accounts and health; no clinical access. |
+| `GET /api/coordination/dashboard|cases|tasks|referrals|followup-log|coordinators|destinations|patients` and `POST/PATCH` on cases, tasks, referrals | care_coordinator (manager: oversight) | Operational data only, optimistic `version`, referrals need effective consent to send/confirm. |
+| `GET /api/audit-logs` | platform_admin, center_manager | Read-only, filterable, paged, clinical keys redacted. |
+
+Security fixes in this release: `GET /api/public/demo-requests` now requires a platform administrator (it was unauthenticated and returned contact details); patient, appointment, lab and audit routes were tightened as described in `architecture.md`.

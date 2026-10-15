@@ -297,3 +297,8 @@ erDiagram
 - `notes` TEXT
 - `status` VARCHAR(20) DEFAULT 'new' ('new', 'contacted', 'scheduled', 'completed')
 - `created_at` TIMESTAMPTZ DEFAULT NOW()
+
+## 3. Migration 002: longitudinal record and coordination
+
+Additive and reversible (`database/migrations/rollback/002_down.sql`), applied by the tracked runner (`npm --prefix backend run migrate`). Adds `care_cases`, `care_tasks`, `care_referrals`, `care_followup_log` (append-only), provenance/review/visibility columns and `NOT VALID` check constraints on `documents`, consent status/scope constraints, the `care_coordinator` membership role, and indexes for timeline paging. Synthetic data: `database/seeds/synthetic_seed_002.sql`.
+`npm --prefix backend run migrate -- --reset` re-runs everything from 001 and **destroys data**; the API test suite changes state, so reseed (`migrate -- --reset` then `seed`) before re-running it.

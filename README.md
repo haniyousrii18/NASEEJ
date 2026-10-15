@@ -101,6 +101,7 @@ npm --prefix backend run migrate
 # Populate coherent synthetic demo data
 npm --prefix backend run seed
 ```
+The backend tests share this database and change its state: run `npm --prefix backend run migrate -- --reset` and `seed` (destroys data) before each full test run.
 
 ### Step 3: Install Dependencies
 ```bash

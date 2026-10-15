@@ -113,3 +113,12 @@ PostgreSQL Database (Multi-tenant relational schema)
 - **AI Clinical Summaries (P2)**: Autonomous diagnosis is strictly prohibited by PRD; summary pipeline is defined with human-review requirement.
 - **External HIS/HL7 Integration (P2)**: Enterprise hospital interfaces.
 - **Distributed Job Queue (P1)**: Heavy background queues (BullMQ/Redis); prototype processes operations reliably within the backend service.
+
+## 4. Authenticated Application (role workspaces)
+
+The signed-in app lives in `frontend/src/app` with its own shell, hash router (`#/doctor/patient/<id>/timeline`), API layer, translations (`app/i18n`, Arabic typed against English) and namespaced styles (`styles/app.css`, `.na-*`). It is mounted from `App.tsx` for authenticated views only; the public Landing and Login pages, their components, styles and assets are not part of it.
+
+- **Provenance:** every timeline entry carries center, author, provenance (clinician-authored, patient-reported/uploaded, imported, system) and review state. Missing data is shown as "not recorded", never as a negative finding. No summaries, scores or interpretations are generated.
+- **Comparison of results** groups by test and parameter and is marked comparable only when units match and values are numeric.
+- **Care coordination** is a separate operational domain (`care_cases/tasks/referrals/followup_log`). Referral statuses are requested/sent/receipt_confirmed/cancelled; none means clinical completion.
+- **Known limitations:** no service catalogue or rooms/equipment (Services are derived from doctor specialties); no "patients needing follow-up" concept; document upload uses base64 JSON; allergies stay patient-level; the demo-account list on the Login page does not include a coordinator (the page is protected); the auth token and user profile persist in `localStorage` via the existing `AuthContext`.
