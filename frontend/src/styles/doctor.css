@@ -149,3 +149,328 @@
   filter: grayscale(1);
   opacity: 0.85;
 }
+
+/* ------------------------------------------------------------------ patient record: a flat chart.
+   One white-on-ground sheet of hairline-separated sections. No cards, banners or tinted boxes.
+   Neutrals come from the shell tokens so light and dark both follow the theme. */
+
+.rec {
+  --rec-line: var(--color-border-subtle);
+  --rec-muted: var(--color-body-gray);
+  --rec-ink: var(--color-ink);
+}
+
+.rec-quick {
+  display: flex;
+  gap: 8px;
+}
+
+.rec-quick .na-btn {
+  min-height: 40px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--rec-line);
+  color: var(--rec-ink);
+  font-weight: 500;
+}
+
+.rec-quick .na-btn:hover {
+  border-color: var(--rec-ink);
+}
+
+.rec-quick .na-btn[aria-pressed='true'],
+.rec-quick .na-btn[aria-pressed='true']:hover {
+  background: var(--rec-ink);
+  border-color: var(--rec-ink);
+  color: var(--color-bg-elevated);
+}
+
+.rec-allergy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+/* Underline tabs: the active one is simply inked. */
+.rec .na-tabs {
+  gap: 28px;
+  margin: 16px 0 28px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--rec-line);
+  border-radius: 0;
+  background: none;
+}
+
+.rec .na-tab {
+  min-height: 44px;
+  padding: 0;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--rec-muted);
+}
+
+.rec .na-tab:hover {
+  color: var(--rec-ink);
+}
+
+.rec .na-tab[aria-current='page'] {
+  border-bottom-color: var(--rec-ink);
+  background: none;
+  box-shadow: none;
+  color: var(--rec-ink);
+  font-weight: 600;
+}
+
+.rec-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.rec-main {
+  min-width: 0;
+}
+
+.rec-sec {
+  padding: 24px 0;
+  border-top: 1px solid var(--rec-line);
+}
+
+.rec-sec:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.rec-h {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--rec-ink);
+}
+
+/* Anything the shared components still draw as a card becomes a plain section. */
+.rec .na-card {
+  padding: 24px 0 0;
+  border: 0;
+  border-top: 1px solid var(--rec-line);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.rec .na-card:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* Source and state tags read as quiet metadata, not as badges. */
+.rec .na-list .na-pill {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rec-muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.rec .na-list-item {
+  padding-block: 12px;
+}
+
+.rec-panel {
+  min-width: 0;
+  animation: rec-panel-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rec-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rec-panel-head .rec-h {
+  margin: 0;
+}
+
+@media (min-width: 1100px) {
+  .rec-body:not([data-panel='none']) {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  }
+  .rec-panel {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    padding-inline-start: 32px;
+    border-inline-start: 1px solid var(--rec-line);
+  }
+}
+
+@media (max-width: 1099px) {
+  .rec-panel {
+    padding-top: 24px;
+    border-top: 1px solid var(--rec-line);
+  }
+}
+
+.rec-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.rec-chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rec-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--rec-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.rec-chip:hover {
+  color: var(--rec-ink);
+  border-color: var(--rec-ink);
+}
+
+.rec-chip[aria-pressed='true'] {
+  background: var(--rec-ink);
+  border-color: var(--rec-ink);
+  color: var(--color-bg-elevated);
+}
+
+.rec-upload {
+  margin-top: 20px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rec-line);
+}
+
+.rec-upload > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--rec-ink);
+}
+
+@keyframes rec-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-panel {
+    animation: none;
+  }
+}
+
+.rec-fact {
+  margin: 0 0 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.rec-sec-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.rec-sec-head .rec-h {
+  margin: 0;
+}
+
+.rec-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rec-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.rec-toggle {
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rec-muted);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.rec-toggle:hover {
+  color: var(--rec-ink);
+}
+
+.rec-soap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 16px;
+  margin: 8px 0 0;
+}
+
+.rec-soap dt {
+  color: var(--rec-muted);
+  font-size: 13px;
+}
+
+.rec-soap dd {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.rec-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rec-vitals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.rec-error {
+  margin: 0;
+  color: var(--color-status-danger-text, #b3261e);
+  font-size: 13px;
+}
+
+.rec-confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}

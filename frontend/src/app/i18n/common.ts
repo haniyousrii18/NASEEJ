@@ -75,6 +75,7 @@ const ar = {
     in_consultation: 'في الاستشارة',
     completed: 'مكتمل',
     cancelled: 'ملغى',
+    no_show: 'لم يحضر',
   },
   recordType: {
     visit: 'زيارة',
@@ -219,6 +220,7 @@ const en: typeof ar = {
     in_consultation: 'In consultation',
     completed: 'Completed',
     cancelled: 'Cancelled',
+    no_show: 'No-show',
   },
   recordType: {
     visit: 'Visit',

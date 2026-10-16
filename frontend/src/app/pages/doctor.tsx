@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { DoctorWorkspace } from '../../pages/DoctorWorkspace.js';
+import { LabForm, RecordList, RxForm, VisitEditor, VisitsTab } from './doctorVisits.js';
+import { AppIcon } from '../AppIcons.js';
 import { useApiData, useMutation } from '../api.js';
 import { addDays, fill, formatDate, nameOf, pick, todayIso } from '../format.js';
 import { ProvenancePill, ReviewPill } from '../record/badges.js';
@@ -74,7 +75,6 @@ export const DoctorHome: React.FC<{ navigate: (r: string) => void }> = ({ naviga
 
             <Card
               title={H.pending}
-              hint={H.pendingBody}
               actions={
                 d.pendingSignOff.total > 0 ? (
                   <Button small variant="quiet" onClick={() => navigate('doctor/pending')}>
@@ -213,7 +213,7 @@ export const DoctorPatients: React.FC<{ navigate: (r: string) => void }> = ({ na
       <PageHead title={P.title} subtitle={P.subtitle} />
       <div className="na-stack">
         <Card>
-          <Field label={P.search} htmlFor="dp-search" help={P.hint}>
+          <Field label={P.search} htmlFor="dp-search">
             <input id="dp-search" type="search" className="na-input" value={text} onChange={(e) => setText(e.target.value)} autoComplete="off" />
           </Field>
         </Card>
@@ -246,23 +246,61 @@ export const DoctorPatients: React.FC<{ navigate: (r: string) => void }> = ({ na
 
 /* ------------------------------------------------------------------ patient workspace */
 
-const TABS = ['summary', 'timeline', 'records', 'meds', 'visits'] as const;
+const TABS = ['summary', 'visits', 'meds', 'labs'] as const;
 type Tab = (typeof TABS)[number];
+type Panel = 'docs' | 'timeline' | 'visit' | 'rx' | 'lab' | null;
+
+const ageOf = (dob?: string): number | null => {
+  if (!dob) return null;
+  const d = new Date(dob);
+  if (Number.isNaN(d.getTime())) return null;
+  const n = new Date();
+  let a = n.getFullYear() - d.getFullYear();
+  if (n.getMonth() < d.getMonth() || (n.getMonth() === d.getMonth() && n.getDate() < d.getDate())) a--;
+  return a;
+};
+
+const Sec: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section className="rec-sec">
+    <h2 className="rec-h">{title}</h2>
+    {children}
+  </section>
+);
 
 export const PatientWorkspace: React.FC<{ patientId: string; tab: string; navigate: (r: string) => void }> = ({ patientId, tab, navigate }) => {
   const A = useA();
   const W = A.doctor.workspace;
+  // Older links used the former "timeline" and "records" tabs; they now open the matching side panel on the summary.
+  const legacyPanel: Panel = tab === 'timeline' ? 'timeline' : tab === 'records' ? 'docs' : null;
   const current: Tab = (TABS as readonly string[]).includes(tab) ? (tab as Tab) : 'summary';
+  const [panel, setPanel] = useState<Panel>(legacyPanel);
+  const [version, setVersion] = useState(0);
+  const changed = () => setVersion((v) => v + 1);
   const patient = useApiData<any>(`/api/patients/${patientId}`);
   const endpoint = `/api/patients/${patientId}/timeline`;
+  const togglePanel = (p: Exclude<Panel, null>) => setPanel((cur) => (cur === p ? null : p));
+  const ready = patient.state.status === 'ready' ? patient.state.data : null;
+  const age = ready ? ageOf(ready.date_of_birth) : null;
+  const panelTitle = (p: Exclude<Panel, null>) => (p === 'docs' ? W.quick.docs : p === 'timeline' ? W.quick.timelineTitle : W.visitsUi.titles[p]);
 
   return (
-    <>
+    <div className="rec">
       <PageHead
-        title={patient.state.status === 'ready' ? nameOf(A.lang, patient.state.data) : A.common.states.loading}
+        title={ready ? nameOf(A.lang, ready) : A.common.states.loading}
         back={{ label: W.back, onClick: () => navigate('doctor/patients') }}
-        subtitle={patient.state.status === 'ready' ? `${W.summary.mrn}: ${patient.state.data.mrn}` : undefined}
+        subtitle={ready ? [`${W.summary.mrn}: ${ready.mrn}`, age !== null ? fill(W.brief.age, { n: age }) : ''].filter(Boolean).join(' · ') : undefined}
+        actions={
+          <div className="rec-quick" role="group">
+            <Button small icon="documents" aria-pressed={panel === 'docs'} onClick={() => togglePanel('docs')}>
+              {W.quick.docs}
+            </Button>
+            <Button small icon="timeline" aria-pressed={panel === 'timeline'} onClick={() => togglePanel('timeline')}>
+              {W.quick.timeline}
+            </Button>
+          </div>
+        }
       />
+      {ready && <AllergyBar allergies={uniqueAllergies(ready.allergies ?? [])} />}
       <nav className="na-tabs" aria-label={A.common.shell.breadcrumb}>
         {TABS.map((t) => (
           <button key={t} type="button" className="na-tab" aria-current={current === t ? 'page' : undefined} onClick={() => navigate(`doctor/patient/${patientId}/${t}`)}>
@@ -273,58 +311,111 @@ export const PatientWorkspace: React.FC<{ patientId: string; tab: string; naviga
 
       <Async state={patient.state} onRetry={patient.reload}>
         {(p) => (
-          <div className="na-stack">
-            {current === 'summary' && <Summary patient={p} endpoint={endpoint} navigate={() => navigate(`doctor/patient/${patientId}/timeline`)} />}
-            {current === 'timeline' && <Timeline endpoint={endpoint} audience="clinician" />}
-            {current === 'records' && <Records patientId={patientId} endpoint={endpoint} />}
-            {current === 'meds' && <MedsAndAllergies patient={p} endpoint={endpoint} reload={patient.reload} />}
-            {current === 'visits' && <DoctorWorkspace initialPatientId={patientId} />}
+          <div className="rec-body" data-panel={panel ?? 'none'}>
+            <div className="rec-main">
+              {current === 'summary' && <Summary patient={p} endpoint={endpoint} />}
+              {current === 'visits' && <VisitsTab endpoint={endpoint} version={version} onChanged={changed} open={(p) => setPanel(p)} />}
+              {current === 'meds' && <MedsAndAllergies patient={p} endpoint={endpoint} reload={patient.reload} version={version} onChanged={changed} />}
+              {current === 'labs' && <Labs endpoint={endpoint} version={version} onChanged={changed} />}
+            </div>
+            {panel && (
+              <aside className="rec-panel" aria-label={panelTitle(panel)}>
+                <div className="rec-panel-head">
+                  <h2 className="rec-h">{panelTitle(panel)}</h2>
+                  <button type="button" className="na-icon-btn" onClick={() => setPanel(null)} aria-label={W.quick.close}>
+                    <AppIcon name="close" />
+                  </button>
+                </div>
+                {panel === 'docs' && <Documents patientId={patientId} />}
+                {panel === 'timeline' && <Timeline endpoint={endpoint} audience="clinician" />}
+                {panel === 'visit' && <VisitEditor patientId={patientId} onSaved={() => { changed(); setPanel(null); }} />}
+                {panel === 'rx' && <RxForm patientId={patientId} endpoint={endpoint} onSaved={() => { changed(); setPanel(null); }} />}
+                {panel === 'lab' && <LabForm patientId={patientId} onSaved={() => { changed(); setPanel(null); }} />}
+              </aside>
+            )}
           </div>
         )}
       </Async>
+    </div>
+  );
+};
+
+/** The same allergen can be recorded more than once; the glance views show each one a single time. The medications tab keeps the full list. */
+const uniqueAllergies = (list: any[]) => {
+  const seen = new Set<string>();
+  return list.filter((a) => {
+    const k = `${a.allergen_ar}|${a.allergen_en}|${a.severity}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+};
+
+/** Shown on every tab when allergies are recorded; nothing is rendered otherwise. */
+const AllergyBar: React.FC<{ allergies: any[] }> = ({ allergies }) => {
+  const A = useA();
+  if (allergies.length === 0) return null;
+  return (
+    <ul className="rec-allergy" aria-label={A.doctor.workspace.brief.allergyChip}>
+      {allergies.map((a) => (
+        <li key={a.id}>
+          <Pill tone="danger">
+            {pick(A.lang, a, 'allergen')}
+            {a.severity ? ` · ${A.doctor.workspace.meds.severities[a.severity] ?? a.severity}` : ''}
+          </Pill>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+const Summary: React.FC<{ patient: any; endpoint: string }> = ({ patient, endpoint }) => {
+  const A = useA();
+  const S = A.doctor.workspace.summary;
+  const B = A.doctor.workspace.brief;
+  const visits = useApiData<TimelineItem[]>(`${endpoint}?type=visit&limit=3`);
+  return (
+    <>
+      <Sec title={B.title}>
+        {patient.blood_type && (
+          <p className="rec-fact">
+            <span className="na-muted">{S.blood}</span> <span className="na-ltr">{patient.blood_type}</span>
+          </p>
+        )}
+        <RecentRecords endpoint={endpoint} types={['prescription']} limit={3} emptyText={S.none} />
+      </Sec>
+      <Sec title={B.complaint}>
+        <RecentRecords endpoint={endpoint} types={['symptom_report']} limit={1} emptyText={S.none} />
+      </Sec>
+      <Sec title={B.lastDx}>
+        <Async state={visits.state} onRetry={visits.reload} isEmpty={(d) => d.length === 0} empty={<p className="na-muted">{S.none}</p>}>
+          {(items) => (
+            <ul className="na-list">
+              {items.map((v) => (
+                <li key={v.id} className="na-list-item">
+                  <strong dir="auto">{v.data.diagnosis || B.noDx}</strong>
+                  <span className="na-muted">
+                    {[formatDate(A.lang, v.occurredAt, true), nameOf(A.lang, v.author)].filter(Boolean).join(' · ')}
+                  </span>
+                  <ReviewPill status={v.reviewStatus} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Async>
+      </Sec>
     </>
   );
 };
 
-const Summary: React.FC<{ patient: any; endpoint: string; navigate: () => void }> = ({ patient, endpoint, navigate }) => {
+const Labs: React.FC<{ endpoint: string; version: number; onChanged: () => void }> = ({ endpoint, version, onChanged }) => {
   const A = useA();
-  const S = A.doctor.workspace.summary;
   return (
     <>
-      <Notice tone="info" icon="shield">
-        {S.currentVisitNote}
-      </Notice>
-      <Card title={S.allergies}>
-        <Allergies allergies={patient.allergies ?? []} empty={S.noAllergies} />
-      </Card>
-      <Card title={S.identity}>
-        <dl className="na-dl">
-          <dt>{S.dob}</dt>
-          <dd>{formatDate(A.lang, patient.date_of_birth)}</dd>
-          <dt>{S.gender}</dt>
-          <dd>{A.reception.patients.genders[patient.gender] || A.common.states.notRecorded}</dd>
-          <dt>{S.blood}</dt>
-          <dd className="na-ltr">{patient.blood_type || A.common.states.notRecorded}</dd>
-          <dt>{S.phone}</dt>
-          <dd className="na-ltr">{patient.phone || A.common.states.notRecorded}</dd>
-        </dl>
-      </Card>
-      <div className="na-grid na-grid--3">
-        <Card title={S.visits}>
-          <RecentRecords endpoint={endpoint} types={['visit']} limit={3} emptyText={S.none} />
-        </Card>
-        <Card title={S.meds}>
-          <RecentRecords endpoint={endpoint} types={['prescription']} limit={3} emptyText={S.none} />
-        </Card>
-        <Card title={S.results}>
-          <RecentRecords endpoint={endpoint} types={['lab_result']} limit={4} emptyText={S.none} />
-        </Card>
-      </div>
-      <div>
-        <Button variant="quiet" onClick={navigate}>
-          {S.fullTimeline}
-        </Button>
-      </div>
+      <Sec title={A.doctor.workspace.records.results}>
+        <RecordList endpoint={endpoint} types={['lab_result']} version={version} onChanged={onChanged} empty={A.doctor.workspace.summary.none} />
+      </Sec>
+      <ResultsComparison endpoint={endpoint} />
     </>
   );
 };
@@ -348,43 +439,73 @@ const Allergies: React.FC<{ allergies: any[]; empty: string }> = ({ allergies, e
   );
 };
 
-const Records: React.FC<{ patientId: string; endpoint: string }> = ({ patientId, endpoint }) => {
+type DocSource = 'all' | 'center' | 'external' | 'patient';
+type DocStatus = 'all' | 'needs' | 'reviewed';
+
+const Documents: React.FC<{ patientId: string }> = ({ patientId }) => {
   const A = useA();
-  const R = A.doctor.workspace.records;
+  const F = A.doctor.workspace.docsPanel;
   const D = A.record.documents;
   const [version, setVersion] = useState(0);
+  const [source, setSource] = useState<DocSource>('all');
+  const [status, setStatus] = useState<DocStatus>('all');
   const docs = useApiData<TimelineItem[]>(`/api/documents?patientId=${patientId}&limit=50&v=${version}`);
   const review = useMutation();
-  const [msg, setMsg] = useState('');
+  const [error, setError] = useState('');
 
   const doReview = async (id: string, release: boolean) => {
     const res = await review.run(`/api/documents/${id}/review`, 'POST', { release });
-    setMsg(res.ok ? D.released : res.error.message);
+    setError(res.ok ? '' : res.error.message);
     setVersion((v) => v + 1);
   };
 
+  const matches = (i: TimelineItem) => {
+    if (source === 'center' && (i.isExternal || i.provenance === 'patient_uploaded')) return false;
+    if (source === 'external' && !i.isExternal) return false;
+    if (source === 'patient' && i.provenance !== 'patient_uploaded') return false;
+    if (status === 'needs' && i.reviewStatus === 'reviewed') return false;
+    if (status === 'reviewed' && i.reviewStatus !== 'reviewed') return false;
+    return true;
+  };
+  const chip = <T extends string>(value: T, current: T, set: (v: T) => void, label: string) => (
+    <button key={value} type="button" className="rec-chip" aria-pressed={current === value} onClick={() => set(value)}>
+      {label}
+    </button>
+  );
+
   return (
     <>
-      <DocumentUpload patientId={patientId} onUploaded={() => setVersion((v) => v + 1)} />
-      <Card title={R.docs} hint={R.reviewHint}>
-        {msg && (
-          <Notice tone="ok" live>
-            {msg}
-          </Notice>
-        )}
-        <Async state={docs.state} onRetry={docs.reload} isEmpty={(d) => d.length === 0} empty={<p className="na-muted">{D.docsEmpty}</p>}>
-          {(items) => (
+      <div className="rec-filters" role="group" aria-label={F.source}>
+        {chip<DocSource>('all', source, setSource, F.all)}
+        {chip<DocSource>('center', source, setSource, F.center)}
+        {chip<DocSource>('external', source, setSource, F.external)}
+        {chip<DocSource>('patient', source, setSource, F.patient)}
+      </div>
+      <div className="rec-filters" role="group" aria-label={F.status}>
+        {chip<DocStatus>('all', status, setStatus, F.all)}
+        {chip<DocStatus>('needs', status, setStatus, F.needsReview)}
+        {chip<DocStatus>('reviewed', status, setStatus, F.reviewed)}
+      </div>
+      {error && (
+        <Notice tone="danger" live>
+          {error}
+        </Notice>
+      )}
+      <Async state={docs.state} onRetry={docs.reload} isEmpty={(d) => d.length === 0} empty={<p className="na-muted">{D.docsEmpty}</p>}>
+        {(all) => {
+          const items = all.filter(matches);
+          if (items.length === 0) return <p className="na-muted">{F.noMatch}</p>;
+          return (
             <ul className="na-list">
               {items.map((i) => (
                 <li key={i.id} className="na-list-item">
                   <strong>{String(i.data.title || i.data.fileName)}</strong>
+                  <span className="na-muted">{[formatDate(A.lang, i.occurredAt), nameOf(A.lang, i.organization)].join(' · ')}</span>
                   <div className="na-row">
                     <ProvenancePill provenance={i.provenance} />
                     <ReviewPill status={i.reviewStatus} />
-                    <Pill tone="info">{nameOf(A.lang, i.organization)}</Pill>
                     {i.isExternal && <Pill tone="lilac">{A.common.record.external}</Pill>}
                   </div>
-                  <span className="na-muted">{formatDate(A.lang, i.occurredAt)}</span>
                   {!i.isExternal && i.reviewStatus !== 'reviewed' && (
                     <div className="na-row">
                       <Button small variant="primary" disabled={review.pending} onClick={() => doReview(i.source.id, true)}>
@@ -398,15 +519,18 @@ const Records: React.FC<{ patientId: string; endpoint: string }> = ({ patientId,
                 </li>
               ))}
             </ul>
-          )}
-        </Async>
-      </Card>
-      <ResultsComparison endpoint={endpoint} />
+          );
+        }}
+      </Async>
+      <details className="rec-upload">
+        <summary>{F.upload}</summary>
+        <DocumentUpload patientId={patientId} onUploaded={() => setVersion((v) => v + 1)} />
+      </details>
     </>
   );
 };
 
-const MedsAndAllergies: React.FC<{ patient: any; endpoint: string; reload: () => void }> = ({ patient, endpoint, reload }) => {
+const MedsAndAllergies: React.FC<{ patient: any; endpoint: string; reload: () => void; version: number; onChanged: () => void }> = ({ patient, endpoint, reload, version, onChanged }) => {
   const A = useA();
   const M = A.doctor.workspace.meds;
   const { run, pending } = useMutation();
@@ -466,8 +590,8 @@ const MedsAndAllergies: React.FC<{ patient: any; endpoint: string; reload: () =>
           </div>
         )}
       </Card>
-      <Card title={M.prescriptions} hint={M.prescriptionsNote}>
-        <RecentRecords endpoint={endpoint} types={['prescription']} limit={30} emptyText={M.noRx} />
+      <Card title={M.prescriptions}>
+        <RecordList endpoint={endpoint} types={['prescription']} version={version} onChanged={onChanged} empty={M.noRx} />
       </Card>
     </>
   );

@@ -5,15 +5,6 @@ import { Async, Button, Card, EmptyState, Field, Notice, PageHead, Pill, Stat } 
 import { useA } from '../useA.js';
 import { AuditLog } from './AuditLog.js';
 
-const Scope: React.FC = () => {
-  const A = useA();
-  return (
-    <Notice tone="info" icon="lock">
-      {A.admin.scope}
-    </Notice>
-  );
-};
-
 export const AdminHome: React.FC = () => {
   const A = useA();
   const H = A.admin.home;
@@ -26,7 +17,6 @@ export const AdminHome: React.FC = () => {
           const s = d.service.uptimeSeconds as number;
           return (
             <div className="na-stack">
-              <Scope />
               <div className="na-grid na-grid--stats">
                 <Stat label={H.service} value={d.service.status === 'healthy' ? H.healthy : d.service.status} tone="ok" />
                 <Stat label={H.database} value={fill(H.latency, { n: d.service.database.latencyMs })} tone={d.service.database.status === 'up' ? 'ok' : 'warn'} />
@@ -87,7 +77,6 @@ export const AdminCenters: React.FC = () => {
     <>
       <PageHead title={C.title} subtitle={C.subtitle} />
       <div className="na-stack">
-        <Scope />
         {msg && (
           <Notice tone={msg.tone} live>
             {msg.text}
@@ -234,7 +223,6 @@ export const AdminAccounts: React.FC = () => {
     <>
       <PageHead title={T.title} subtitle={T.subtitle} />
       <div className="na-stack">
-        <Scope />
         {msg && (
           <Notice tone={msg.tone} live>
             {msg.text}
@@ -302,7 +290,7 @@ export const AdminAccounts: React.FC = () => {
             </div>
           )}
         </Card>
-        <Card title={T.assign} hint={T.assignHint}>
+        <Card title={T.assign}>
           <form className="na-form" onSubmit={assign} noValidate>
             <Field label={T.center} htmlFor="as-center">
               <select id="as-center" className="na-select" value={f.organization_id || (centers.state.status === 'ready' ? centers.state.data[0]?.id : '') || ''} onChange={(e) => setF({ ...f, organization_id: e.target.value })}>
@@ -366,7 +354,6 @@ export const AdminRequests: React.FC = () => {
     <>
       <PageHead title={R.title} subtitle={R.subtitle} />
       <div className="na-stack">
-        <Scope />
         {msg && (
           <Notice tone={msg.tone} live>
             {msg.text}

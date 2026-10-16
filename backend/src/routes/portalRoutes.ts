@@ -243,7 +243,7 @@ portalRouter.get('/summary', async (req: Request, res: Response): Promise<void> 
        FROM appointments a
        JOIN organizations o ON a.organization_id = o.id
        JOIN users u ON a.clinician_id = u.id
-       WHERE a.patient_id = $1 AND a.appointment_date >= CURRENT_DATE AND a.status NOT IN ('cancelled', 'completed')
+       WHERE a.patient_id = $1 AND a.appointment_date >= CURRENT_DATE AND a.status NOT IN ('cancelled', 'completed', 'no_show')
        ORDER BY a.appointment_date ASC, a.start_time ASC`,
       [patientId]
     );

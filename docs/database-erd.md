@@ -155,7 +155,7 @@ erDiagram
 - `appointment_date` DATE NOT NULL
 - `start_time` TIME NOT NULL
 - `end_time` TIME NOT NULL
-- `status` VARCHAR(30) DEFAULT 'pending' ('pending', 'confirmed', 'checked_in', 'in_consultation', 'completed', 'cancelled')
+- `status` VARCHAR(30) DEFAULT 'pending' ('pending', 'confirmed', 'checked_in', 'in_consultation', 'completed', 'cancelled', 'no_show')
 - `reason` TEXT
 - `check_in_time` TIMESTAMPTZ
 - `created_by` UUID REFERENCES users(id)

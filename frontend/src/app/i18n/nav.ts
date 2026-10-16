@@ -35,10 +35,9 @@ const ar = {
     coordReferrals: 'الإحالات والانتقالات',
     coordLog: 'سجل المتابعة',
 
-    receptionHome: 'لوحة الاستقبال',
+    receptionHome: 'مكتب الاستقبال',
     receptionSchedule: 'جدول اليوم',
     receptionBook: 'حجز موعد',
-    receptionArrivals: 'الوصول والانتظار',
     receptionPatients: 'بحث إداري عن مريض',
 
     managerHome: 'لوحة المركز',
@@ -95,10 +94,9 @@ const en: typeof ar = {
     coordReferrals: 'Referrals and Transitions',
     coordLog: 'Follow-up Log',
 
-    receptionHome: 'Reception Dashboard',
+    receptionHome: 'Front desk',
     receptionSchedule: "Today's Schedule",
     receptionBook: 'Book Appointment',
-    receptionArrivals: 'Arrival and Waiting',
     receptionPatients: 'Administrative Patient Search',
 
     managerHome: 'Center Dashboard',

@@ -58,7 +58,7 @@ export const DocumentUpload: React.FC<{
   };
 
   return (
-    <Card title={patientId ? D.uploadFor : D.upload} hint={D.uploadHint}>
+    <Card title={patientId ? undefined : D.upload}>
       <form className="na-form" onSubmit={submit} noValidate>
         <Field label={D.choose} htmlFor="doc-file">
           <input id="doc-file" ref={input} type="file" className="na-input na-file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" />

@@ -49,8 +49,9 @@
 - `POST /api/schedules` — Set clinician working hours (Center Manager / Clinician).
 - `GET /api/appointments` — List appointments for center with status filtering (`date`, `clinician_id`, `status`).
 - `POST /api/appointments` — Book appointment with server-side conflict detection.
+- `GET /api/appointments/summary?from=&to=&clinicianId=` — Staff of the active center: appointments per day and status over a range of at most 62 days (`{ days: [{ date, total, by_status }] }`; `total` excludes cancelled). Counts only, no patient data. A doctor always gets their own schedule.
 - `PATCH /api/appointments/:id/check-in` — Reception Staff: Record patient arrival.
-- `PATCH /api/appointments/:id/status` — Update appointment status (`confirmed`, `cancelled`, `completed`).
+- `PATCH /api/appointments/:id/status` — Update appointment status (`pending`, `confirmed`, `checked_in`, `in_consultation`, `completed`, `cancelled`, `no_show`). `no_show` is final, is allowed only from `confirmed`, and only once the appointment time has passed (otherwise `409 NO_SHOW_TOO_EARLY`); reception, center managers and the appointment's own doctor may set it. A no-show is excluded from "upcoming" lists and keeps its time slot taken.
 
 ### 2.5 Clinical Visits
 - `GET /api/visits` — List visits (Clinician: within center; Patient: only approved visits).

@@ -120,9 +120,6 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
 
   return (
     <div className="na-stack">
-      <Notice tone="info" icon="shield">
-        {audience === 'patient' ? T.patientNote : T.clinicianNote}
-      </Notice>
 
       <section className="na-card" aria-label={A.common.filters.type}>
         <div className="na-stack">
@@ -217,8 +214,6 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                   </button>
                   {openIds.has(item.id) && (
                     <div className="na-tl-detail">
-                      {item.reviewStatus === 'draft' && <Notice tone="warn">{A.common.record.draftNote}</Notice>}
-                      {item.isExternal && <Notice tone="info">{T.externalNote}</Notice>}
                       <Details item={item} onDownload={async () => {
                         const failure = await download(item.source.id, String(item.data.fileName || 'document'));
                         setNotice(failure ? T.downloadFailed : '');

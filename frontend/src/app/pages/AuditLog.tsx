@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useApiData, useRequest } from '../api.js';
 import { formatDate, nameOf } from '../format.js';
-import { Button, Card, ErrorState, Field, Loading, Notice } from '../ui.js';
+import { Button, Card, ErrorState, Field, Loading } from '../ui.js';
 import { useA } from '../useA.js';
 import type { ApiFailure } from '../api.js';
 
@@ -90,9 +90,6 @@ export const AuditLog: React.FC<{ scope: 'admin' | 'manager' }> = ({ scope }) =>
 
   return (
     <div className="na-stack">
-      <Notice tone="info" icon="lock">
-        {T.redacted}
-      </Notice>
       <Card>
         <form className="na-form" onSubmit={apply}>
           {scope === 'admin' && (

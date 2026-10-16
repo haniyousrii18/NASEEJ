@@ -7,15 +7,6 @@ import { useA } from '../useA.js';
 import { AppointmentList, StatusPill, type AppointmentRow } from './AppointmentList.js';
 import { AuditLog } from './AuditLog.js';
 
-const Scope: React.FC = () => {
-  const A = useA();
-  return (
-    <Notice tone="info" icon="lock">
-      {A.manager.scope}
-    </Notice>
-  );
-};
-
 interface Member {
   membership_id: string;
   role: string;
@@ -38,7 +29,6 @@ export const ManagerHome: React.FC = () => {
       <Async state={state} onRetry={reload}>
         {(d) => (
           <div className="na-stack">
-            <Scope />
             <div className="na-grid na-grid--stats">
               <Stat label={H.today} value={d.appointmentsToday.total} />
               <Stat label={H.next7} value={d.appointmentsNext7Days} />
@@ -134,9 +124,7 @@ export const ManagerSchedule: React.FC = () => {
     <>
       <PageHead title={S.title} subtitle={S.subtitle} />
       <div className="na-stack">
-        <Scope />
-        <Notice tone="info">{S.resources}</Notice>
-        <Card title={S.hours} hint={S.hoursHint}>
+        <Card title={S.hours}>
           <form className="na-form" onSubmit={add}>
             <Field label={S.doctor} htmlFor="ms-doc">
               <select id="ms-doc" className="na-select" value={f.clinician_id || doctors[0]?.user_id || ''} onChange={(e) => setF({ ...f, clinician_id: e.target.value })}>
@@ -267,7 +255,6 @@ export const ManagerStaff: React.FC = () => {
     <>
       <PageHead title={T.title} subtitle={T.subtitle} />
       <div className="na-stack">
-        <Scope />
         {msg && (
           <Notice tone={msg.tone} live>
             {msg.text}
@@ -320,7 +307,7 @@ export const ManagerStaff: React.FC = () => {
             )}
           </Async>
         </Card>
-        <Card title={T.add} hint={T.addHint}>
+        <Card title={T.add}>
           <form className="na-form" onSubmit={submit} noValidate>
             <Field label={T.nameAr} htmlFor="st-ar">
               <input id="st-ar" className="na-input" dir="rtl" value={f.full_name_ar} onChange={(e) => setF({ ...f, full_name_ar: e.target.value })} />
@@ -410,7 +397,6 @@ export const ManagerReports: React.FC = () => {
     <>
       <PageHead title={R.title} subtitle={R.subtitle} />
       <div className="na-stack">
-        <Scope />
         <Card>
           <div className="na-form">
             <Field label={R.from} htmlFor="mr-from">
@@ -435,7 +421,7 @@ export const ManagerReports: React.FC = () => {
                   <Stat label={R.completed} value={completed} />
                   <Stat label={R.cancelled} value={cancelled} />
                 </div>
-                <Card title={R.byDoctor} hint={R.utilization}>
+                <Card title={R.byDoctor}>
                   <div className="na-table-wrap">
                     <table className="na-table">
                       <thead>
@@ -520,7 +506,6 @@ export const ManagerCoordination: React.FC = () => {
     <>
       <PageHead title={C.title} subtitle={C.subtitle} />
       <div className="na-stack">
-        <Scope />
         {msg && (
           <Notice tone={msg.tone} live>
             {msg.text}

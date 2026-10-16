@@ -53,6 +53,12 @@ export function futureDate(offsetDays = 40): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** A calendar day safely in the past, randomised so repeated runs do not collide on the same slot. */
+export function pastDate(offsetDays = 30): string {
+  const d = new Date(Date.now() - (offsetDays + Math.floor(Math.random() * 300)) * 86400000);
+  return d.toISOString().slice(0, 10);
+}
+
 /** Smallest valid PDF-looking buffer (the server checks magic bytes, not content). */
 export const tinyPdfBase64 = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n').toString('base64');
 export const tinyPngBase64 = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(32)]).toString('base64');

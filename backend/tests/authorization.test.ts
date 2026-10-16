@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { query } from '../src/config/db.js';
-import { AMAL, DOCTOR_NOOR, NOOR, PATIENT_1, PATIENT_2, as, call, futureDate } from './helpers.js';
+import { AMAL, DOCTOR_NOOR, NOOR, PATIENT_1, PATIENT_2, as, call, futureDate, pastDate } from './helpers.js';
 
 describe('Role boundaries on patient and appointment data', () => {
   it('refuses a center-linked patient on the staff patient list and appointment list', async () => {
@@ -235,6 +235,67 @@ describe('Appointments: validation, state machine, availability and concurrency'
     expect((await call('patch', `/api/appointments/${id}/status`, doctor, NOOR).send({ status: 'completed' })).status).toBe(200);
     expect((await call('patch', `/api/appointments/${id}/status`, reception, NOOR).send({ status: 'cancelled' })).status).toBe(409);
     expect((await call('patch', `/api/appointments/${id}/status`, reception, NOOR).send({ status: 'bogus' })).status).toBe(400);
+  });
+
+  it('records a no-show only for a confirmed appointment whose time has passed', async () => {
+    const reception = await as.receptionNoor();
+    const doctor = await as.doctorNoor();
+    // Each booking gets its own start time, so two random days landing on the same date cannot collide.
+    const book = async (appointment_date: string, start_time: string, end_time: string) =>
+      (await call('post', '/api/appointments', reception, NOOR).send({ patient_id: PATIENT_1, clinician_id: DOCTOR_NOOR, appointment_date, start_time, end_time })).body.data.id as string;
+    const patch = (id: string, who: Awaited<typeof reception>, status: string) => call('patch', `/api/appointments/${id}/status`, who, NOOR).send({ status });
+
+    // Before the appointment time: refused with its own code, and the status is unchanged.
+    const upcoming = await book(futureDate(), '15:00', '15:30');
+    const early = await patch(upcoming, reception, 'no_show');
+    expect(early.status).toBe(409);
+    expect(early.body.error.code).toBe('NO_SHOW_TOO_EARLY');
+
+    // After the time has passed: allowed, and final. The doctor can record it for their own appointment too.
+    const missed = await book(pastDate(), '15:30', '16:00');
+    expect((await patch(missed, reception, 'no_show')).status).toBe(200);
+    expect((await patch(missed, reception, 'checked_in')).status).toBe(409);
+    expect((await patch(missed, reception, 'cancelled')).status).toBe(409);
+    const missedByDoctor = await book(pastDate(), '16:00', '16:30');
+    expect((await patch(missedByDoctor, doctor, 'no_show')).status).toBe(200);
+
+    // Only a confirmed appointment can become a no-show: not one already checked in, nor an unconfirmed one.
+    const arrived = await book(pastDate(), '16:30', '17:00');
+    expect((await call('patch', `/api/appointments/${arrived}/check-in`, reception, NOOR)).status).toBe(200);
+    expect((await patch(arrived, reception, 'no_show')).status).toBe(409);
+    const unconfirmed = await book(pastDate(), '17:00', '17:30');
+    expect((await patch(unconfirmed, reception, 'pending')).status).toBe(200);
+    expect((await patch(unconfirmed, reception, 'no_show')).status).toBe(409);
+  });
+
+  it('summarises appointments per day without patient data, scoped to the center and the doctor', async () => {
+    const reception = await as.receptionNoor();
+    const doctor = await as.doctorNoor();
+    const day = futureDate();
+    await call('post', '/api/appointments', reception, NOOR).send({ patient_id: PATIENT_1, clinician_id: DOCTOR_NOOR, appointment_date: day, start_time: '18:00', end_time: '18:30' });
+
+    const res = await call('get', `/api/appointments/summary?from=${day}&to=${day}`, reception, NOOR);
+    expect(res.status).toBe(200);
+    expect(res.body.data.days).toHaveLength(1);
+    expect(res.body.data.days[0]).toMatchObject({ date: day, by_status: { confirmed: 1 }, total: 1 });
+    expect(JSON.stringify(res.body)).not.toMatch(/patient|phone|reason/);
+
+    // Empty days are omitted; invalid, reversed and over-long ranges are refused.
+    expect((await call('get', '/api/appointments/summary?from=2040-01-01&to=2040-01-03', reception, NOOR)).body.data.days).toEqual([]);
+    expect((await call('get', '/api/appointments/summary?from=2030-02-10&to=2030-02-01', reception, NOOR)).status).toBe(400);
+    expect((await call('get', '/api/appointments/summary?from=2030-01-01&to=2030-06-01', reception, NOOR)).status).toBe(400);
+    expect((await call('get', '/api/appointments/summary?from=nope&to=2030-06-01', reception, NOOR)).status).toBe(400);
+
+    // A doctor asking for someone else's schedule still gets their own.
+    const other = '99999999-9999-9999-9999-999999999999';
+    const asked = await call('get', `/api/appointments/summary?from=${day}&to=${day}&clinicianId=${other}`, doctor, NOOR);
+    expect(asked.status).toBe(200);
+    expect(asked.body.data.days[0]?.date).toBe(day);
+
+    // Another center's staff see none of this center's appointments.
+    const amal = await as.managerAmal();
+    const foreign = await call('get', `/api/appointments/summary?from=${day}&to=${day}`, amal, AMAL);
+    expect(foreign.body.data.days.find((d: any) => d.date === day)?.by_status.confirmed ?? 0).toBe(0);
   });
 
   it('shows a doctor only their own appointments and blocks cross-center changes', async () => {

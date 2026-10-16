@@ -75,7 +75,7 @@ describe('Patient Portal Privacy & Draft Concealment (AC-03 & AC-07)', () => {
         organization_id: orgId,
         symptom_description: 'Occasional dizziness after prolonged sitting',
         severity: 4,
-        onset_date: new Date().toISOString(),
+        onset_date: new Date().toISOString().slice(0, 10),
       });
 
     expect(res.status).toBe(201);

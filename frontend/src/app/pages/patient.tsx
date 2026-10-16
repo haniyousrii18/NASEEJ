@@ -85,20 +85,6 @@ export const PatientHome: React.FC<{ navigate: (r: string) => void }> = ({ navig
 
         <Card title={H.nextActions}>
           <div className="na-stack">
-            {consents.state.status === 'ready' &&
-              (() => {
-                const active = consents.state.data.filter((c) => c.state === 'active').length;
-                return (
-                  <Notice tone="info" icon="shield">
-                    <strong>{active > 0 ? H.actionConsent : H.actionNoConsent}</strong>
-                    <br />
-                    {active > 0 ? fill(H.actionConsentBody, { n: active }) : H.actionNoConsentBody}{' '}
-                    <button type="button" className="na-link" onClick={() => navigate('patient/consents')}>
-                      {A.nav.items.patientConsents}
-                    </button>
-                  </Notice>
-                );
-              })()}
             {messages.state.status === 'ready' &&
               (() => {
                 const replies = messages.state.data.filter((m) => m.response).length;
@@ -173,9 +159,6 @@ export const PatientSummary: React.FC<{ navigate: (r: string) => void }> = ({ na
       <Async state={state} onRetry={reload}>
         {(s) => (
           <div className="na-stack">
-            <Notice tone="info" icon="shield">
-              {A.common.states.notRecordedHint}
-            </Notice>
 
             <Card title={S.profile}>
               <dl className="na-dl">
@@ -186,7 +169,7 @@ export const PatientSummary: React.FC<{ navigate: (r: string) => void }> = ({ na
               </dl>
             </Card>
 
-            <Card title={S.allergies} hint={S.allergiesHint}>
+            <Card title={S.allergies}>
               {s.allergies.length === 0 ? (
                 <p>{A.common.record.noAllergies}</p>
               ) : (
@@ -440,7 +423,7 @@ export const PatientAppointments: React.FC<{ navigate: (r: string) => void }> = 
     <>
       <PageHead title={P.title} subtitle={P.subtitle} />
       <div className="na-stack">
-        <Card title={P.requestTitle} hint={P.requestHint}>
+        <Card title={P.requestTitle}>
           {summary.state.status === 'loading' ? <Loading /> : summary.state.status === 'error' ? (
             <ErrorState error={summary.state.error} onRetry={summary.reload} />
           ) : centers.length === 0 ? (
@@ -658,7 +641,7 @@ export const PatientMessages: React.FC = () => {
             </form>
           </Card>
 
-          <Card title={M.symptoms} hint={M.symptomsHint}>
+          <Card title={M.symptoms}>
             <form className="na-form na-form--stack" onSubmit={submitSymptom} noValidate>
               <Field label={M.description} htmlFor="s-desc">
                 <textarea id="s-desc" className="na-textarea" rows={3} value={s.symptom_description} onChange={(e) => setS({ ...s, symptom_description: e.target.value })} />
@@ -783,9 +766,6 @@ export const PatientConsents: React.FC = () => {
     <>
       <PageHead title={C.title} subtitle={C.subtitle} />
       <div className="na-stack">
-        <Notice tone="info" icon="shield">
-          {C.approvedOnly}
-        </Notice>
         {msg && (
           <Notice tone={msg.tone} live>
             {msg.text}

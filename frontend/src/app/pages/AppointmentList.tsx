@@ -20,16 +20,16 @@ export interface AppointmentRow {
   clinician_name_en: string;
 }
 
-type Action = 'confirmed' | 'checked_in' | 'in_consultation' | 'completed' | 'cancelled';
+type Action = 'confirmed' | 'checked_in' | 'in_consultation' | 'completed' | 'cancelled' | 'no_show';
 
 /** The buttons each role is offered per status. The server still decides whether the transition is allowed. */
 const OFFERED: Record<'doctor' | 'reception' | 'center_manager', Record<string, Action[]>> = {
-  doctor: { checked_in: ['in_consultation'], in_consultation: ['completed'] },
-  reception: { pending: ['confirmed', 'cancelled'], confirmed: ['checked_in', 'cancelled'], checked_in: ['cancelled'] },
-  center_manager: { pending: ['cancelled'], confirmed: ['cancelled'], checked_in: ['cancelled'] },
+  doctor: { confirmed: ['no_show'], checked_in: ['in_consultation'], in_consultation: ['completed'] },
+  reception: { pending: ['confirmed', 'cancelled'], confirmed: ['checked_in', 'no_show', 'cancelled'], checked_in: ['cancelled'] },
+  center_manager: { pending: ['cancelled'], confirmed: ['no_show', 'cancelled'], checked_in: ['cancelled'] },
 };
 
-const TONE: Record<string, Tone> = { pending: 'warn', confirmed: 'info', checked_in: 'ok', in_consultation: 'ok', completed: 'neutral', cancelled: 'danger' };
+const TONE: Record<string, Tone> = { pending: 'warn', confirmed: 'info', checked_in: 'ok', in_consultation: 'ok', completed: 'neutral', cancelled: 'danger', no_show: 'warn' };
 
 export const StatusPill: React.FC<{ status: string }> = ({ status }) => {
   const A = useA();
@@ -53,13 +53,14 @@ export const AppointmentList: React.FC<Props> = ({ rows, role, showDate, showDoc
   const { run, pending } = useMutation();
   const [msg, setMsg] = useState<{ tone: 'ok' | 'danger'; text: string } | null>(null);
 
-  const label: Record<Action, string> = { confirmed: T.confirm, checked_in: T.checkIn, in_consultation: T.startConsult, completed: T.complete, cancelled: T.cancel };
+  const label: Record<Action, string> = { confirmed: T.confirm, checked_in: T.checkIn, in_consultation: T.startConsult, completed: T.complete, cancelled: T.cancel, no_show: T.noShow };
 
   const act = async (row: AppointmentRow, target: Action) => {
     if (target === 'cancelled' && !window.confirm(T.confirmCancel)) return;
+    if (target === 'no_show' && !window.confirm(T.confirmNoShow)) return;
     const res = await run(`/api/appointments/${row.id}/status`, 'PATCH', { status: target });
     if (res.ok) setMsg({ tone: 'ok', text: T.changed });
-    else setMsg({ tone: 'danger', text: res.error.status === 409 ? T.notAllowed : res.error.message });
+    else setMsg({ tone: 'danger', text: res.error.code === 'NO_SHOW_TOO_EARLY' ? T.noShowTooEarly : res.error.status === 409 ? T.notAllowed : res.error.message });
     onChanged();
   };
 

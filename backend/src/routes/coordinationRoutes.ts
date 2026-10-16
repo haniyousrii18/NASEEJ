@@ -62,7 +62,7 @@ const CASE_SELECT = `
              cl.full_name_ar AS clinician_name_ar, cl.full_name_en AS clinician_name_en
       FROM appointments a JOIN users cl ON cl.id = a.clinician_id
       WHERE a.patient_id = c.patient_id AND a.organization_id = c.organization_id
-        AND a.appointment_date >= CURRENT_DATE AND a.status NOT IN ('cancelled', 'completed')
+        AND a.appointment_date >= CURRENT_DATE AND a.status NOT IN ('cancelled', 'completed', 'no_show')
       ORDER BY a.appointment_date, a.start_time LIMIT 1) n) AS next_appointment`;
 
 const CASE_FROM = `

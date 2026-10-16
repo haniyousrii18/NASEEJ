@@ -5,7 +5,8 @@ import { CaseDetail, CoordinatorCases, CoordinatorHome, CoordinatorReferrals, Co
 import { DoctorAppointments, DoctorHome, DoctorPatients, DoctorPending, PatientWorkspace } from './pages/doctor.js';
 import { ManagerActivity, ManagerCoordination, ManagerHome, ManagerReports, ManagerSchedule, ManagerServices, ManagerStaff } from './pages/manager.js';
 import { PatientAppointments, PatientConsents, PatientDocuments, PatientHome, PatientMedications, PatientMessages, PatientSummary, PatientTimeline } from './pages/patient.js';
-import { ReceptionArrivals, ReceptionBook, ReceptionHome, ReceptionPatients, ReceptionSchedule } from './pages/reception.js';
+import { FrontDesk } from './reception/FrontDesk.js';
+import { ReceptionBook, ReceptionPatients, ReceptionSchedule } from './pages/reception.js';
 
 export interface PageContext {
   role: AppRole;
@@ -66,13 +67,13 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
 
     // Reception
     case 'reception/home':
-      return <ReceptionHome navigate={navigate} />;
+      return <FrontDesk navigate={navigate} />;
     case 'reception/schedule':
       return <ReceptionSchedule />;
     case 'reception/book':
       return <ReceptionBook initialPatientId={hashParam('patient')} />;
     case 'reception/arrivals':
-      return <ReceptionArrivals />;
+      return <FrontDesk navigate={navigate} />;
     case 'reception/patients':
       return <ReceptionPatients navigate={navigate} />;
 

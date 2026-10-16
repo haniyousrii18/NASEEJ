@@ -54,7 +54,11 @@ const ar = {
     open: 'فتح',
   },
   workspace: {
-    tabs: { summary: 'ملخص المريض', timeline: 'الخط الزمني', records: 'السجلات والمصادر', meds: 'الأدوية والحساسية', visits: 'الزيارات والتوثيق' },
+    tabs: { summary: 'الملخص', visits: 'الزيارات', meds: 'الأدوية والحساسية', labs: 'التحاليل' },
+    quick: { docs: 'المستندات', timeline: 'الخط الزمني', close: 'إغلاق اللوحة', timelineTitle: 'الخط الزمني للحالة الطبية' },
+    brief: { age: '{n} سنة', title: 'ملخص الحالة في دقيقتين', complaint: 'شكوى المريض', lastDx: 'تشخيص آخر 3 زيارات', noDx: 'لم يُسجَّل تشخيص', allergyChip: 'حساسية', allergyUnknown: 'الحساسية غير موثّقة', currentMeds: 'آخر الوصفات' },
+    visitsUi: { newVisit: 'زيارة جديدة', newRx: 'وصفة', newLab: 'طلب تحليل', noVisits: 'لا توجد زيارات مسجّلة', show: 'عرض التفاصيل', hide: 'إخفاء التفاصيل', approve: 'اعتماد', confirm: 'تأكيد الاعتماد', saveDraft: 'حفظ كمسودة', order: 'إرسال الطلب', required: 'هذا الحقل مطلوب', s: 'الشكوى', o: 'الفحص', a: 'التقييم', p: 'الخطة', sFull: 'الشكوى', oFull: 'الفحص', aFull: 'التقييم والتشخيص', pFull: 'الخطة', bp: 'الضغط', pulse: 'النبض', temp: 'الحرارة', spo2: 'الأكسجين', forVisit: 'للزيارة', medication: 'الدواء', dose: 'الجرعة', freq: 'التكرار', dur: 'المدة', testAr: 'اسم التحليل (عربي)', testEn: 'اسم التحليل (إنجليزي)', titles: { visit: 'زيارة جديدة', rx: 'وصفة جديدة', lab: 'طلب تحليل' } as Record<string, string> },
+    docsPanel: { source: 'المصدر', status: 'الحالة', all: 'الكل', center: 'من المركز', external: 'من مركز آخر', patient: 'رفعها المريض', needsReview: 'بانتظار المراجعة', reviewed: 'تمت مراجعتها', noMatch: 'لا توجد مستندات بهذه الفلاتر. جرّب تغيير الفلتر.', count: '{n} من {total} مستندات', upload: 'رفع مستند جديد' },
     back: 'العودة إلى البحث',
     summary: {
       identity: 'بيانات المريض',
@@ -150,7 +154,11 @@ const en: typeof ar = {
     open: 'Open',
   },
   workspace: {
-    tabs: { summary: 'Patient Summary', timeline: 'Health Timeline', records: 'Records and Sources', meds: 'Medications and Allergies', visits: 'Visits and Documentation' },
+    tabs: { summary: 'Summary', visits: 'Visits', meds: 'Medications and Allergies', labs: 'Lab Results' },
+    quick: { docs: 'Documents', timeline: 'Timeline', close: 'Close panel', timelineTitle: 'Clinical timeline' },
+    brief: { age: '{n} yrs', title: 'Two-minute case summary', complaint: 'Patient complaint', lastDx: 'Diagnoses of the last 3 visits', noDx: 'No diagnosis recorded', allergyChip: 'Allergy', allergyUnknown: 'Allergies not documented', currentMeds: 'Latest prescriptions' },
+    visitsUi: { newVisit: 'New visit', newRx: 'Prescription', newLab: 'Order a test', noVisits: 'No visits recorded', show: 'Show details', hide: 'Hide details', approve: 'Approve', confirm: 'Confirm approval', saveDraft: 'Save as draft', order: 'Send order', required: 'This field is required', s: 'Complaint', o: 'Exam', a: 'Assessment', p: 'Plan', sFull: 'Complaint', oFull: 'Examination', aFull: 'Assessment and diagnosis', pFull: 'Plan', bp: 'Blood pressure', pulse: 'Pulse', temp: 'Temperature', spo2: 'Oxygen', forVisit: 'For visit', medication: 'Medication', dose: 'Dose', freq: 'Frequency', dur: 'Duration', testAr: 'Test name (Arabic)', testEn: 'Test name (English)', titles: { visit: 'New visit', rx: 'New prescription', lab: 'Order a test' } },
+    docsPanel: { source: 'Source', status: 'Status', all: 'All', center: 'This center', external: 'Another center', patient: 'Uploaded by patient', needsReview: 'Needs review', reviewed: 'Reviewed', noMatch: 'No documents match these filters. Try changing a filter.', count: '{n} of {total} documents', upload: 'Upload a document' },
     back: 'Back to search',
     summary: {
       identity: 'Patient details',

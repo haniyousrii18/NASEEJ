@@ -81,7 +81,7 @@ export interface Appointment {
   appointment_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'checked_in' | 'in_consultation' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'checked_in' | 'in_consultation' | 'completed' | 'cancelled' | 'no_show';
   reason?: string;
   check_in_time?: Date;
   created_by?: string;

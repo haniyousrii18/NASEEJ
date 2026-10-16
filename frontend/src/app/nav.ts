@@ -80,7 +80,6 @@ export const NAV: Record<AppRole, NavGroup[]> = {
         { route: 'reception/home', label: 'receptionHome', icon: 'home' },
         { route: 'reception/schedule', label: 'receptionSchedule', icon: 'calendar' },
         { route: 'reception/book', label: 'receptionBook', icon: 'plus' },
-        { route: 'reception/arrivals', label: 'receptionArrivals', icon: 'door' },
         { route: 'reception/patients', label: 'receptionPatients', icon: 'search' },
       ],
     },

@@ -14,24 +14,25 @@ export const appointmentRouter = Router();
 // portal; platform administrators have no operational access to a center's schedule.
 appointmentRouter.use(authenticate, requireTenant, requireRole(['reception', 'doctor', 'center_manager']));
 
-type AppointmentStatus = 'pending' | 'confirmed' | 'checked_in' | 'in_consultation' | 'completed' | 'cancelled';
+type AppointmentStatus = 'pending' | 'confirmed' | 'checked_in' | 'in_consultation' | 'completed' | 'cancelled' | 'no_show';
 
 // Explicit state machine. Visit creation and approval move appointments to in_consultation / completed
 // internally; the transitions below are what staff may request through the API.
 const TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
   pending: ['confirmed', 'cancelled'],
-  confirmed: ['pending', 'checked_in', 'cancelled'],
+  confirmed: ['pending', 'checked_in', 'no_show', 'cancelled'],
   checked_in: ['in_consultation', 'cancelled'],
   in_consultation: ['completed'],
   completed: [],
   cancelled: [],
+  no_show: [],
 };
 
 // Which target statuses each role may set. Clinical progress belongs to the doctor, arrival to the front desk.
 const ROLE_TARGETS: Record<string, AppointmentStatus[]> = {
-  reception: ['pending', 'confirmed', 'checked_in', 'cancelled'],
-  center_manager: ['pending', 'confirmed', 'checked_in', 'cancelled'],
-  doctor: ['in_consultation', 'completed', 'cancelled'],
+  reception: ['pending', 'confirmed', 'checked_in', 'no_show', 'cancelled'],
+  center_manager: ['pending', 'confirmed', 'checked_in', 'no_show', 'cancelled'],
+  doctor: ['in_consultation', 'completed', 'no_show', 'cancelled'],
 };
 
 const VALID_STATUSES = Object.keys(TRANSITIONS);
@@ -96,6 +97,60 @@ appointmentRouter.get('/', async (req: Request, res: Response): Promise<void> =>
 
     const result = await query(text, params);
     res.json({ success: true, data: result.rows });
+  } catch (err: any) {
+    res.status(500).json(serverError(err));
+  }
+});
+
+// GET /api/appointments/summary?from=&to=&clinicianId=  (appointments per day and status; counts only, no patient data)
+const MAX_SUMMARY_DAYS = 62;
+appointmentRouter.get('/summary', async (req: Request, res: Response): Promise<void> => {
+  const orgId = req.tenantId!;
+  const from = req.query.from as string | undefined;
+  const to = req.query.to as string | undefined;
+  let clinicianId = req.query.clinicianId as string | undefined;
+
+  if (!isIsoDate(from) || !isIsoDate(to)) {
+    res.status(400).json(apiError('VALIDATION_ERROR', 'from and to (YYYY-MM-DD) are required.'));
+    return;
+  }
+  const span = (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000;
+  if (span < 0 || span >= MAX_SUMMARY_DAYS) {
+    res.status(400).json(apiError('VALIDATION_ERROR', `The range must run forward and cover at most ${MAX_SUMMARY_DAYS} days.`));
+    return;
+  }
+  if (clinicianId && !isUuid(clinicianId)) {
+    res.status(400).json(apiError('VALIDATION_ERROR', 'clinicianId must be a valid identifier.'));
+    return;
+  }
+  // A doctor sees their own schedule only, whatever the query says.
+  if (req.currentMembership!.role === 'doctor') clinicianId = req.user!.id;
+
+  try {
+    const params: any[] = [orgId, from, to];
+    let filter = '';
+    if (clinicianId) {
+      params.push(clinicianId);
+      filter = ` AND clinician_id = $${params.length}`;
+    }
+    const result = await query(
+      `SELECT to_char(appointment_date, 'YYYY-MM-DD') AS date, status, count(*)::int AS count
+       FROM appointments
+       WHERE organization_id = $1 AND appointment_date BETWEEN $2 AND $3${filter}
+       GROUP BY appointment_date, status ORDER BY appointment_date`,
+      params
+    );
+
+    // "total" is the day's booked load: cancelled appointments no longer take the clinician's time.
+    type DaySummary = { date: string; total: number; by_status: Record<string, number> };
+    const days = new Map<string, DaySummary>();
+    for (const row of result.rows) {
+      const day: DaySummary = days.get(row.date) ?? { date: row.date, total: 0, by_status: {} };
+      day.by_status[row.status] = row.count;
+      if (row.status !== 'cancelled') day.total += row.count;
+      days.set(row.date, day);
+    }
+    res.json({ success: true, data: { from, to, days: [...days.values()] } });
   } catch (err: any) {
     res.status(500).json(serverError(err));
   }
@@ -227,7 +282,7 @@ async function transition(req: Request, res: Response, target: AppointmentStatus
   try {
     const outcome = await withTransaction(async (client) => {
       const current = await client.query(
-        'SELECT id, status, clinician_id FROM appointments WHERE id = $1 AND organization_id = $2 FOR UPDATE',
+        'SELECT id, status, clinician_id, (appointment_date + start_time) <= NOW() AS started FROM appointments WHERE id = $1 AND organization_id = $2 FOR UPDATE',
         [appointmentId, orgId]
       );
       if (current.rowCount === 0) return { notFound: true as const };
@@ -235,6 +290,8 @@ async function transition(req: Request, res: Response, target: AppointmentStatus
 
       if (role === 'doctor' && row.clinician_id !== req.user!.id) return { notFound: true as const };
       if (!TRANSITIONS[row.status as AppointmentStatus]?.includes(target)) return { invalid: row.status as string };
+      // A no-show can only be recorded once the appointment time has passed.
+      if (target === 'no_show' && !row.started) return { tooEarly: true as const };
 
       const updated = await client.query(
         `UPDATE appointments
@@ -248,6 +305,10 @@ async function transition(req: Request, res: Response, target: AppointmentStatus
 
     if ('notFound' in outcome) {
       res.status(404).json(apiError('APPOINTMENT_NOT_FOUND', 'Appointment not found in this medical center.'));
+      return;
+    }
+    if ('tooEarly' in outcome) {
+      res.status(409).json(apiError('NO_SHOW_TOO_EARLY', 'A no-show can only be recorded after the appointment time has passed.'));
       return;
     }
     if ('invalid' in outcome) {

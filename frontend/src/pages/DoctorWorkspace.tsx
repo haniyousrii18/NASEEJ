@@ -42,7 +42,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
   const [data, setData] = useState<PatientData | null>(null);
   const [loadingPatient, setLoadingPatient] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const [section, setSection] = useState<Section>('summary');
+  const [section, setSection] = useState<Section>(initialPatientId ? 'visits' : 'summary');
   const [actionError, setActionError] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -76,7 +76,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
       if (!silent) {
         setLoadingPatient(true);
         setLoadError(false);
-        setSection('summary');
+        setSection(initialPatientId ? 'visits' : 'summary');
         setShowNewVisit(false);
         setShowNewRx(false);
         setShowNewLab(false);
@@ -221,6 +221,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
         }),
       });
       setShowNewRx(false);
+      if (embedded) setSection('visits');
       setMedicationName('');
       setDosage('');
       setFrequency('');
@@ -245,6 +246,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
         }),
       });
       setShowNewLab(false);
+      if (embedded) setSection('visits');
       setLabTestNameAr('');
       setLabTestNameEn('');
       void selectPatient(data.patient.id, true);
@@ -428,7 +430,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
                     {/* Patient header + allergy banner (FR-072), always visible */}
                     <div className="cloud-feature-card" style={{ padding: '16px 22px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                        <div style={{ minWidth: 0 }}>
+                        {!embedded && <div style={{ minWidth: 0 }}>
                           <h2 className="text-card-heading" style={{ fontSize: 22, margin: 0, overflowWrap: 'anywhere' }} dir="auto">
                             {isRtl ? patient.full_name_ar : patient.full_name_en}
                           </h2>
@@ -437,7 +439,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
                               <bdi className="num">{patient.phone}</bdi>
                             </div>
                           )}
-                        </div>
+                        </div>}
                         <div className="responsive-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                           <button type="button" onClick={() => { setShowNewVisit(true); goSection('visits', false); }} className="btn-pill btn-pill-charcoal" style={{ fontSize: 13, minHeight: 44 }}>
                             + {t.clinical.newVisitBtn}
@@ -448,7 +450,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
                         </div>
                       </div>
 
-                      {(patient.allergies?.length ?? 0) > 0 && (
+                      {!embedded && (patient.allergies?.length ?? 0) > 0 && (
                         <div
                           className="motion-alert-enter"
                           role="alert"
@@ -466,13 +468,13 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
                         </div>
                       )}
 
-                      <nav aria-label={D.sections.nav} className="doctor-section-nav" style={{ marginTop: 10 }}>
+                      {!embedded && <nav aria-label={D.sections.nav} className="doctor-section-nav" style={{ marginTop: 10 }}>
                         {SECTIONS.map((s) => (
                           <button key={s} type="button" aria-current={section === s ? 'true' : undefined} onClick={() => goSection(s, false)}>
                             {D.sections[s]}
                           </button>
                         ))}
-                      </nav>
+                      </nav>}
                     </div>
 
                     {section === 'summary' && (
@@ -501,7 +503,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
                                 </div>
                               </div>
                               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 18 }}>
-                                <button type="button" onClick={() => setShowNewLab(false)} className="btn-pill btn-pill-ghost" style={{ minHeight: 44 }}>{t.common.cancel}</button>
+                                <button type="button" onClick={() => { setShowNewLab(false); if (embedded) setSection('visits'); }} className="btn-pill btn-pill-ghost" style={{ minHeight: 44 }}>{t.common.cancel}</button>
                                 <button type="submit" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }}>{isRtl ? 'تأكيد طلب الفحص' : 'Confirm Order'}</button>
                               </div>
                             </form>
@@ -555,7 +557,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
                                 </div>
                               </div>
                               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 18 }}>
-                                <button type="button" onClick={() => setShowNewRx(false)} className="btn-pill btn-pill-ghost" style={{ minHeight: 44 }}>{t.common.cancel}</button>
+                                <button type="button" onClick={() => { setShowNewRx(false); if (embedded) setSection('visits'); }} className="btn-pill btn-pill-ghost" style={{ minHeight: 44 }}>{t.common.cancel}</button>
                                 <button type="submit" className="btn-pill btn-pill-charcoal" style={{ minHeight: 44 }}>{isRtl ? 'إصدار الوصفة' : 'Issue Prescription'}</button>
                               </div>
                             </form>
@@ -655,7 +657,7 @@ export const DoctorWorkspace: React.FC<{ initialPatientId?: string }> = ({ initi
       <ItemApprovalDialog target={itemTarget} onApprove={handleApproveItem} onClose={() => setItemTarget(null)} />
       <PatientSearch open={searchOpen} patients={patients} waitingIds={waitingIds} onSelect={(id) => void selectPatient(id)} onClose={() => setSearchOpen(false)} />
       <ShortcutsDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
-      <DemoTour />
+      {!embedded && <DemoTour />}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useApiData } from '../api.js';
 import { formatDate, nameOf } from '../format.js';
-import { Async, Card, EmptyState, Notice, Pill } from '../ui.js';
+import { Async, Card, EmptyState, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { ReviewPill } from './badges.js';
 import type { TimelineItem } from './Timeline.js';
@@ -27,7 +27,7 @@ export const ResultsComparison: React.FC<{ endpoint: string }> = ({ endpoint }) 
   const { state, reload } = useApiData<TimelineItem[]>(`${endpoint}?type=lab_result&limit=100`);
 
   return (
-    <Card title={R.title} hint={R.hint}>
+    <Card title={R.title}>
       <Async
         state={state}
         onRetry={reload}
@@ -104,7 +104,6 @@ const Groups: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
           </section>
         );
       })}
-      <Notice tone="info">{A.record.results.hint}</Notice>
     </div>
   );
 };

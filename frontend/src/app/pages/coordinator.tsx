@@ -7,15 +7,6 @@ import { useA } from '../useA.js';
 const patientName = (lang: 'ar' | 'en', r: { patient_name_ar: string; patient_name_en: string }) => nameOf(lang, { name_ar: r.patient_name_ar, name_en: r.patient_name_en });
 const personName = (lang: 'ar' | 'en', r: any, prefix: string) => nameOf(lang, { name_ar: r[`${prefix}_name_ar`], name_en: r[`${prefix}_name_en`] });
 
-const Scope: React.FC = () => {
-  const A = useA();
-  return (
-    <Notice tone="info" icon="lock">
-      {A.coordinator.scope}
-    </Notice>
-  );
-};
-
 /* ------------------------------------------------------------------ dashboard */
 export const CoordinatorHome: React.FC<{ navigate: (r: string) => void }> = ({ navigate }) => {
   const A = useA();
@@ -27,7 +18,6 @@ export const CoordinatorHome: React.FC<{ navigate: (r: string) => void }> = ({ n
       <Async state={state} onRetry={reload}>
         {(d) => (
           <div className="na-stack">
-            <Scope />
             <div className="na-grid na-grid--stats">
               <Stat label={H.openCases} value={d.openCases} />
               <Stat label={H.activeTasks} value={d.activeTasks} />
@@ -142,13 +132,12 @@ export const CoordinatorCases: React.FC<{ navigate: (r: string) => void }> = ({ 
     <>
       <PageHead title={C.title} subtitle={C.subtitle} />
       <div className="na-stack">
-        <Scope />
         <Card title={C.new}>
           <form className="na-form" onSubmit={submit} noValidate>
             <Field label={C.patientSearch} htmlFor="cs-patient">
               <input id="cs-patient" type="search" className="na-input" autoComplete="off" value={term} onChange={(e) => { setTerm(e.target.value); setPatient(null); }} />
             </Field>
-            <Field label={C.reason} htmlFor="cs-reason" help={C.reasonHint}>
+            <Field label={C.reason} htmlFor="cs-reason">
               <input id="cs-reason" className="na-input" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
             </Field>
             <div className="na-form-actions">
@@ -518,7 +507,6 @@ export const CaseDetail: React.FC<{ caseId: string; navigate: (r: string) => voi
               }
             />
             <div className="na-stack">
-              <Scope />
               {msg && (
                 <Notice tone={msg.tone} live>
                   {msg.text}
@@ -614,7 +602,6 @@ export const CoordinatorTasks: React.FC<{ navigate: (r: string) => void }> = ({ 
     <>
       <PageHead title={T.title} subtitle={T.subtitle} />
       <div className="na-stack">
-        <Scope />
         <div className="na-row">
           <div className="na-tabs" role="group" style={{ marginBottom: 0 }}>
             {(['active', 'done', 'cancelled', 'all'] as const).map((s) => (
@@ -654,7 +641,6 @@ export const CoordinatorReferrals: React.FC = () => {
     <>
       <PageHead title={R.title} subtitle={R.subtitle} />
       <div className="na-stack">
-        <Scope />
         <div className="na-tabs" role="group">
           {(['outgoing', 'incoming'] as const).map((d) => (
             <button key={d} type="button" className="na-tab" aria-current={direction === d ? 'page' : undefined} onClick={() => setDirection(d)}>

@@ -2,18 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { useApiData, useMutation, useRequest } from '../api.js';
 import { addDays, formatDate, nameOf, todayIso } from '../format.js';
-import { Async, Button, Card, EmptyState, Field, Notice, PageHead, Stat } from '../ui.js';
+import { Async, Button, Card, EmptyState, Field, Notice, PageHead } from '../ui.js';
 import { useA } from '../useA.js';
 import { AppointmentList, type AppointmentRow } from './AppointmentList.js';
-
-const Scope: React.FC = () => {
-  const A = useA();
-  return (
-    <Notice tone="info" icon="lock">
-      {A.reception.scope}
-    </Notice>
-  );
-};
 
 interface Doctor {
   user_id: string;
@@ -31,56 +22,6 @@ function useDoctors() {
   return { doctors, state };
 }
 
-export const ReceptionHome: React.FC<{ navigate: (r: string) => void }> = ({ navigate }) => {
-  const A = useA();
-  const H = A.reception.home;
-  const today = todayIso();
-  const { state, reload } = useApiData<AppointmentRow[]>(`/api/appointments?date=${today}`);
-  return (
-    <>
-      <PageHead title={H.title} subtitle={H.subtitle} />
-      <Async state={state} onRetry={reload}>
-        {(rows) => {
-          const active = rows.filter((r) => r.status !== 'cancelled');
-          const waiting = active.filter((r) => r.status === 'checked_in').length;
-          const toArrive = active.filter((r) => r.status === 'pending' || r.status === 'confirmed').length;
-          const done = active.filter((r) => r.status === 'completed').length;
-          return (
-            <div className="na-stack">
-              <Scope />
-              <div className="na-grid na-grid--stats">
-                <Stat label={H.total} value={active.length} />
-                <Stat label={H.waiting} value={waiting} tone={waiting > 0 ? 'ok' : undefined} />
-                <Stat label={H.toArrive} value={toArrive} />
-                <Stat label={H.done} value={done} />
-              </div>
-              <Card title={H.shortcuts}>
-                <div className="na-row">
-                  <Button variant="primary" icon="plus" onClick={() => navigate('reception/book')}>
-                    {H.book}
-                  </Button>
-                  <Button icon="door" onClick={() => navigate('reception/arrivals')}>
-                    {H.arrivals}
-                  </Button>
-                  <Button icon="calendar" onClick={() => navigate('reception/schedule')}>
-                    {H.schedule}
-                  </Button>
-                  <Button icon="search" onClick={() => navigate('reception/patients')}>
-                    {H.search}
-                  </Button>
-                </div>
-              </Card>
-              <Card title={H.today}>
-                <AppointmentList rows={rows} role="reception" showDoctor showReason showPhone onChanged={reload} />
-              </Card>
-            </div>
-          );
-        }}
-      </Async>
-    </>
-  );
-};
-
 export const ReceptionSchedule: React.FC = () => {
   const A = useA();
   const S = A.reception.schedule;
@@ -92,7 +33,6 @@ export const ReceptionSchedule: React.FC = () => {
     <>
       <PageHead title={S.title} subtitle={S.subtitle} />
       <div className="na-stack">
-        <Scope />
         <Card>
           <div className="na-form">
             <Field label={S.date} htmlFor="rs-date">
@@ -211,7 +151,6 @@ export const ReceptionBook: React.FC<{ initialPatientId?: string }> = ({ initial
     <>
       <PageHead title={B.title} subtitle={B.subtitle} />
       <div className="na-stack">
-        <Scope />
         <Card>
           <form className="na-stack" onSubmit={submit} noValidate>
             <Field label={B.patientSearch} htmlFor="bk-patient">
@@ -286,7 +225,7 @@ export const ReceptionBook: React.FC<{ initialPatientId?: string }> = ({ initial
               </div>
             </fieldset>
 
-            <Field label={B.reason} htmlFor="bk-reason" help={B.reasonHint}>
+            <Field label={B.reason} htmlFor="bk-reason">
               <input id="bk-reason" className="na-input" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
             </Field>
             {msg && (
@@ -302,38 +241,6 @@ export const ReceptionBook: React.FC<{ initialPatientId?: string }> = ({ initial
           </form>
         </Card>
       </div>
-    </>
-  );
-};
-
-export const ReceptionArrivals: React.FC = () => {
-  const A = useA();
-  const R = A.reception.arrivals;
-  const { state, reload } = useApiData<AppointmentRow[]>(`/api/appointments?date=${todayIso()}`);
-  return (
-    <>
-      <PageHead title={R.title} subtitle={R.subtitle} actions={<Button variant="quiet" icon="refresh" onClick={reload}>{A.common.actions.refresh}</Button>} />
-      <Async state={state} onRetry={reload}>
-        {(rows) => {
-          const waiting = rows.filter((r) => r.status === 'checked_in');
-          const expected = rows.filter((r) => r.status === 'pending' || r.status === 'confirmed');
-          const inside = rows.filter((r) => r.status === 'in_consultation');
-          return (
-            <div className="na-stack">
-              <Scope />
-              <Card title={`${R.waiting} (${waiting.length})`}>
-                {waiting.length === 0 ? <p className="na-muted">{R.noneWaiting}</p> : <AppointmentList rows={waiting} role="reception" showDoctor onChanged={reload} />}
-              </Card>
-              <Card title={`${R.expected} (${expected.length})`}>
-                {expected.length === 0 ? <p className="na-muted">{R.noneExpected}</p> : <AppointmentList rows={expected} role="reception" showDoctor showPhone onChanged={reload} />}
-              </Card>
-              <Card title={`${R.inConsultation} (${inside.length})`}>
-                {inside.length === 0 ? <p className="na-muted">{R.noneIn}</p> : <AppointmentList rows={inside} role="reception" showDoctor onChanged={reload} />}
-              </Card>
-            </div>
-          );
-        }}
-      </Async>
     </>
   );
 };
@@ -368,7 +275,6 @@ export const ReceptionPatients: React.FC<{ navigate: (r: string) => void }> = ({
     <>
       <PageHead title={P.title} subtitle={P.subtitle} />
       <div className="na-stack">
-        <Scope />
         <Card>
           <Field label={P.search} htmlFor="rp-search">
             <input id="rp-search" type="search" className="na-input" autoComplete="off" value={text} onChange={(e) => setText(e.target.value)} />
@@ -412,7 +318,7 @@ export const ReceptionPatients: React.FC<{ navigate: (r: string) => void }> = ({
             )}
           </Async>
         </Card>
-        <Card title={P.register} hint={P.registerHint}>
+        <Card title={P.register}>
           <form className="na-form" onSubmit={submit} noValidate>
             <Field label={P.nameAr} htmlFor="rg-ar">
               <input id="rg-ar" className="na-input" dir="rtl" value={f.full_name_ar} onChange={(e) => setF({ ...f, full_name_ar: e.target.value })} />

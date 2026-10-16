@@ -22,13 +22,13 @@ centerRouter.get('/overview', async (req: Request, res: Response): Promise<void>
       query(`SELECT status, count(*)::int AS count FROM appointments WHERE organization_id = $1 AND appointment_date = CURRENT_DATE GROUP BY status`, [orgId]),
       query(
         `SELECT count(*)::int AS count FROM appointments
-         WHERE organization_id = $1 AND appointment_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 6 AND status <> 'cancelled'`,
+         WHERE organization_id = $1 AND appointment_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 6 AND status NOT IN ('cancelled', 'no_show')`,
         [orgId]
       ),
       query(
         `SELECT u.id AS clinician_id, u.full_name_ar, u.full_name_en, count(*)::int AS count
          FROM appointments a JOIN users u ON u.id = a.clinician_id
-         WHERE a.organization_id = $1 AND a.appointment_date = CURRENT_DATE AND a.status <> 'cancelled'
+         WHERE a.organization_id = $1 AND a.appointment_date = CURRENT_DATE AND a.status NOT IN ('cancelled', 'no_show')
          GROUP BY u.id, u.full_name_ar, u.full_name_en ORDER BY count DESC, u.full_name_en`,
         [orgId]
       ),
@@ -88,7 +88,8 @@ centerRouter.get('/reports/appointments', async (req: Request, res: Response): P
         `SELECT u.id AS clinician_id, u.full_name_ar, u.full_name_en,
                 count(*)::int AS total,
                 count(*) FILTER (WHERE a.status = 'completed')::int AS completed,
-                count(*) FILTER (WHERE a.status = 'cancelled')::int AS cancelled
+                count(*) FILTER (WHERE a.status = 'cancelled')::int AS cancelled,
+                count(*) FILTER (WHERE a.status = 'no_show')::int AS no_show
          FROM appointments a JOIN users u ON u.id = a.clinician_id
          WHERE a.organization_id = $1 AND a.appointment_date BETWEEN $2 AND $3
          GROUP BY u.id, u.full_name_ar, u.full_name_en ORDER BY total DESC, u.full_name_en`,
