@@ -11,6 +11,11 @@
   --na-radius: 16px;
   --na-gap: clamp(14px, 2vw, 22px);
   --na-warn-bg: var(--color-status-draft-bg);
+  /* Width of the sidebar surface. It equals the grid track except while a collapsed rail is peeking open,
+     when only this value grows: the track stays put, so the page never reflows. */
+  --na-side-w: var(--na-side);
+  --na-scrim: rgba(26, 18, 12, 0.34);
+  --na-side-shadow: rgba(26, 18, 12, 0.22);
 
   display: grid;
   grid-template-columns: var(--na-side) minmax(0, 1fr);
@@ -19,10 +24,21 @@
   color: var(--color-ink);
   font-size: 15px;
   line-height: 1.55;
+  /* own stacking context: lets the decorative backdrop sit at z-index -1, above the canvas colour and below all content */
+  isolation: isolate;
 }
 
 .na-app[data-collapsed='true'] {
   --na-side: 76px;
+}
+
+.na-app[data-peek='true'] {
+  --na-side-w: 272px;
+}
+
+:root[data-theme='dark'] .na-app {
+  --na-scrim: rgba(0, 0, 0, 0.5);
+  --na-side-shadow: rgba(0, 0, 0, 0.55);
 }
 
 .na-app *,
@@ -70,12 +86,36 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: var(--na-side-w);
   padding: 14px 12px;
-  background: var(--color-bg-elevated);
+  /* A faint tint of the brand colour drifts slowly while the sidebar is open over the page (see naSideDrift);
+     it is static in the compact rail. The surface stays opaque, so labels keep full contrast. */
+  background:
+    radial-gradient(120% 50% at 100% 0%, color-mix(in srgb, var(--color-accent) 9%, transparent), transparent 62%),
+    radial-gradient(100% 46% at 0% 100%, color-mix(in srgb, var(--color-accent) 7%, transparent), transparent 66%),
+    var(--color-bg-elevated);
+  background-size: 170% 170%, 170% 170%, auto;
+  background-repeat: no-repeat;
   border-inline-end: 1px solid var(--color-border-subtle);
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   z-index: 40;
+  animation: naSideDrift 32s ease-in-out infinite alternate paused;
+}
+
+.na-app[data-peek='true'] .na-side,
+.na-app[data-drawer='open'] .na-side {
+  animation-play-state: running;
+}
+
+@keyframes naSideDrift {
+  from {
+    background-position: 0% 0%, 100% 100%, 0 0;
+  }
+  to {
+    background-position: 100% 30%, 0% 70%, 0 0;
+  }
 }
 
 .na-side-head {
@@ -95,9 +135,10 @@
   align-items: center;
   gap: 10px;
   min-height: 52px;
-  padding: 4px 8px;
+  padding: 4px 5px;
   border-radius: 14px;
   text-align: start;
+  min-width: 0;
 }
 
 .na-brand img {
@@ -136,7 +177,9 @@
 }
 
 .na-group-label {
+  position: relative;
   margin: 0 12px 6px;
+  white-space: nowrap;
   font-size: 11.5px;
   font-weight: 620;
   letter-spacing: 0.08em;
@@ -166,7 +209,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 12px;
+  padding: 0 15px;
   border-radius: 12px;
   text-align: start;
   font-size: 14.5px;
@@ -221,20 +264,62 @@
   border-top: 1px solid var(--color-border-subtle);
 }
 
-.na-app[data-collapsed='true'] .na-brand-text,
-.na-app[data-collapsed='true'] .na-nav-label,
-.na-app[data-collapsed='true'] .na-group-label,
-.na-app[data-collapsed='true'] .na-side-foot .na-nav-label {
-  display: none;
+.na-nav-link .na-icon {
+  flex: none;
 }
 
-.na-app[data-collapsed='true'] .na-nav-link {
-  justify-content: center;
-  padding: 0;
+/* ---- compact rail (desktop, collapsed). data-rail is true only while the sidebar really is compact:
+   a collapsed sidebar that is peeking open (pointer or keyboard focus inside) is not a rail. ---- */
+.na-brand-text,
+.na-nav-label {
+  transition: opacity var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease) 90ms;
 }
 
-.na-app[data-collapsed='true'] .na-nav-link[aria-current='page']::before {
-  inset-inline-start: -12px;
+.na-group-label {
+  transition: color var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease) 90ms;
+}
+
+.na-group-label::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 3px;
+  top: 50%;
+  width: 20px;
+  border-top: 1px solid var(--color-border-subtle);
+  opacity: 0;
+  transition: opacity var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease);
+}
+
+.na-app[data-rail='true'] .na-brand-text,
+.na-app[data-rail='true'] .na-nav-label {
+  opacity: 0;
+  transition-delay: 0s;
+  transition-duration: 90ms;
+}
+
+.na-app[data-rail='true'] .na-group-label {
+  color: transparent;
+  transition-delay: 0s;
+}
+
+.na-app[data-rail='true'] .na-group-label::after {
+  opacity: 1;
+}
+
+/* The expanded sidebar floats over the page: the shadow marks the edge it overlaps, mirrored in RTL. */
+.na-app[data-peek='true'] .na-side {
+  box-shadow: 16px 0 44px -10px var(--na-side-shadow);
+}
+
+[dir='rtl'] .na-app[data-peek='true'] .na-side {
+  box-shadow: -16px 0 44px -10px var(--na-side-shadow);
+}
+
+@media (min-width: 1024px) {
+  .na-side {
+    transition: width var(--motion-duration-moderate, 360ms) var(--motion-ease-out, ease),
+                box-shadow var(--motion-duration-moderate, 360ms) var(--motion-ease-out, ease);
+  }
 }
 
 .na-collapse-icon {
@@ -502,8 +587,9 @@
     inset-inline-start: 0;
     width: min(320px, 86vw);
     max-width: 100vw;
-    height: 100dvh;
-    height: 100vh;
+    height: auto; /* top and bottom pin it to the visible viewport; 100vh would run under mobile browser toolbars */
+    padding-top: max(14px, env(safe-area-inset-top));
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
     z-index: 999;
     background: var(--color-bg-elevated);
     border-inline-end: 1px solid var(--color-border-subtle);
@@ -511,9 +597,9 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     transform: translateX(-100%);
-    transition: transform var(--motion-duration-moderate, 0.28s) cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow var(--motion-duration-moderate, 0.28s) cubic-bezier(0.22, 1, 0.36, 1),
-                visibility var(--motion-duration-moderate, 0.28s);
+    transition: transform var(--motion-duration-moderate, 0.36s) var(--motion-ease-out, ease),
+                box-shadow var(--motion-duration-moderate, 0.36s) var(--motion-ease-out, ease),
+                visibility 0s linear var(--motion-duration-moderate, 0.36s);
     visibility: hidden;
     pointer-events: none;
   }
@@ -526,7 +612,12 @@
     transform: translateX(0);
     visibility: visible;
     pointer-events: auto;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
+    box-shadow: 16px 0 44px var(--na-side-shadow);
+    transition-delay: 0s;
+  }
+
+  [dir='rtl'] .na-app[data-drawer='open'] .na-side {
+    box-shadow: -16px 0 44px var(--na-side-shadow);
   }
 
   .na-scrim {
@@ -534,31 +625,29 @@
     position: fixed;
     inset: 0;
     z-index: 998;
-    background: rgba(14, 20, 16, 0.55);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--na-scrim);
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity var(--motion-duration-moderate, 0.25s) ease;
+    touch-action: none;
+    transition: opacity var(--motion-duration-moderate, 0.36s) var(--motion-ease-out, ease),
+                backdrop-filter var(--motion-duration-moderate, 0.36s) var(--motion-ease-out, ease),
+                -webkit-backdrop-filter var(--motion-duration-moderate, 0.36s) var(--motion-ease-out, ease),
+                visibility 0s linear var(--motion-duration-moderate, 0.36s);
   }
 
   .na-app[data-drawer='open'] .na-scrim {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition-delay: 0s;
   }
 
-  /* The drawer is always full width, never in compact mode. */
-  .na-app[data-collapsed='true'] .na-brand-text,
-  .na-app[data-collapsed='true'] .na-nav-label,
-  .na-app[data-collapsed='true'] .na-group-label {
-    display: revert;
-  }
-
-  .na-app[data-collapsed='true'] .na-nav-link {
-    justify-content: flex-start;
-    padding: 0 12px;
-  }
-
+  /* The drawer is always full width, never a compact rail (data-rail is only set on desktop). */
   .na-collapse-btn {
     display: none;
   }
@@ -1324,6 +1413,237 @@
     opacity: 1;
     transform: none;
   }
+}
+
+/* ------------------------------------------------------------------ background: the quiet weave
+   Shared by every role (AppShell renders it once). It is a lighter echo of the public pages' backdrop: thin threads,
+   a few nodes, a slow drift. Strength is per role: patient screens show the most, clinical and desk screens the least.
+   Only transforms animate, and it is still on small screens and under reduced motion. ---- */
+.na-app {
+  --nab-strength: 0.6;
+}
+
+.na-app[data-role='patient'] {
+  --nab-strength: 1;
+}
+
+.na-app[data-role='platform_admin'],
+.na-app[data-role='center_manager'] {
+  --nab-strength: 0.8;
+}
+
+.na-app[data-role='care_coordinator'] {
+  --nab-strength: 0.7;
+}
+
+.na-app[data-role='reception'] {
+  --nab-strength: 0.6;
+}
+
+.na-app[data-role='doctor'] {
+  --nab-strength: 0.55;
+}
+
+.na-backdrop {
+  --nab-tint: var(--color-accent);
+  --nab-thread: color-mix(in srgb, var(--nab-tint) 22%, transparent);
+  --nab-thread-weft: color-mix(in srgb, var(--nab-tint) 15%, transparent);
+  --nab-node: color-mix(in srgb, var(--nab-tint) 26%, transparent);
+  --nab-blob: color-mix(in srgb, var(--nab-tint) 12%, transparent);
+
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--nab-strength);
+  /* calmer toward the bottom, where long records and tables sit */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 45%, transparent 100%);
+}
+
+:root[data-theme='dark'] .na-app .na-backdrop {
+  --nab-tint: var(--color-accent-text);
+  --nab-thread: color-mix(in srgb, var(--nab-tint) 17%, transparent);
+  --nab-thread-weft: color-mix(in srgb, var(--nab-tint) 12%, transparent);
+  --nab-node: color-mix(in srgb, var(--nab-tint) 26%, transparent);
+  --nab-blob: color-mix(in srgb, var(--nab-tint) 9%, transparent);
+}
+
+.na-backdrop-blob {
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--nab-blob) 0%, transparent 65%);
+}
+
+.na-backdrop-blob--a {
+  inset-inline-start: -18vmax;
+  top: -16vmax;
+  animation: naBackdropDrift 46s ease-in-out infinite alternate;
+}
+
+.na-backdrop-blob--b {
+  inset-inline-end: -22vmax;
+  bottom: -24vmax;
+  animation: naBackdropDrift 58s ease-in-out -14s infinite alternate-reverse;
+}
+
+.na-backdrop-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.na-backdrop-svg path,
+.na-backdrop-svg line {
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.na-backdrop-warp path {
+  stroke: var(--nab-thread);
+  stroke-width: 1.2;
+}
+
+.na-backdrop-weft path {
+  stroke: var(--nab-thread-weft);
+  stroke-width: 1;
+  stroke-dasharray: 3 12;
+}
+
+.na-backdrop-links line {
+  stroke: var(--nab-thread-weft);
+  stroke-width: 1;
+}
+
+.na-backdrop-nodes circle {
+  fill: var(--nab-node);
+}
+
+.na-backdrop-warp {
+  animation: naBackdropSway 26s ease-in-out infinite alternate;
+}
+
+.na-backdrop-weft {
+  animation: naBackdropSwayY 32s ease-in-out infinite alternate;
+}
+
+@keyframes naBackdropDrift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(5vmax, 4vmax, 0);
+  }
+}
+
+@keyframes naBackdropSway {
+  from {
+    transform: translateX(-12px);
+  }
+  to {
+    transform: translateX(12px);
+  }
+}
+
+@keyframes naBackdropSwayY {
+  from {
+    transform: translateY(-10px);
+  }
+  to {
+    transform: translateY(10px);
+  }
+}
+
+@media (max-width: 640px) {
+  .na-backdrop-blob,
+  .na-backdrop-warp,
+  .na-backdrop-weft {
+    animation: none;
+  }
+}
+
+@media print {
+  .na-backdrop {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ interaction motion
+   Short and quiet: 160-280ms, the product's ease-out. Nothing here waits before an action or hides content. ---- */
+.na-nav-link:active {
+  transform: scale(0.985);
+}
+
+.na-nav-link {
+  transition: background-color var(--t-fast, 0.15s) ease, color var(--t-fast, 0.15s) ease, transform var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease);
+}
+
+/* the selected item's marker grows in when it becomes current, so a route change reads as a move, not a jump */
+.na-nav-link[aria-current='page']::before {
+  animation: naMarkerIn var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+@keyframes naMarkerIn {
+  from {
+    opacity: 0;
+    transform: scaleY(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.na-tab {
+  transition: background-color var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease), color var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease),
+              box-shadow var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease);
+}
+
+/* status and error messages that appear after an action ease in; they are also announced by role, not by motion */
+.na-notice[role] {
+  animation: naRise var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+.na-menu {
+  transform-origin: top;
+  animation: naPop var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease) both;
+}
+
+@keyframes naPop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.na-dialog-scrim {
+  animation: naFade var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+.na-dialog {
+  animation: naRise var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+@keyframes naFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Loading placeholder: appears after a short beat so quick responses do not flash a skeleton. It never hides data. */
+.na-skeleton {
+  animation: naFade var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) 150ms backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

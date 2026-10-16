@@ -10,6 +10,11 @@ import { useA } from './useA.js';
 import { useAppRoute } from './useAppRoute.js';
 import { formatDate } from './format.js';
 import { EmptyState } from './ui.js';
+import { AppBackdrop } from './AppBackdrop.js';
+import { lockScroll, trapTab, useMediaQuery } from '../lib/overlay.js';
+
+const PEEK_OPEN_DELAY = 80; // ms of hover before a collapsed sidebar opens, so a pointer passing by does not trigger it
+const PEEK_CLOSE_DELAY = 220; // ms of grace after leaving, so crossing gaps between items does not flicker
 
 const COLLAPSE_KEY = 'naseej_app_sidebar'; // a single UI preference: no identifiers, no clinical data
 
@@ -45,6 +50,19 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
   const drawerBtnRef = useRef<HTMLButtonElement>(null);
   const sideRef = useRef<HTMLElement>(null);
   const firstRender = useRef(true);
+
+  // A collapsed sidebar opens over the page while the pointer (mouse or pen on a hover-capable device) or keyboard
+  // focus is inside it. Touch has no reliable hover, so there the toggle button is the way to expand it.
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const canHover = useMediaQuery('(hover: hover) and (pointer: fine)');
+  const [hoverPeek, setHoverPeek] = useState(false);
+  const [focusPeek, setFocusPeek] = useState(false);
+  const peekTimer = useRef<number>();
+  const schedulePeek = (on: boolean) => {
+    window.clearTimeout(peekTimer.current);
+    peekTimer.current = window.setTimeout(() => setHoverPeek(on), on ? PEEK_OPEN_DELAY : PEEK_CLOSE_DELAY);
+  };
+  useEffect(() => () => window.clearTimeout(peekTimer.current), []);
 
   const allowed = useCallback((r: string) => (role ? belongsToRole(r, role) : false), [role]);
   const { route, navigate } = useAppRoute(allowed, role ? homeRoute(role) : '');
@@ -88,34 +106,27 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
     };
   }, [pageLabel, isRtl]);
 
-  // Drawer: Escape closes, scrolling behind it is locked, focus enters and returns.
+  // The drawer only exists below 1024px; if the window grows past that, it closes.
+  useEffect(() => {
+    if (isDesktop) setDrawer(false);
+  }, [isDesktop]);
+
+  // Drawer: Escape closes, scrolling behind it is locked without shifting the page, focus enters, stays inside and returns.
   useEffect(() => {
     if (!drawer) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const unlock = lockScroll();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setDrawer(false);
-        drawerBtnRef.current?.focus();
-      }
-      if (e.key === 'Tab' && sideRef.current) {
-        const nodes = sideRef.current.querySelectorAll<HTMLElement>('button:not(:disabled),a[href]');
-        if (nodes.length === 0) return;
-        const first = nodes[0];
-        const last = nodes[nodes.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
+        drawerBtnRef.current?.focus({ preventScroll: true });
+      } else {
+        trapTab(e, sideRef.current);
       }
     };
     document.addEventListener('keydown', onKey);
-    sideRef.current?.querySelector<HTMLElement>('[aria-current="page"], button')?.focus();
+    sideRef.current?.querySelector<HTMLElement>('[aria-current="page"], button')?.focus({ preventScroll: true });
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlock();
       document.removeEventListener('keydown', onKey);
     };
   }, [drawer]);
@@ -159,15 +170,20 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
 
   if (!user) return null;
 
+  const peeking = collapsed && isDesktop && ((canHover && hoverPeek) || focusPeek);
+  const rail = collapsed && isDesktop && !peeking;
+
   const otherLang = lang === 'ar' ? 'en' : 'ar';
   const otherLangName = lang === 'ar' ? 'English' : 'العربية';
   const themeLabel = `${A.common.shell.theme}: ${resolved === 'dark' ? '☾' : '☀'}`;
 
   return (
-    <div className="na-app" data-collapsed={collapsed} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'}>
+    <div className="na-app" data-collapsed={collapsed} data-peek={peeking} data-rail={rail} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'}>
       <a className="na-skip" href="#na-main">
         {A.common.shell.skip}
       </a>
+
+      <AppBackdrop />
 
       <aside
         className="na-side"
@@ -176,6 +192,18 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
         aria-label={A.common.shell.primaryNav}
         aria-modal={drawer ? 'true' : undefined}
         role={drawer ? 'dialog' : 'complementary'}
+        onPointerEnter={(e) => {
+          if (canHover && collapsed && e.pointerType !== 'touch') schedulePeek(true);
+        }}
+        onPointerLeave={(e) => {
+          if (e.pointerType !== 'touch') schedulePeek(false);
+        }}
+        onFocus={(e) => {
+          if (collapsed && (e.target as HTMLElement).matches(':focus-visible')) setFocusPeek(true);
+        }}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusPeek(false);
+        }}
       >
         <div className="na-side-head">
           <div className="na-brand">
@@ -210,7 +238,7 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
                         type="button"
                         className="na-nav-link"
                         aria-current={isActive(item, route) ? 'page' : undefined}
-                        title={collapsed ? A.nav.items[item.label] : undefined}
+                        title={rail ? A.nav.items[item.label] : undefined}
                         onClick={() => {
                           navigate(item.route);
                           setDrawer(false);
@@ -234,7 +262,7 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
               setCurrentView('home');
               setDrawer(false);
             }}
-            title={collapsed ? A.common.shell.publicSite : undefined}
+            title={rail ? A.common.shell.publicSite : undefined}
           >
             <AppIcon name="external" className="na-icon" />
             <span className="na-nav-label">{A.common.shell.publicSite}</span>

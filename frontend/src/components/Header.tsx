@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 import { ThemeToggle } from './ThemeToggle.js';
 import { DownloadIcon, GlobeIcon } from './LineIcon.js';
 import { useInstall } from '../pwa/InstallContext.js';
+import { lockScroll, trapTab, useMediaQuery } from '../lib/overlay.js';
 
 interface HeaderProps {
   currentView: string;
@@ -36,14 +37,39 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Close the menu on navigation and with Escape.
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  // Below 960px the links fold into a modal drawer; above it the same markup is the inline bar.
+  const isDrawerWidth = useMediaQuery('(max-width: 959px)');
+  const drawerOpen = open && isDrawerWidth;
+
+  const closeMenu = (restoreFocus = true) => {
+    setOpen(false);
+    if (restoreFocus) menuBtnRef.current?.focus({ preventScroll: true });
+  };
+
+  // Close the menu on navigation, and when the window grows past the drawer breakpoint.
   useEffect(() => setOpen(false), [currentView]);
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    if (!isDrawerWidth) setOpen(false);
+  }, [isDrawerWidth]);
+
+  // Open drawer: Escape closes and returns focus to the trigger, Tab stays inside, the page behind does not scroll.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const unlock = lockScroll();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMenu();
+      else trapTab(e, drawerRef.current);
+    };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+    closeBtnRef.current?.focus({ preventScroll: true });
+    return () => {
+      unlock();
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [drawerOpen]);
 
   // The bar turns solid once the page has moved.
   useEffect(() => {
@@ -56,6 +82,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
   const go = (view: string) => {
     setCurrentView(view);
     setOpen(false);
+    if (drawerOpen) menuBtnRef.current?.focus({ preventScroll: true });
   };
 
   // Ending the session also leaves the protected page, so one click lands on the login page.
@@ -121,6 +148,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
             aria-expanded={open}
             aria-controls="site-menu"
             aria-label={open ? t.landing.closeMenu : t.landing.menu}
+            ref={menuBtnRef}
             onClick={() => setOpen((o) => !o)}
           >
             <MenuIcon open={open} />
@@ -130,11 +158,19 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
         {/* Blurred Backdrop for Mobile Sidebar Drawer */}
         <div
           className={`site-drawer-backdrop${open ? ' is-active' : ''}`}
-          onClick={() => setOpen(false)}
+          onClick={() => closeMenu()}
           aria-hidden="true"
         />
 
-        <div id="site-menu" className={`site-collapsible${open ? ' is-open' : ''}`} data-open={open}>
+        <div
+          id="site-menu"
+          ref={drawerRef}
+          className={`site-collapsible${open ? ' is-open' : ''}`}
+          data-open={open}
+          role={isDrawerWidth ? 'dialog' : undefined}
+          aria-modal={drawerOpen ? 'true' : undefined}
+          aria-label={isDrawerWidth ? t.landing.menu : undefined}
+        >
           <div className="site-drawer-header">
             <div className="site-drawer-brand">
               <img className="site-logo" src="/logo-mark.svg" alt="" width={40} height={40} />
@@ -146,7 +182,8 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
             <button
               type="button"
               className="site-drawer-close"
-              onClick={() => setOpen(false)}
+              ref={closeBtnRef}
+              onClick={() => closeMenu()}
               aria-label={t.landing.closeMenu}
             >
               <CloseIcon />
