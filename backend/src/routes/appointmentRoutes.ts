@@ -5,6 +5,7 @@ import { requireTenant } from '../middleware/tenant.js';
 import { requireRole } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 import { isPatientLinkedToOrg } from '../services/accessService.js';
+import { getAppointmentAvailability, isActiveDoctorInOrg } from '../services/appointmentService.js';
 import { apiError, clampInt, isIsoDate, isTime, isUuid, serverError, toMinutes } from '../services/validation.js';
 
 export const appointmentRouter = Router();
@@ -34,15 +35,6 @@ const ROLE_TARGETS: Record<string, AppointmentStatus[]> = {
 };
 
 const VALID_STATUSES = Object.keys(TRANSITIONS);
-
-async function activeDoctorInOrg(clinicianId: string, orgId: string): Promise<boolean> {
-  const res = await query(
-    `SELECT 1 FROM organization_memberships m JOIN users u ON u.id = m.user_id
-     WHERE m.user_id = $1 AND m.organization_id = $2 AND m.role = 'doctor' AND m.status = 'active' AND u.is_active = true`,
-    [clinicianId, orgId]
-  );
-  return (res.rowCount ?? 0) > 0;
-}
 
 // GET /api/appointments
 appointmentRouter.get('/', async (req: Request, res: Response): Promise<void> => {
@@ -121,37 +113,13 @@ appointmentRouter.get('/availability', async (req: Request, res: Response): Prom
   }
 
   try {
-    if (!(await activeDoctorInOrg(clinicianId, orgId))) {
+    if (!(await isActiveDoctorInOrg(clinicianId, orgId))) {
       res.status(404).json(apiError('CLINICIAN_NOT_FOUND', 'No active clinician with this identifier in this medical center.'));
       return;
     }
 
-    const dayOfWeek = new Date(`${date}T00:00:00Z`).getUTCDay(); // 0 = Sunday, as in clinician_schedules
-    const schedules = await query(
-      `SELECT start_time, end_time, slot_duration_minutes FROM clinician_schedules
-       WHERE organization_id = $1 AND clinician_id = $2 AND day_of_week = $3 AND is_active = true
-       ORDER BY start_time`,
-      [orgId, clinicianId, dayOfWeek]
-    );
-    const booked = await query(
-      `SELECT start_time, end_time FROM appointments
-       WHERE organization_id = $1 AND clinician_id = $2 AND appointment_date = $3 AND status <> 'cancelled'`,
-      [orgId, clinicianId, date]
-    );
-    const busy = booked.rows.map((b) => [toMinutes(b.start_time), toMinutes(b.end_time)] as const);
-
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const fmt = (min: number) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
-    const slots: Array<{ start_time: string; end_time: string; available: boolean }> = [];
-    for (const s of schedules.rows) {
-      const step = Math.max(5, Number(s.slot_duration_minutes) || 30);
-      for (let t = toMinutes(s.start_time); t + step <= toMinutes(s.end_time); t += step) {
-        const available = !busy.some(([bs, be]) => bs < t + step && be > t);
-        slots.push({ start_time: fmt(t), end_time: fmt(t + step), available });
-      }
-    }
-
-    res.json({ success: true, data: { date, clinicianId, working: schedules.rows.length > 0, slots } });
+    const data = await getAppointmentAvailability(orgId, clinicianId, date);
+    res.json({ success: true, data });
   } catch (err: any) {
     res.status(500).json(serverError(err));
   }
@@ -184,7 +152,7 @@ appointmentRouter.post('/', async (req: Request, res: Response): Promise<void> =
       res.status(404).json(apiError('PATIENT_NOT_FOUND', 'Patient not found in this medical center.'));
       return;
     }
-    if (!(await activeDoctorInOrg(clinician_id, orgId))) {
+    if (!(await isActiveDoctorInOrg(clinician_id, orgId))) {
       res.status(400).json(apiError('INVALID_CLINICIAN', 'The selected clinician is not an active doctor in this medical center.'));
       return;
     }
@@ -373,7 +341,7 @@ appointmentRouter.post('/schedules', requireManager, async (req: Request, res: R
   }
 
   try {
-    if (!(await activeDoctorInOrg(clinician_id, orgId))) {
+    if (!(await isActiveDoctorInOrg(clinician_id, orgId))) {
       res.status(400).json(apiError('INVALID_CLINICIAN', 'The selected clinician is not an active doctor in this medical center.'));
       return;
     }

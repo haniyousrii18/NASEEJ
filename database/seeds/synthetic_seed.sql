@@ -347,6 +347,20 @@ VALUES
     'استشارة أولى وتعديل الخطة العلاجية',
     NOW() - INTERVAL '14 days',
     'dddddddd-dddd-dddd-dddd-dddddddddddd'
+),
+-- Synthetic patient-submitted appointment request; the reception workspace can confirm or cancel it.
+(
+    '30000000-0000-0000-0000-000000000004',
+    '11111111-1111-1111-1111-111111111111',
+    '10000000-0000-0000-0000-000000000001',
+    'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    CURRENT_DATE + CASE WHEN ((8 - EXTRACT(DOW FROM CURRENT_DATE)::int) % 7) = 0 THEN 7 ELSE ((8 - EXTRACT(DOW FROM CURRENT_DATE)::int) % 7) END,
+    '11:00',
+    '11:30',
+    'pending',
+    NULL,
+    NULL,
+    'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
 )
 ON CONFLICT (id) DO NOTHING;
 

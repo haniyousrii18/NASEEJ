@@ -1847,6 +1847,51 @@
   align-items: flex-end;
 }
 
+.na-app[data-role='patient'] .na-form-actions {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.na-slot-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 118px), 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.na-slot {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-bg-elevated);
+  color: var(--color-ink);
+  font: inherit;
+  text-align: center;
+  transition: border-color var(--t-fast, 0.15s) ease, background-color var(--t-fast, 0.15s) ease, color var(--t-fast, 0.15s) ease;
+}
+
+.na-slot:hover {
+  border-color: var(--color-accent);
+}
+
+.na-slot[aria-pressed='true'] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-bg-elevated));
+  color: var(--color-ink);
+}
+
+.na-slot:focus-visible {
+  outline: 2px solid var(--color-focus-ring, var(--color-accent));
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .na-slot-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .na-grid--3 {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
 }

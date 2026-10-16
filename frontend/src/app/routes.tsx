@@ -36,7 +36,7 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
     case 'patient/medications':
       return <PatientMedications />;
     case 'patient/appointments':
-      return <PatientAppointments />;
+      return <PatientAppointments navigate={navigate} />;
     case 'patient/messages':
       return <PatientMessages />;
     case 'patient/consents':

@@ -74,11 +74,14 @@
 
 ### 2.8 Patient Portal
 - `GET /api/portal/summary` — Patient: Longitudinal summary of approved visits, prescriptions, and lab tests.
-- `GET /api/portal/appointments` — Patient: List own appointments.
-- `POST /api/portal/appointments` — Patient: Request appointment.
+- `GET /api/portal/clinicians?organizationId=<uuid>` — Patient: List active clinicians at a center linked to the patient's profile.
+- `GET /api/portal/availability?organizationId=<uuid>&clinicianId=<uuid>&date=YYYY-MM-DD` — Patient: List available slots after validating the patient-center relationship and active clinician schedule.
+- `POST /api/portal/appointments` — Patient: Request an appointment for an available slot. Creates a `pending` appointment for reception to confirm; uses the same slot lock and conflict validation as staff booking.
 - `GET /api/portal/messages` — Patient / Care Team: List inquiries.
 - `POST /api/portal/messages` — Patient: Submit question or refill request.
 - `POST /api/portal/symptoms` — Patient: Log symptom report.
+
+Appointment requests are scoped to centers where the patient has an active profile link. A pending request is not a confirmed appointment; reception confirms or cancels it through the center appointment workflow. The patient endpoints do not return or accept clinical information beyond the scheduling fields.
 
 ### 2.9 Security & Audit Logs
 - `GET /api/audit-logs` — Platform Admin (system-wide) / Center Manager (center-scoped). Read-only.

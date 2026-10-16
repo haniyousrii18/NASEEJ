@@ -4,8 +4,8 @@ import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate, nameOf, pick, todayIso } from '../format.js';
 import { ProvenancePill, ReviewPill } from '../record/badges.js';
 import { ResultsComparison } from '../record/ResultsComparison.js';
-import { Timeline, type TimelineItem } from '../record/Timeline.js';
-import { Async, Button, Card, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
+import { Timeline, titleOf, type TimelineItem } from '../record/Timeline.js';
+import { Async, Button, Card, EmptyState, ErrorState, Field, Loading, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { DocumentUpload } from './shared.js';
 
@@ -52,7 +52,13 @@ export const PatientHome: React.FC<{ navigate: (r: string) => void }> = ({ navig
             state={summary.state}
             onRetry={summary.reload}
             isEmpty={(s) => s.upcomingAppointments.length === 0}
-            empty={<EmptyState title={H.noAppointment} body={H.noAppointmentBody} />}
+            empty={
+              <EmptyState
+                title={H.noAppointment}
+                body={H.noAppointmentBody}
+                action={<Button variant="primary" onClick={() => navigate('patient/appointments')}>{A.patient.appointments.requestAction}</Button>}
+              />
+            }
           >
             {(s) => {
               const a = s.upcomingAppointments[0];
@@ -109,9 +115,6 @@ export const PatientHome: React.FC<{ navigate: (r: string) => void }> = ({ navig
                   <p className="na-muted">{H.allClear}</p>
                 );
               })()}
-            <Notice tone="warn" icon="alert">
-              {H.incomplete}
-            </Notice>
           </div>
         </Card>
       </div>
@@ -134,6 +137,7 @@ export const PatientHome: React.FC<{ navigate: (r: string) => void }> = ({ navig
                     <ProvenancePill provenance={i.provenance} />
                     <ReviewPill status={i.reviewStatus} />
                   </div>
+                  <strong className="na-item-title">{titleOf(i, A)}</strong>
                   <Source center={i.organization} clinician={i.author} date={i.occurredAt} />
                 </li>
               ))}
@@ -333,68 +337,93 @@ export const PatientDocuments: React.FC = () => {
 export const PatientMedications: React.FC = () => {
   const A = useA();
   const M = A.patient.medications;
-  const { state, reload } = usePortalSummary();
   return (
     <>
       <PageHead title={M.title} subtitle={M.subtitle} />
-      <Async
-        state={state}
-        onRetry={reload}
-        isEmpty={(s) => s.prescriptions.length === 0}
-        empty={<EmptyState title={M.empty} body={M.emptyBody} />}
-      >
-        {(s) => (
-          <div className="na-stack">
-            {s.prescriptions.map((p) => (
-              <Card key={p.id} title={fill(M.prescribedOn, { date: formatDate(A.lang, p.created_at) })}>
-                <div className="na-row">
-                  <ProvenancePill provenance="clinician_authored" />
-                  <ReviewPill status="approved" />
-                  <Pill tone="info">{nameOf(A.lang, centerOf(p))}</Pill>
-                </div>
-                <div className="na-table-wrap">
-                  <table className="na-table">
-                    <thead>
-                      <tr>
-                        <th>{A.common.record.medication}</th>
-                        <th>{A.common.record.dosage}</th>
-                        <th>{A.common.record.frequency}</th>
-                        <th>{A.common.record.duration}</th>
-                        <th>{A.common.record.instructions}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(p.items || []).map((i: any) => (
-                        <tr key={i.id}>
-                          <td>{i.medication_name}</td>
-                          <td>{i.dosage}</td>
-                          <td>{i.frequency}</td>
-                          <td>{i.duration}</td>
-                          <td>{i.instructions || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="na-muted">
-                  {M.by}: {nameOf(A.lang, clinicianOf(p))}
-                  {p.notes ? ` · ${M.notes}: ${p.notes}` : ''}
-                </p>
-              </Card>
-            ))}
-          </div>
-        )}
-      </Async>
+      <Timeline endpoint="/api/portal/timeline" audience="patient" types={['prescription']} pageSize={10} />
     </>
   );
 };
 
-export const PatientAppointments: React.FC = () => {
+interface PortalClinician {
+  id: string;
+  full_name_ar: string;
+  full_name_en: string;
+  specialty_ar: string | null;
+  specialty_en: string | null;
+}
+
+interface PortalAvailability {
+  date: string;
+  clinicianId: string;
+  working: boolean;
+  slots: Array<{ start_time: string; end_time: string; available: boolean }>;
+}
+
+export const PatientAppointments: React.FC<{ navigate: (r: string) => void }> = ({ navigate }) => {
   const A = useA();
   const P = A.patient.appointments;
   const summary = usePortalSummary();
   const past = useApiData<TimelineItem[]>('/api/portal/timeline?type=appointment&limit=50');
+  const request = useMutation();
+  const [selectedCenter, setSelectedCenter] = useState('');
+  const [selectedClinician, setSelectedClinician] = useState('');
+  const [date, setDate] = useState(todayIso());
+  const [selectedSlot, setSelectedSlot] = useState('');
+  const [requestMessage, setRequestMessage] = useState<{ tone: 'ok' | 'danger'; text: string } | null>(null);
   const today = todayIso();
+
+  const centers = summary.state.status === 'ready' ? summary.state.data.affiliatedCenters : [];
+  const centerId = selectedCenter || centers[0]?.id || '';
+  const clinicians = useApiData<PortalClinician[]>(centerId ? `/api/portal/clinicians?organizationId=${encodeURIComponent(centerId)}` : null);
+  const clinicianIds = clinicians.state.status === 'ready' ? clinicians.state.data.map((c) => c.id).join('|') : '';
+
+  React.useEffect(() => {
+    if (clinicians.state.status === 'ready' && !clinicians.state.data.some((c) => c.id === selectedClinician)) {
+      setSelectedClinician(clinicians.state.data[0]?.id ?? '');
+      setSelectedSlot('');
+    }
+  }, [centerId, clinicianIds, selectedClinician]);
+
+  const availabilityQuery = new URLSearchParams({ organizationId: centerId, clinicianId: selectedClinician, date });
+  const availabilityPath = centerId && selectedClinician && date ? `/api/portal/availability?${availabilityQuery}` : null;
+  const availability = useApiData<PortalAvailability>(availabilityPath);
+
+  const submitRequest = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setRequestMessage(null);
+    if (!centerId || !selectedClinician || !selectedSlot) {
+      setRequestMessage({ tone: 'danger', text: P.requestRequired });
+      return;
+    }
+    const slot = availability.state.status === 'ready' ? availability.state.data.slots.find((item) => item.start_time === selectedSlot && item.available) : null;
+    if (!slot) {
+      setSelectedSlot('');
+      setRequestMessage({ tone: 'danger', text: P.slotConflict });
+      void availability.reload();
+      return;
+    }
+    const result = await request.run('/api/portal/appointments', 'POST', {
+      organization_id: centerId,
+      clinician_id: selectedClinician,
+      appointment_date: date,
+      start_time: slot.start_time,
+      end_time: slot.end_time,
+    });
+    if (!result.ok) {
+      const text = result.error.code === 'APPOINTMENT_CONFLICT' || result.error.code === 'APPOINTMENT_SLOT_UNAVAILABLE'
+        ? P.slotConflict
+        : result.error.code === 'APPOINTMENT_SLOT_PAST' ? P.chooseFuture : P.requestFailed;
+      setRequestMessage({ tone: 'danger', text });
+      setSelectedSlot('');
+      void availability.reload();
+      return;
+    }
+    setRequestMessage({ tone: 'ok', text: P.requestSent });
+    setSelectedSlot('');
+    summary.reload();
+    void availability.reload();
+  };
 
   const row = (a: { id: string; date: string; from: string; to: string; status: string; center: any; clinician?: any }) => (
     <li key={a.id} className="na-list-item">
@@ -411,6 +440,97 @@ export const PatientAppointments: React.FC = () => {
     <>
       <PageHead title={P.title} subtitle={P.subtitle} />
       <div className="na-stack">
+        <Card title={P.requestTitle} hint={P.requestHint}>
+          {summary.state.status === 'loading' ? <Loading /> : summary.state.status === 'error' ? (
+            <ErrorState error={summary.state.error} onRetry={summary.reload} />
+          ) : centers.length === 0 ? (
+            <EmptyState title={P.noCenters} body={P.noCentersBody} />
+          ) : (
+            <form className="na-form na-form--stack" onSubmit={submitRequest} noValidate>
+              <Field label={P.center} htmlFor="pa-center">
+                <select
+                  id="pa-center"
+                  className="na-select"
+                  value={centerId}
+                  onChange={(event) => {
+                    setSelectedCenter(event.target.value);
+                    setSelectedClinician('');
+                    setSelectedSlot('');
+                    setRequestMessage(null);
+                  }}
+                >
+                  {centers.map((center) => <option key={center.id} value={center.id}>{nameOf(A.lang, center)}</option>)}
+                </select>
+              </Field>
+
+              <Field label={P.clinician} htmlFor="pa-clinician">
+                {clinicians.state.status === 'loading' ? <Loading /> : clinicians.state.status === 'error' ? (
+                  <ErrorState error={clinicians.state.error} onRetry={clinicians.reload} />
+                ) : clinicians.state.data.length === 0 ? <p className="na-muted">{P.noClinicians}</p> : (
+                  <select
+                    id="pa-clinician"
+                    className="na-select"
+                    value={selectedClinician}
+                    onChange={(event) => { setSelectedClinician(event.target.value); setSelectedSlot(''); }}
+                  >
+                    {clinicians.state.data.map((clinician) => (
+                      <option key={clinician.id} value={clinician.id}>
+                        {nameOf(A.lang, clinician)}{(A.lang === 'ar' ? clinician.specialty_ar : clinician.specialty_en) ? ` · ${A.lang === 'ar' ? clinician.specialty_ar : clinician.specialty_en}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </Field>
+
+              <Field label={P.date} htmlFor="pa-date">
+                <input
+                  id="pa-date"
+                  type="date"
+                  className="na-input"
+                  min={today}
+                  value={date}
+                  onChange={(event) => { setDate(event.target.value); setSelectedSlot(''); }}
+                />
+              </Field>
+
+              {centerId && selectedClinician && date && (
+                <div className="na-field">
+                  <span className="na-label" id="pa-time-label">{P.time}</span>
+                  {availability.state.status === 'loading' ? <Loading /> : availability.state.status === 'error' ? (
+                    <ErrorState error={availability.state.error} onRetry={availability.reload} />
+                  ) : !availability.state.data.working ? <p className="na-muted">{P.noSchedule}</p> : (
+                    <div className="na-slot-list" role="group" aria-labelledby="pa-time-label">
+                      {availability.state.data.slots.filter((slot) => slot.available).length === 0 ? <p className="na-muted">{P.noSlots}</p> :
+                        availability.state.data.slots.filter((slot) => slot.available).map((slot) => (
+                          <button
+                            key={slot.start_time}
+                            type="button"
+                            className="na-slot"
+                            aria-pressed={selectedSlot === slot.start_time}
+                            onClick={() => setSelectedSlot(slot.start_time)}
+                          >
+                            <span className="na-ltr">{slot.start_time}–{slot.end_time}</span>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {requestMessage && <Notice tone={requestMessage.tone} live>{requestMessage.text}</Notice>}
+              <p className="na-help">{P.pendingInfo}</p>
+              <div className="na-form-actions">
+                <Button type="submit" variant="primary" disabled={request.pending || clinicians.state.status !== 'ready' || !selectedClinician || !selectedSlot}>
+                  {request.pending ? P.sending : P.requestAction}
+                </Button>
+                <Button type="button" variant="quiet" onClick={() => navigate('patient/messages')}>
+                  {P.contactCenter}
+                </Button>
+              </div>
+            </form>
+          )}
+        </Card>
+
         <Card title={P.upcoming}>
           <Async state={summary.state} onRetry={summary.reload} isEmpty={(s) => s.upcomingAppointments.length === 0} empty={<p className="na-muted">{P.noUpcoming}</p>}>
             {(s) => (
