@@ -6,9 +6,11 @@ import { AppIcon } from './AppIcons.js';
 import { UNAUTHORIZED_EVENT } from './api.js';
 import { NAV, ROLE_BASE, appRoleOf, belongsToRole, currentItem, homeRoute, isActive } from './nav.js';
 import { resolvePage } from './routes.js';
+import { NotificationBell } from './notifications/NotificationBell.js';
+import { NotificationsProvider, useUnreadCount } from './notifications/NotificationsContext.js';
 import { useA } from './useA.js';
 import { useAppRoute } from './useAppRoute.js';
-import { formatDate } from './format.js';
+import { fill, formatDate } from './format.js';
 import { EmptyState } from './ui.js';
 import { AppBackdrop } from './AppBackdrop.js';
 import { lockScroll, trapTab, useMediaQuery } from '../lib/overlay.js';
@@ -36,7 +38,7 @@ interface Props {
  * It has its own markup and styles (app.css); the public site bar and footer are not rendered here.
  * Visibility of an item is a convenience. Every endpoint behind a page checks authorization on the server.
  */
-export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
+const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   const { user, currentRole, currentOrgId, setCurrentOrgId, logout } = useAuth();
   const { lang, setLang, isRtl } = useLang();
   const { workspace } = useTheme();
@@ -48,6 +50,7 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
     return leaveWorkspace;
   }, [enterWorkspace, leaveWorkspace]);
   const A = useA();
+  const unreadCount = useUnreadCount();
 
   const role = appRoleOf(currentRole);
   const [collapsed, setCollapsed] = useState(readCollapsed);
@@ -173,7 +176,15 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
   const showCenterSwitch = role !== 'patient' && role !== 'platform_admin' && memberships.length > 1;
   const displayName = (isRtl ? user?.fullNameAr : user?.fullNameEn) || user?.fullNameEn || '';
   const roleLabel = role ? A.common.roles[role] : '';
-  const page = useMemo(() => (role ? resolvePage(route, { role, navigate }) : null), [route, role, navigate]);
+  // A hash that only changes its query ("?appointment=...") keeps the same route, but the page still has to see it.
+  const [hashTick, setHashTick] = useState(0);
+  useEffect(() => {
+    const on = () => setHashTick((t) => t + 1);
+    window.addEventListener('hashchange', on);
+    return () => window.removeEventListener('hashchange', on);
+  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const page = useMemo(() => (role ? resolvePage(route, { role, navigate }) : null), [route, role, navigate, hashTick]);
 
   if (!user) return null;
 
@@ -285,6 +296,11 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
                         >
                           <AppIcon name={item.icon} className="na-icon" />
                           <span className="na-nav-label">{A.nav.items[item.label]}</span>
+                          {item.label === 'notifications' && unreadCount > 0 && (
+                            <span className="na-nav-badge" role="status" aria-label={fill(A.notifications.unreadLabel, { n: unreadCount })}>
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                          )}
                         </button>
                       </li>
                     ))}
@@ -356,6 +372,8 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
               ))}
             </select>
           )}
+
+          {role && <NotificationBell role={role} navigate={navigate} />}
 
           <button
             type="button"
@@ -438,6 +456,19 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
         </main>
       </div>
     </div>
+  );
+};
+
+/** The notification state (unread count, newest items) lives above the shell so the bell and the inbox share it. */
+export const AppShell: React.FC<Props> = (props) => {
+  const { currentRole } = useAuth();
+  const role = appRoleOf(currentRole);
+  return role ? (
+    <NotificationsProvider role={role}>
+      <AppShellInner {...props} />
+    </NotificationsProvider>
+  ) : (
+    <AppShellInner {...props} />
   );
 };
 

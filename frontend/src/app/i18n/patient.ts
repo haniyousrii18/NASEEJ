@@ -85,7 +85,6 @@ const ar = {
   messages: {
     title: 'الأسئلة والأعراض',
     subtitle: 'أرسل سؤالًا إلى مركزك، أو سجّل أعراضًا لتصل إلى طبيبك. هذه القناة ليست للطوارئ.',
-    emergency: 'إن كانت حالتك طارئة، لا تنتظر ردًا من هنا: اتصل بالإسعاف أو توجّه إلى أقرب طوارئ.',
     ask: 'سؤال للمركز',
     subject: 'الموضوع',
     body: 'نص السؤال',
@@ -230,7 +229,6 @@ const en: typeof ar = {
   messages: {
     title: 'Questions and Symptoms',
     subtitle: 'Send a question to your center, or log symptoms so they reach your clinician. This channel is not for emergencies.',
-    emergency: 'If this is an emergency, do not wait for a reply here: call emergency services or go to the nearest emergency department.',
     ask: 'Question for the center',
     subject: 'Subject',
     body: 'Your question',

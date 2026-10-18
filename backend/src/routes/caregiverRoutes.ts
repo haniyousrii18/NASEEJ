@@ -9,6 +9,7 @@ import { buildPatientSummary } from '../services/patientSummary.js';
 import { buildTimeline, parseTimelineQuery } from '../services/recordService.js';
 import { createPendingAppointment, getAppointmentAvailability, isActiveDoctorInOrg } from '../services/appointmentService.js';
 import { apiError, clampInt, isIsoDate, isTime, isUuid, serverError, toMinutes, trimmed } from '../services/validation.js';
+import { onDelegationEvent, onPatientMessage } from '../services/notificationService.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -95,6 +96,7 @@ patientCaregiverRouter.post('/', async (req: Request, res: Response): Promise<vo
       ipAddress: req.ip,
       details: { delegationId: insert.rows[0].id, patientId, scope: Object.entries(flags).filter(([, v]) => v).map(([k]) => k).join(',') },
     });
+    await onDelegationEvent('delegation.invited', { id: insert.rows[0].id, patient_id: patientId, caregiver_email: insert.rows[0].caregiver_email }, req.user!.id);
     res.status(201).json({ success: true, data: { ...insert.rows[0], state: 'invited' } });
   } catch (err: any) {
     if (err.code === '23505') {
@@ -116,7 +118,7 @@ patientCaregiverRouter.post('/:id/revoke', async (req: Request, res: Response): 
     const update = await query(
       `UPDATE caregiver_delegations SET status = 'revoked', ended_at = NOW(), ended_by = $3, updated_at = NOW()
        WHERE id = $1 AND patient_id = $2 AND status IN ('invited', 'active')
-       RETURNING id`,
+       RETURNING id, caregiver_user_id, caregiver_email`,
       [req.params.id, patientId, req.user!.id]
     );
     if (update.rowCount === 0) {
@@ -133,6 +135,7 @@ patientCaregiverRouter.post('/:id/revoke', async (req: Request, res: Response): 
       ipAddress: req.ip,
       details: { delegationId: req.params.id, patientId },
     });
+    await onDelegationEvent('delegation.revoked', { id: req.params.id, patient_id: patientId, caregiver_user_id: update.rows[0].caregiver_user_id, caregiver_email: update.rows[0].caregiver_email }, req.user!.id);
     res.json({ success: true, data: { id: req.params.id, state: 'revoked' } });
   } catch (err) {
     res.status(500).json(serverError(err));
@@ -221,6 +224,7 @@ async function respondToInvitation(req: Request, res: Response, accept: boolean)
       ipAddress: req.ip,
       details: { delegationId: req.params.id, patientId: update.rows[0].patient_id },
     });
+    await onDelegationEvent(accept ? 'delegation.accepted' : 'delegation.declined', { id: req.params.id, patient_id: update.rows[0].patient_id, caregiver_user_id: req.user!.id }, req.user!.id);
     res.json({ success: true, data: { id: req.params.id, state: accept ? 'active' : 'declined' } });
   } catch (err) {
     res.status(500).json(serverError(err));
@@ -246,6 +250,7 @@ caregiverRouter.post('/delegations/:id/leave', async (req: Request, res: Respons
       return;
     }
     auditCaregiver(req, { id: req.params.id, patient_id: update.rows[0].patient_id }, 'CAREGIVER_LEAVE', 'access');
+    await onDelegationEvent('delegation.ended', { id: req.params.id, patient_id: update.rows[0].patient_id, caregiver_user_id: req.user!.id }, req.user!.id);
     res.json({ success: true, data: { id: req.params.id, state: 'ended' } });
   } catch (err) {
     res.status(500).json(serverError(err));
@@ -461,6 +466,7 @@ caregiverRouter.post('/patients/:id/messages', async (req: Request, res: Respons
       [organization_id, delegation.patient_id, cleanSubject, cleanBody, category || 'medical', req.user!.id]
     );
     auditCaregiver(req, delegation, 'CAREGIVER_MESSAGE_SEND', 'messages', { count: 1 });
+    await onPatientMessage({ id: insert.rows[0].id, organization_id }, req.user!.id);
     res.status(201).json({ success: true, data: insert.rows[0] });
   } catch (err) {
     res.status(500).json(serverError(err));

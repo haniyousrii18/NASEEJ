@@ -223,13 +223,14 @@ const MonthGrid: React.FC<{ date: string; days: DaySummary[]; onPickDay: (d: str
 };
 
 /** The reception schedule: one day by doctor, one week for a doctor, or a month of daily load. */
-export const Schedule: React.FC<{ navigate: (r: string) => void; bookRoute?: boolean; preset?: BookingPreset }> = ({ navigate, bookRoute, preset }) => {
+export const Schedule: React.FC<{ navigate: (r: string) => void; bookRoute?: boolean; preset?: BookingPreset; open?: { id: string; date: string } }> = ({ navigate, bookRoute, preset, open }) => {
   const A = useA();
   const S = A.reception.schedule;
   const [view, setView] = useState<View>('day');
-  const [date, setDate] = useState(todayIso());
+  // A notification can open one appointment: its day is shown and its drawer opens once the day has loaded.
+  const [date, setDate] = useState(open?.date ?? todayIso());
   const [doctorId, setDoctorId] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(open?.id ?? null);
   const [booking, setBooking] = useState<BookingPreset | null>(null);
   const [done, setDone] = useState('');
   const { doctors, state: docState } = useDoctors();
@@ -240,6 +241,12 @@ export const Schedule: React.FC<{ navigate: (r: string) => void; bookRoute?: boo
     if (bookRoute) setBooking(preset ?? {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookRoute, presetKey]);
+  useEffect(() => {
+    if (open) {
+      setDate(open.date);
+      setSelectedId(open.id);
+    }
+  }, [open?.id, open?.date]);
   useEffect(() => {
     if (!done) return;
     const id = window.setTimeout(() => setDone(''), 6000);
@@ -369,7 +376,8 @@ export const Schedule: React.FC<{ navigate: (r: string) => void; bookRoute?: boo
 
         {view !== 'month' && list.state.status === 'ready' && selectedId && (() => {
           const row = list.state.data.find((r) => r.id === selectedId);
-          return row ? <AppointmentDrawer key={row.id} row={row} doctors={doctors} onClose={() => setSelectedId(null)} onChanged={refreshAll} onDone={setDone} /> : null;
+          if (!row) return <Notice tone="warn" live>{A.notifications.destinationMissing}</Notice>;
+          return <AppointmentDrawer key={row.id} row={row} doctors={doctors} onClose={() => setSelectedId(null)} onChanged={refreshAll} onDone={setDone} />;
         })()}
         {booking && <BookingDrawer preset={booking} doctors={doctors} onClose={closeBooking} onBooked={refreshAll} onDone={setDone} />}
       </div>

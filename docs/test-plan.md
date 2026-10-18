@@ -61,3 +61,9 @@ The Naseej test strategy verifies security boundaries, tenant isolation, clinica
 | FR-070 | 7.8 Prescriptions | Prescriptions with items and allergy check | `tests/clinical-workflow.test.ts` |
 | FR-084 | 7.9 Lab Results | Results hidden from patient until approval | `tests/patient-portal.test.ts` |
 | FR-140 | 7.13 Audit Trail | Immutable audit trail for security & workflows | `tests/audit-logs.test.ts` |
+
+---
+
+## Not covered by automated tests
+
+The following were verified by build and by hand against a local run (API calls and the UI), and have **no automated tests yet**: the account API and per-role Settings pages, the notifications table, events, API and UI, and the installable-app work (manifest, service worker, install and update prompts). Manual checks included: another user cannot read or change a notification by id (404), read does not mark a task handled, a caregiver's notifications disappear when the delegation expires, a deleted target shows "no longer available", and `/api` is network-only in the service worker. Installation was not tested on physical devices.

@@ -111,6 +111,8 @@ PostgreSQL Database (Multi-tenant relational schema)
 ### Deferred P1/P2 Features (Documented Extension Points)
 - **AI document analysis (migration 003, optional)**: a provider adapter (`backend/src/services/ai`) reads an uploaded PDF/PNG/JPEG (OCR, type suggestion, candidate facts with page and passage) and stores the result as *unreviewed suggestions* that a clinician accepts, corrects or rejects. It is implemented against the Anthropic Messages API but is **off until `AI_PROVIDER` and `ANTHROPIC_API_KEY` are set**; with no key, uploads simply wait for manual clinician review. See `docs/workspaces.md`. Autonomous diagnosis stays prohibited and no AI output is shown to patients as verified.
 - **Caregiver delegation (migration 003)**: implemented with server-side scope checks (`caregiverRoutes.ts`). The earlier PRD baseline listed it as out of scope; the implemented boundary is documented in `docs/workspaces.md`.
+- **In-app notifications (migration 004)**: implemented (`notificationService.ts`, `notificationRoutes.ts`). Created on the server after the business operation, with minimal content and typed destinations; no queue (a notification is written right after the commit and a failure is logged, not fatal), so a crash between the two could lose one. Periodic refresh in the client, no email or push. See `docs/notifications.md`.
+- **Installable app (PWA)**: implemented with `vite-plugin-pwa`; static assets are precached, `/api/*` is network-only. See `docs/pwa.md`.
 - **External HIS/HL7 Integration (P2)**: Enterprise hospital interfaces.
 - **Distributed Job Queue (P1)**: Heavy background queues (BullMQ/Redis); prototype processes operations reliably within the backend service.
 
@@ -122,3 +124,5 @@ The signed-in app lives in `frontend/src/app` with its own shell, hash router (`
 - **Comparison of results** groups by test and parameter and is marked comparable only when units match and values are numeric.
 - **Care coordination** is a separate operational domain (`care_cases/tasks/referrals/followup_log`). Referral statuses are requested/sent/receipt_confirmed/cancelled; none means clinical completion.
 - **Known limitations:** no service catalogue or rooms/equipment (Services are derived from doctor specialties); no "patients needing follow-up" concept; document upload uses base64 JSON; allergies stay patient-level; the demo-account list on the Login page does not include a coordinator (the page is protected); the auth token and user profile persist in `localStorage` via the existing `AuthContext`.
+- **Account and settings:** `routes/accountRoutes.ts` (`/api/account`) plus one Settings page per role in `app/pages/settings.tsx`. Preferences that only affect presentation (language, workspace theme) stay on the device.
+- **Notifications in the client:** `app/notifications` (context with periodic refresh, bell, inbox, and the single typed destination map in `model.ts`). The shell wraps itself in `NotificationsProvider`.

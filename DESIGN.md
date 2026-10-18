@@ -63,14 +63,19 @@ Deliberate differences from the reference: color comes from the Naseej tokens ab
 ## 6. Layout (workspaces)
 Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top bar (64px) + content. Below 1024px the sidebar becomes a drawer. A faint animated line backdrop sits behind content (`AppBackdrop`) and is disabled for reduced motion.
 
+- **Sidebar:** the role's navigation groups, then a pinned foot with the **Account** group (**Notifications** with its unread badge, then **Settings**) above **Sign out**. There is no public-site link in the sidebar.
+- **Top bar, start to end:** (mobile: drawer button) | the **collapse/expand toggle** (desktop only, between the sidebar and the page name) | page name | center switcher (when the person has several) | **notification bell** with unread count | theme | language | account menu.
+- **A closed drawer stays inside the viewport.** The closed workspace drawer and the public menu are hidden with `opacity` and `visibility`, never parked off-screen with a large `translateX`: Android Chrome counts a fixed element outside the viewport toward the page width, which leaves a blank band and sideways scrolling.
+- **Public site bar:** brand, then icon-only buttons at every width: install (only when available), theme, language, sign in, and the menu button last. There is no "request a demo" link in the bar (it stays on the home page and the login page).
+
 ## 7. Components (workspaces)
-`PageHead`, `Card`, `Stat`, `Pill`, `Notice`, `Button`, `Field`, `EmptyState`, `Loading` (skeleton), `ErrorState`, `Async`, `Dialog`, `Drawer` in `app/ui.tsx`. Domain pieces: record `Timeline`, `ReviewPill`/`ProvenancePill`, `AiPanel` (AI suggestions), the reception calendar, the manager calendar (counts only), caregiver scope lists, operational message list.
+`PageHead`, `Card`, `Stat`, `Pill`, `Notice`, `Button`, `Field`, `EmptyState`, `Loading` (skeleton), `ErrorState`, `Async`, `Dialog`, `Drawer` in `app/ui.tsx`. Domain pieces: **Settings** (`app/pages/settings.tsx`, `.na-set-*`: a vertical tab list on the reading side beside one content card; tabs depend on the role; below 900px the tabs become a scrolling row inside their own strip; type is compact and fluid, 12.5 to 14px; every panel stays mounted so unsaved edits survive a tab switch; no instructional or explanatory text, only labels, values and feedback), **Notifications** (`app/notifications`, `.na-nt-*`: bell, panel and inbox; state is shown with a glyph and a word, never colour alone; quick actions are separate buttons from the item body), record `Timeline`, `ReviewPill`/`ProvenancePill`, `AiPanel` (AI suggestions), the reception calendar, the manager calendar (counts only), caregiver scope lists, operational message list.
 
 ## 8. Clinical content rules (design-level)
 - Provenance (who or what the entry came from) and review state are visible on every record. "Not recorded" never reads as "absent".
 - AI-derived content is dashed-bordered, labelled "AI-generated", carries its source page and passage, and is never styled like confirmed data until a clinician accepts it.
 - Drafts and unreviewed items never appear in patient or caregiver views.
-- Urgent-care wording: messaging and question screens state they are not for emergencies.
+- No banners or warnings about emergencies are shown on messaging and question screens (removed by product decision); the interface carries no instructional or warning banners, only errors, validation and confirmations.
 
 ## 9. Accessibility and language
 - Visible focus ring on everything interactive; keyboard-operable controls; skip link; page title receives focus on route change.
@@ -84,3 +89,5 @@ Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top b
 - Don't introduce a second brand color, a new font family, gradients on workspace surfaces, or decorative shadows.
 - Don't change `landing.css`, `auth.css` or the public components when styling a workspace, and vice versa.
 - Don't signal state by color alone.
+- Don't add instructional or explanatory copy to Settings or to cards; keep labels, values, errors and confirmations.
+- Don't position a fixed panel outside the viewport to hide it.

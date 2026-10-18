@@ -6,6 +6,7 @@ import { blockPlatformAdminFromClinical, requireClinicalReader } from '../middle
 import { isPatientLinkedToOrg } from '../services/accessService.js';
 import { isUuid } from '../services/validation.js';
 import { logAuditEvent } from '../services/auditService.js';
+import { onRecordApproved } from '../services/notificationService.js';
 
 export const prescriptionRouter = Router();
 
@@ -178,6 +179,7 @@ prescriptionRouter.post('/:id/approve', async (req: Request, res: Response): Pro
       resourceId: rxId,
       ipAddress: req.ip,
     });
+    await onRecordApproved('prescription', rxId, approveRes.rows[0].patient_id, orgId, clinicianId);
 
     res.json({ success: true, data: approveRes.rows[0] });
   } catch (err: any) {

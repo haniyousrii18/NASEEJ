@@ -5,6 +5,7 @@ import { requireTenant } from '../middleware/tenant.js';
 import { requireRole } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 import { apiError, isUuid, serverError, trimmed } from '../services/validation.js';
+import { onMessageReplied } from '../services/notificationService.js';
 
 export const doctorRouter = Router();
 
@@ -100,6 +101,7 @@ doctorRouter.post('/patient-messages/:id/respond', async (req: Request, res: Res
       action: 'PATIENT_MESSAGE_RESPOND', resourceType: 'patient_message', resourceId: req.params.id, ipAddress: req.ip,
       details: { patientId: update.rows[0].patient_id, status },
     });
+    if (response) await onMessageReplied(req.params.id, req.tenantId!, req.user!.id);
     res.json({ success: true, data: { id: req.params.id, status } });
   } catch (err) {
     res.status(500).json(serverError(err));

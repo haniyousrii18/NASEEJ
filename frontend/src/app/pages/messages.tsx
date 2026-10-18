@@ -419,9 +419,6 @@ export const DoctorMessages: React.FC = () => {
         <>
           <PageHead title={P.title} subtitle={P.subtitle} />
           <div className="na-stack">
-            <Notice tone="danger" icon="alert">
-              {P.emergency}
-            </Notice>
             <Async state={questions.state} onRetry={questions.reload} isEmpty={(d) => d.length === 0} empty={<EmptyState title={P.empty} />}>
               {(rows) => (
                 <ul className="na-list ops-questions">
