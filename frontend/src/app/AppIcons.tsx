@@ -4,9 +4,10 @@ export type IconName =
   | 'home' | 'summary' | 'timeline' | 'documents' | 'pill' | 'calendar' | 'message' | 'shield' | 'search' | 'checks'
   | 'folder' | 'link' | 'clock' | 'plus' | 'door' | 'building' | 'chart' | 'users' | 'scroll' | 'inbox' | 'menu'
   | 'close' | 'chevron' | 'logout' | 'globe' | 'collapse' | 'sun' | 'moon' | 'system' | 'user' | 'alert' | 'check'
-  | 'visit' | 'flask' | 'download' | 'external' | 'refresh' | 'lock' | 'pulse' | 'upload';
+  | 'visit' | 'flask' | 'download' | 'external' | 'refresh' | 'lock' | 'pulse' | 'upload' | 'settings';
 
 const paths: Record<IconName, React.ReactNode> = {
+  settings: <><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></>,
   home: <path d="M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-5h4v5" />,
   summary: <><path d="M8 3h8l3 3v15H5V3h3z" /><path d="M9 12h6M9 16h6M9 8h3" /></>,
   timeline: <><path d="M12 3v18" /><circle cx="12" cy="7" r="2" /><circle cx="12" cy="17" r="2" /><path d="M14 7h6M4 17h6" /></>,

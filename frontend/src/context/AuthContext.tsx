@@ -29,6 +29,8 @@ interface AuthContextType {
   setCurrentOrgId: (orgId: string) => void;
   login: (token: string, user: UserProfile) => void;
   logout: () => void;
+  /** Updates the signed-in profile held in memory after the server confirmed a change (for example a new display name). */
+  updateUser: (patch: Partial<UserProfile>) => void;
   apiFetch: (url: string, options?: RequestInit) => Promise<any>;
   isPlatformAdmin: boolean;
   isCenterManager: boolean;
@@ -67,6 +69,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If patient, default to Al-Noor
       setCurrentOrgId('11111111-1111-1111-1111-111111111111');
     }
+  };
+
+  const updateUser = (patch: Partial<UserProfile>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      localStorage.setItem('naseej_user', JSON.stringify(next));
+      return next;
+    });
   };
 
   const logout = () => {
@@ -125,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentOrgId,
     login,
     logout,
+    updateUser,
     apiFetch,
     isPlatformAdmin,
     isCenterManager,

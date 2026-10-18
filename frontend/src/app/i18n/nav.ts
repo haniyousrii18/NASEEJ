@@ -14,6 +14,7 @@ const ar = {
     platform: 'المنصة',
     oversight: 'الرقابة',
     delegated: 'الرعاية بالنيابة',
+    account: 'الحساب',
   },
   items: {
     patientHome: 'الرئيسية',
@@ -58,6 +59,7 @@ const ar = {
     adminAccounts: 'الحسابات والأدوار',
     adminRequests: 'طلبات العروض التجريبية',
     adminAudit: 'سجل التدقيق',
+    settings: 'الإعدادات',
   },
   noWorkspaceTitle: 'لا توجد مساحة عمل لحسابك بعد',
   noWorkspaceBody: 'لم يُسنَد لحسابك دور في هذا المركز. تواصل مع مدير المركز أو مسؤول المنصة.',
@@ -78,6 +80,7 @@ const en: typeof ar = {
     platform: 'Platform',
     oversight: 'Oversight',
     delegated: 'Delegated care',
+    account: 'Account',
   },
   items: {
     patientHome: 'Home',
@@ -122,6 +125,7 @@ const en: typeof ar = {
     adminAccounts: 'Accounts and Roles',
     adminRequests: 'Demo Requests',
     adminAudit: 'Audit Log',
+    settings: 'Settings',
   },
   noWorkspaceTitle: 'There is no workspace for your account yet',
   noWorkspaceBody: 'Your account has no role at this center. Contact the center manager or the platform administrator.',

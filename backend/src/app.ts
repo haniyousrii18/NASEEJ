@@ -19,6 +19,7 @@ import { doctorRouter } from './routes/doctorRoutes.js';
 import { documentReviewRouter } from './routes/documentReviewRoutes.js';
 import { patientCaregiverRouter, caregiverRouter } from './routes/caregiverRoutes.js';
 import { opsMessageRouter } from './routes/opsMessageRoutes.js';
+import { accountRouter } from './routes/accountRoutes.js';
 
 export const app: Express = express();
 
@@ -40,6 +41,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // Mount Routes
 app.use('/api/auth', authRouter);
+app.use('/api/account', accountRouter);
 app.use('/api/organizations', organizationRouter);
 app.use('/api/patients', patientRouter);
 app.use('/api/appointments', appointmentRouter);

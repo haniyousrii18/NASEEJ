@@ -2907,3 +2907,76 @@ th[data-today] .na-sched-daybtn {
   --rec-muted: var(--color-body-gray);
   --rec-ink: var(--color-ink);
 }
+
+/* ------------------------------------------------------------------ settings pages (workspace only) */
+.na-set {
+  display: grid;
+  gap: var(--na-gap);
+  max-width: 880px;
+}
+
+.na-set .na-card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.na-set .na-card > * {
+  margin: 0;
+  min-width: 0;
+}
+
+.na-set-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.na-set-form {
+  display: grid;
+  gap: 16px;
+}
+
+.na-set-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.na-set-error {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--color-status-danger-text);
+}
+
+.na-set-error::before {
+  content: '! ';
+  font-weight: 700;
+}
+
+.na-set input[aria-invalid='true'] {
+  border-color: var(--color-status-danger-text);
+}
+
+.na-set input[readonly] {
+  color: var(--color-body-gray);
+  cursor: default;
+}
+
+.na-set-pref {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 20px;
+}
+
+.na-set .na-btn[aria-pressed='true'] {
+  outline: 2px solid transparent;
+}
+
+@media (max-width: 640px) {
+  .na-set .na-actions,
+  .na-set-actions .na-btn {
+    flex: 1 1 auto;
+  }
+}
