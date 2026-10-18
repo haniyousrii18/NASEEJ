@@ -192,13 +192,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
                     {t.nav.logout}
                   </button>
                 </>
-              ) : (
-                <>
-                  <button type="button" onClick={() => go('demo')} className="site-link" aria-current={currentView === 'demo' ? 'page' : undefined}>
-                    {t.nav.demo}
-                  </button>
-                </>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
