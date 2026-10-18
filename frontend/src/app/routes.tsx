@@ -13,6 +13,7 @@ import { FrontDesk } from './reception/FrontDesk.js';
 import { Patients } from './reception/Patients.js';
 import { ReceptionFrame } from './reception/ReceptionFrame.js';
 import { Schedule } from './reception/Schedule.js';
+import { Settings } from './pages/settings.js';
 
 export interface PageContext {
   role: AppRole;
@@ -46,6 +47,9 @@ function receptionPage(route: string, navigate: (route: string) => void): React.
 export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
   const { navigate } = ctx;
   const parts = route.split('/');
+
+  // Every role has one Settings page at "<role base>/settings".
+  if (parts.length === 2 && parts[1] === 'settings') return <Settings role={ctx.role} navigate={navigate} />;
 
   if (parts[0] === 'reception') {
     const page = receptionPage(route, navigate);

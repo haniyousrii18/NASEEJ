@@ -144,7 +144,6 @@ export const DoctorHome: React.FC<{ navigate: (r: string) => void }> = ({ naviga
                 </ul>
               </Card>
             )}
-            <p className="na-help">{H.followUpNote}</p>
           </div>
         )}
       </Async>

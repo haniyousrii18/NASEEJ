@@ -107,7 +107,7 @@ export const DocumentUpload: React.FC<{
   };
 
   return (
-    <Card title={patientId ? undefined : D.upload} hint={patientId ? undefined : D.uploadHint}>
+    <Card title={patientId ? undefined : D.upload}>
       <form className="na-form" onSubmit={submit} noValidate>
         <Field label={D.choose} htmlFor="doc-file">
           <input id="doc-file" ref={input} type="file" className="na-input na-file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" />
@@ -135,7 +135,7 @@ export const DocumentUpload: React.FC<{
               <input type="checkbox" checked={ai && aiConfigured} disabled={!aiConfigured} onChange={(e) => setAi(e.target.checked)} />
               <span>
                 <strong>{L.aiAllow}</strong>
-                <span className="na-help">{aiConfigured ? L.aiAllowHelp : L.aiUnavailable}</span>
+                {!aiConfigured && <span className="na-help">{L.aiUnavailable}</span>}
               </span>
             </label>
           </div>

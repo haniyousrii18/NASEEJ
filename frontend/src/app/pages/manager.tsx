@@ -408,7 +408,6 @@ export const ManagerReports: React.FC = () => {
               <input id="mr-to" type="date" className="na-input" value={to} min={from} max={todayIso()} onChange={(e) => e.target.value && setTo(e.target.value)} />
             </Field>
           </div>
-          <p className="na-help">{R.range}</p>
         </Card>
         <Async state={state} onRetry={reload}>
           {(d) => {

@@ -137,7 +137,7 @@ export const BookingDrawer: React.FC<{
 
         <SlotPicker doctorId={chosenDoctor} date={date} value={slot} onChange={setSlot} reloadKey={reloadKey} preferredTime={preset.time} />
 
-        <Field label={B.reason} htmlFor="bk-reason" help={B.reasonHint}>
+        <Field label={B.reason} htmlFor="bk-reason">
           <input id="bk-reason" className="na-input" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
         </Field>
         {error && (

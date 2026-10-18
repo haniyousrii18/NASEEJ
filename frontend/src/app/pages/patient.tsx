@@ -508,7 +508,6 @@ export const PatientAppointments: React.FC<{ navigate: (r: string) => void }> = 
               )}
 
               {requestMessage && <Notice tone={requestMessage.tone} live>{requestMessage.text}</Notice>}
-              <p className="na-help">{P.pendingInfo}</p>
               <div className="na-form-actions">
                 <Button type="submit" variant="primary" disabled={request.pending || clinicians.state.status !== 'ready' || !selectedClinician || !selectedSlot}>
                   {request.pending ? P.sending : P.requestAction}
@@ -531,7 +530,6 @@ export const PatientAppointments: React.FC<{ navigate: (r: string) => void }> = 
               </ul>
             )}
           </Async>
-          <p className="na-help">{P.contactCenter}</p>
         </Card>
         <Card title={P.past}>
           <Async
