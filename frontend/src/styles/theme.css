@@ -420,6 +420,55 @@
 /* Prefers-reduced-motion:
    Reduce/remove nonessential spatial motion, scales, and loops,
    while preserving opacity, color, and state changes for feedback clarity. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  .btn-pill,
+  .form-input,
+  .form-select,
+  .form-textarea,
+  .data-table tr,
+  .theme-toggle-button {
+    transition-duration: 100ms !important;
+    transition-property: opacity, background-color, border-color, color !important;
+    transform: none !important;
+  }
+
+  .btn-pill:hover,
+  .btn-pill:active,
+  .btn-pill-ghost:hover,
+  .btn-pill-cloud:hover,
+  .cloud-feature-card:hover,
+  .community-story-tile:hover {
+    transform: none !important;
+  }
+
+  .telemetry-beacon::after {
+    animation: none !important;
+    display: none !important;
+  }
+
+  .motion-view-enter,
+  .motion-tab-enter,
+  .motion-alert-enter,
+  .motion-toast-enter,
+  .modal-overlay,
+  .modal-content {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .ring-green-draw,
+  .ring-blue-draw,
+  .ring-lilac-draw {
+    animation: none !important;
+  }
+}
 
 ::selection {
   background: var(--color-selection);
@@ -1057,10 +1106,56 @@ strong, b {
 }
 
 /* =============================================================================
-   Reduced motion
-   The public site (landing, login) always plays its motion, by product decision. Only the signed-in
-   workspace (.na-app) honours the system setting; see the rule at the end of this file.
+   Reduced Motion Accessibility Pattern
+   Under prefers-reduced-motion: reduce, eliminate spatial translation, scale,
+   and infinite loops, while retaining instant/subtle opacity and color state
+   transitions (100ms) so interactive feedback remains immediate and accessible.
    ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--motion-duration-instant) !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Zero out spatial translations and scaling that induce vestibular distress */
+  .motion-view-enter,
+  .motion-tab-enter,
+  .motion-alert-enter,
+  .motion-toast-enter,
+  .modal-overlay,
+  .modal-content,
+  .cloud-feature-card:hover,
+  .community-story-tile:hover,
+  .btn-pill:active:not(:disabled),
+  .btn-pill:hover {
+    transform: none !important;
+  }
+
+  /* Cancel continuous telemetry pulsing */
+  .telemetry-beacon::after {
+    animation: none !important;
+    opacity: 0.8 !important;
+    transform: none !important;
+  }
+
+  /* Instantly display SVG gauge values */
+  .ring-green-draw,
+  .ring-blue-draw,
+  .ring-lilac-draw {
+    animation: none !important;
+    stroke-dashoffset: 40 !important;
+  }
+  .ring-blue-draw {
+    stroke-dashoffset: 35 !important;
+  }
+  .ring-lilac-draw {
+    stroke-dashoffset: 25 !important;
+  }
+}
 
 /* Responsive foundations shared by every public and authenticated view */
 #root,
@@ -1228,7 +1323,7 @@ svg {
 
 /* =============================================================================
    Motion: staggered entrances, scroll-in blocks, row cascades, gentle lifts.
-   Public pages always play these. The workspace shortens them under prefers-reduced-motion (end of file).
+   Every rule here is neutralised under prefers-reduced-motion at the bottom.
    ============================================================================= */
 @keyframes riseIn {
   from {
@@ -1295,6 +1390,18 @@ svg {
               background-color var(--motion-duration-fast) var(--motion-ease-out);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .motion-stagger > *,
+  .data-table tbody tr,
+  .doctor-row:hover,
+  .btn-pill:hover:not(:disabled),
+  .cloud-feature-card:hover {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Pressing wins over the hover lift. */
 .btn-pill:active:not(:disabled) {
   transform: scale(0.98);
@@ -1333,17 +1440,4 @@ svg {
 .btn-pill-brand .status-badge {
   background: rgba(26, 20, 17, 0.34) !important;
   color: #ffffff !important;
-}
-
-/* The decorative motion of the public site (landing, login) always runs. The signed-in workspace still honours the
-   system "reduce motion" setting: its animations are shortened to near-instant. */
-@media (prefers-reduced-motion: reduce) {
-  .na-app *,
-  .na-app *::before,
-  .na-app *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: var(--motion-duration-instant, 0.01ms) !important;
-    scroll-behavior: auto !important;
-  }
 }

@@ -4,7 +4,7 @@
 //   press    scale 0.98 on tap, plus a small lift on hover for interactive surfaces
 //   overlays fade in; side panels slide from their edge (flipped for RTL)
 //   urgent   alerts render immediately: <Rise urgent> skips delay and travel
-// <MotionRoot> (public site) ignores the OS reduce-motion setting; <WorkspaceMotion> (signed-in app) honours it.
+// <MotionRoot> sets reducedMotion="user", which removes transforms for people who ask the OS for less motion.
 // Only opacity and transform are animated, and nothing loops.
 
 import React from 'react';
@@ -28,18 +28,12 @@ interface BoxProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onDrag' | 'o
 // `m` is a proxy keyed by tag name; the index access is the one place that needs a loose type.
 const tagOf = (as: Tag) => (m as unknown as Record<string, React.ElementType>)[as];
 
-// The public site's motion always plays, by product decision. The signed-in workspace wraps itself in
-// <WorkspaceMotion>, which goes back to honouring the system "reduce motion" setting.
 export const MotionRoot: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <MotionConfig reducedMotion="never">
+  <MotionConfig reducedMotion="user">
     <LazyMotion features={domAnimation} strict>
       {children}
     </LazyMotion>
   </MotionConfig>
-);
-
-export const WorkspaceMotion: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <MotionConfig reducedMotion="user">{children}</MotionConfig>
 );
 
 /** Whole-page enter, keyed by view in the shell. There is no exit, so navigation never feels slow. */
