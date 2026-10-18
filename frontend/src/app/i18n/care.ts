@@ -193,7 +193,6 @@ const ar = {
     title: 'رسائل التشغيل',
     subtitleReception: 'تنسيق إداري مع الأطباء حول المواعيد والوصول والأوراق. ليست قناة للحالات الطبية أو العاجلة.',
     subtitleDoctor: 'رسائل الاستقبال حول مواعيدك وجدولك. ليست قناة للحالات الطبية أو العاجلة.',
-    notice: 'لا تكتب هنا معلومات سريرية. للأمور العاجلة اتصل مباشرة. يُسجَّل إرسال الرسائل في سجل التدقيق دون نصّها.',
     inbox: 'الوارد',
     sent: 'المُرسَل',
     all: 'الكل',
@@ -224,7 +223,6 @@ const ar = {
     newCount: 'جديدة: {n}',
     stale: 'تعذّر التحديث الأخير. قد تكون القائمة قديمة.',
     updated: 'آخر تحديث {time}',
-    readOnlyNote: 'الاستقبال لا يرى محتوى سريريًا. الاسم الإداري والموعد فقط.',
   },
   patientQuestions: {
     title: 'أسئلة المرضى',
@@ -459,7 +457,6 @@ const en: typeof ar = {
     title: 'Operational messages',
     subtitleReception: 'Administrative coordination with clinicians about appointments, arrivals and paperwork. Not a channel for medical or urgent matters.',
     subtitleDoctor: 'Messages from reception about your appointments and schedule. Not a channel for medical or urgent matters.',
-    notice: 'Do not write clinical information here. For anything urgent, call directly. Sending is recorded in the audit trail without the message text.',
     inbox: 'Inbox',
     sent: 'Sent',
     all: 'All',
@@ -490,7 +487,6 @@ const en: typeof ar = {
     newCount: 'New: {n}',
     stale: 'The last refresh failed. The list may be out of date.',
     updated: 'Updated {time}',
-    readOnlyNote: 'Reception sees no clinical content: administrative name and appointment only.',
   },
   patientQuestions: {
     title: 'Patient questions',

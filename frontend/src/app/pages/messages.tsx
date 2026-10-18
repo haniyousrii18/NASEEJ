@@ -244,10 +244,6 @@ export const OpsMessages: React.FC<{ role: 'reception' | 'doctor' }> = ({ role }
         }
       />
       <div className="na-stack">
-        <Notice tone="info" icon="alert">
-          {O.notice}
-          {role === 'reception' ? ` ${O.readOnlyNote}` : ''}
-        </Notice>
         {flash && (
           <Notice tone="ok" live>
             {flash}
