@@ -123,19 +123,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           </span>
         </button>
 
-        {currentView !== 'login' && (
-          <button
-            type="button"
-            className="site-menu-btn"
-            aria-expanded={open}
-            aria-controls="site-menu"
-            aria-label={open ? t.landing.closeMenu : t.landing.menu}
-            ref={menuBtnRef}
-            onClick={() => setOpen((o) => !o)}
-          >
-            <MenuIcon open={open} />
-          </button>
-        )}
 
         {/* Blurred Backdrop for Mobile Sidebar Drawer */}
         <div
@@ -227,6 +214,19 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           <button type="button" className="site-act" onClick={() => setLang(otherLang)} lang={otherLang} aria-label={otherLangName} title={otherLangName}>
             <GlobeIcon />
           </button>
+          {currentView !== 'login' && (
+            <button
+              type="button"
+              className="site-menu-btn"
+              aria-expanded={open}
+              aria-controls="site-menu"
+              aria-label={open ? t.landing.closeMenu : t.landing.menu}
+              ref={menuBtnRef}
+              onClick={() => setOpen((o) => !o)}
+            >
+              <MenuIcon open={open} />
+            </button>
+          )}
           {!user && currentView !== 'login' && (
             <button type="button" className="site-act site-act--primary" onClick={() => go('login')} aria-label={t.nav.login} title={t.nav.login}>
               <UserIcon />
