@@ -7,6 +7,7 @@ import { logAuditEvent } from '../services/auditService.js';
 import { isPatientLinkedToOrg } from '../services/accessService.js';
 import { getAppointmentAvailability, isActiveDoctorInOrg } from '../services/appointmentService.js';
 import { apiError, clampInt, isIsoDate, isTime, isUuid, serverError, toMinutes } from '../services/validation.js';
+import { onAppointmentRescheduled, onAppointmentStatus } from '../services/notificationService.js';
 
 export const appointmentRouter = Router();
 
@@ -254,6 +255,7 @@ appointmentRouter.post('/', async (req: Request, res: Response): Promise<void> =
       details: { clinicianId: clinician_id, date: appointment_date, time: start_time },
     });
 
+    await onAppointmentStatus(created, 'new', { userId: req.user!.id, role: req.currentMembership?.role ?? '' });
     res.status(201).json({ success: true, data: created });
   } catch (err: any) {
     if (err.code === '23505') {
@@ -328,6 +330,7 @@ async function transition(req: Request, res: Response, target: AppointmentStatus
       details: { from: outcome.from, to: target, ...(target === 'checked_in' ? { checkInTime: outcome.updated.check_in_time } : {}) },
     });
 
+    await onAppointmentStatus(outcome.updated, outcome.from, { userId: req.user!.id, role });
     res.json({ success: true, data: outcome.updated });
   } catch (err: any) {
     res.status(500).json(serverError(err));
@@ -437,6 +440,7 @@ appointmentRouter.patch('/:id', async (req: Request, res: Response): Promise<voi
       },
     });
 
+    await onAppointmentRescheduled(outcome.updated, outcome.before, req.user!.id);
     res.json({ success: true, data: outcome.updated });
   } catch (err: any) {
     if (err.code === '23505') {

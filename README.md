@@ -45,7 +45,10 @@ Core ideas:
 | Platform administrator and care coordinator workspaces | Implemented (unchanged by the five-workspace rebuild) |
 | Longitudinal timeline and cross-center consent | Implemented |
 | AI document reading (OCR, classification, candidate facts with page and passage) | **Code complete, off by default.** Needs a provider key; never run against a real provider yet. See section 4 |
-| Notifications, email, privacy-request workflow, voice dictation, external identity provider | **Not implemented** |
+| **Settings** page for every role (`#/<role>/settings`): profile, patient contact and emergency details, caregiver access, password, language and appearance | Implemented (account API, no migration) |
+| **In-app notifications**: bell with unread count, inbox, typed deep links, one quick action (confirm appointment) | Implemented (migration 004). Updates are periodic, not real time. See [docs/notifications.md](docs/notifications.md) |
+| **Installable app (PWA)**: manifest, icons, versioned static cache, update prompt, offline notice; `/api` is never cached | Implemented, not tested on physical devices. See [docs/pwa.md](docs/pwa.md) |
+| Email and push notifications, privacy-request workflow, voice dictation, external identity provider | **Not implemented** |
 
 Details per role: [docs/workspaces.md](docs/workspaces.md).
 
@@ -65,7 +68,7 @@ Repository layout:
 ```text
 backend/    Express API, services, migration and seed scripts, tests
 frontend/   React app (public site in src/pages, signed-in app in src/app)
-database/   migrations/ (001, 002, 003 ...), rollback/, seeds/
+database/   migrations/ (001 to 004), rollback/, seeds/
 docs/       architecture, API, test plan, user guide, workspaces, team guide
 ```
 
@@ -86,7 +89,7 @@ cp .env.example .env             # then set DB_PASSWORD (and DB_* if different)
 
 # create the database once (psql):  CREATE DATABASE naseej_dev;
 
-npm --prefix backend run migrate # creates tables (001, 002, 003)
+npm --prefix backend run migrate # creates tables (001 to 004)
 npm --prefix backend run seed    # synthetic demo data
 
 npm run dev                      # API on :5000 and app on :3000
@@ -159,6 +162,8 @@ Backend suites: appointment conflicts, auth, authorization, caregiver delegation
 
 Scenarios covered include: another center's data is unreachable by changing identifiers or the organization header; platform administrators are blocked from clinical routes; double booking is rejected with `409`; patients never receive drafts; reception cannot read clinical data; a caregiver can do only what the patient granted and loses access the moment it is revoked or expires.
 
+The per-role Settings pages, the account API (`/api/account`), the in-app notifications and the installable-app work were checked against the build and a local run (API calls and the UI), but **no automated tests were added or run for them**.
+
 ---
 
 ## 6. Backup and recovery
@@ -187,7 +192,9 @@ A backup file is not proof of recovery: restore it and check that records and fi
 - [PRODUCT.md](PRODUCT.md): product purpose, users, principles.
 - [Naseej-PRD.md](Naseej-PRD.md): product requirements with an implementation-status section.
 - [Naseej-Accounts-PRD.md](Naseej-Accounts-PRD.md): requirements for the role workspaces, with implementation status per role.
-- [docs/workspaces.md](docs/workspaces.md): what each workspace does, caregiver rules, messaging, AI, applying migration 003.
+- [docs/workspaces.md](docs/workspaces.md): what each workspace does, the shell (sidebar, top bar, settings), caregiver rules, messaging, AI, applying migrations 003 and 004.
+- [docs/notifications.md](docs/notifications.md): events, recipients, destinations, quick actions, API and limits of the notification system.
+- [docs/pwa.md](docs/pwa.md): installing the app, caching rules, offline behaviour and updates.
 - [docs/architecture.md](docs/architecture.md): architecture, isolation design, deferred items.
 - [docs/api-spec.md](docs/api-spec.md): REST endpoints and roles.
 - [docs/database-erd.md](docs/database-erd.md): data model.

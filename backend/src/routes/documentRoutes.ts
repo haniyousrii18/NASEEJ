@@ -9,6 +9,7 @@ import { buildTimeline, parseTimelineQuery } from '../services/recordService.js'
 import { aiStatus, startProcessing } from '../services/documentProcessing.js';
 import { fileExists, resolveStoredPath, saveFile, sniffFileType } from '../services/storageService.js';
 import { apiError, isIsoDate, isUuid, serverError } from '../services/validation.js';
+import { onDocumentReviewed, onDocumentUploadedByPatient } from '../services/notificationService.js';
 
 export const documentRouter = Router();
 
@@ -261,6 +262,7 @@ documentRouter.post('/', async (req: Request, res: Response): Promise<void> => {
       details: { documentId: insert.rows[0].id, patientId, status: sourceType },
     });
 
+    if (actor.kind === 'patient') await onDocumentUploadedByPatient({ id: insert.rows[0].id }, orgId, req.user!.id);
     const created = await accessibleDocument(actor, insert.rows[0].id);
     res.status(201).json({ success: true, data: { ...(created ? meta(created, actor) : { id: insert.rows[0].id }), aiProcessingAllowed: aiAllowed, aiProcessingStarted: processingStarted } });
   } catch (err: any) {
@@ -303,6 +305,7 @@ documentRouter.post('/:id/review', async (req: Request, res: Response): Promise<
       details: { documentId: req.params.id },
     });
 
+    await onDocumentReviewed(req.params.id, actor.orgId, req.user!.id);
     const doc = await accessibleDocument(actor, req.params.id);
     res.json({ success: true, data: doc ? meta(doc, actor) : { id: req.params.id } });
   } catch (err: any) {

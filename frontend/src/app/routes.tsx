@@ -14,6 +14,7 @@ import { Patients } from './reception/Patients.js';
 import { ReceptionFrame } from './reception/ReceptionFrame.js';
 import { Schedule } from './reception/Schedule.js';
 import { Settings } from './pages/settings.js';
+import { NotificationsPage } from './notifications/NotificationsPage.js';
 
 export interface PageContext {
   role: AppRole;
@@ -33,7 +34,7 @@ function receptionPage(route: string, navigate: (route: string) => void): React.
     case 'reception/arrivals':
       return <FrontDesk navigate={navigate} />;
     case 'reception/schedule':
-      return <Schedule navigate={navigate} />;
+      return <Schedule navigate={navigate} open={hashParam('appointment') && /^\d{4}-\d{2}-\d{2}$/.test(hashParam('date') ?? '') ? { id: hashParam('appointment')!, date: hashParam('date')! } : undefined} />;
     case 'reception/book':
       return <Schedule navigate={navigate} bookRoute preset={{ patientId: hashParam('patient'), doctorId: hashParam('doctor'), date: hashParam('date'), time: hashParam('time') }} />;
     case 'reception/patients':
@@ -50,6 +51,7 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
 
   // Every role has one Settings page at "<role base>/settings".
   if (parts.length === 2 && parts[1] === 'settings') return <Settings role={ctx.role} navigate={navigate} />;
+  if (parts.length === 2 && parts[1] === 'notifications') return <NotificationsPage role={ctx.role} navigate={navigate} />;
 
   if (parts[0] === 'reception') {
     const page = receptionPage(route, navigate);

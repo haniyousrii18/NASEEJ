@@ -8,6 +8,7 @@ import { buildPatientSummary } from '../services/patientSummary.js';
 import { isPatientLinkedToOrg } from '../services/accessService.js';
 import { createPendingAppointment, getAppointmentAvailability, isActiveDoctorInOrg } from '../services/appointmentService.js';
 import { apiError, isIsoDate, isTime, isUuid, serverError, toMinutes } from '../services/validation.js';
+import { onPatientMessage } from '../services/notificationService.js';
 
 export const portalRouter = Router();
 
@@ -193,6 +194,7 @@ portalRouter.post('/messages', async (req: Request, res: Response): Promise<void
       details: { category: category || 'medical', count: 1 },
     });
 
+    await onPatientMessage(insertRes.rows[0], req.user!.id);
     res.status(201).json({ success: true, data: insertRes.rows[0] });
   } catch (err) {
     res.status(500).json(serverError(err));

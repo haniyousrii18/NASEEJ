@@ -5,6 +5,7 @@ import { authenticate } from '../middleware/auth.js';
 import { requirePatient } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 import { apiError, serverError, trimmed } from '../services/validation.js';
+import { onPasswordChanged, type NotificationRole } from '../services/notificationService.js';
 
 /**
  * /api/account: the signed-in person's own account settings.
@@ -229,6 +230,7 @@ accountRouter.post('/password', async (req: Request, res: Response): Promise<voi
     const hash = await authProvider.hashPassword(newPassword);
     await query('UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1', [user.id, hash]);
     audit(req, 'ACCOUNT_PASSWORD_CHANGED', {});
+    await onPasswordChanged(user.id, roleOf(req) as NotificationRole);
     res.json({ success: true, data: { changed: true } });
   } catch (err) {
     res.status(500).json(serverError(err));

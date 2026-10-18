@@ -7,6 +7,7 @@ import { requireRole } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 import { hasEffectiveConsent, isPatientLinkedToOrg } from '../services/accessService.js';
 import { apiError, clampInt, isIsoDate, isUuid, serverError, trimmed } from '../services/validation.js';
+import { onTaskAssigned } from '../services/notificationService.js';
 
 /**
  * Care coordination: operational follow-up only (cases, tasks, referral tracking, a follow-up log).
@@ -497,6 +498,7 @@ coordinationRouter.post('/tasks', async (req: Request, res: Response): Promise<v
         [taskId]
       )
     ).rows[0];
+    await onTaskAssigned({ id: taskId, organization_id: orgId, owner_id: owner }, req.user!.id);
     res.status(201).json({ success: true, data: row });
   } catch (err: any) {
     console.error('Create task error:', err);

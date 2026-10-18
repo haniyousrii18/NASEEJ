@@ -44,12 +44,12 @@ This section was added when the document was reconciled with the code. It says w
 | 7.9 Laboratory orders and results | Implemented | Draft, review, approval states; patients see approved results only. |
 | 7.10 Patient portal and communication | Implemented, except FR-095 | Approved record, appointment requests and status, questions, symptoms. Questions are now readable and answerable by clinicians (this was missing before). **FR-095 guidance alerts are not implemented.** **FR-096 caregiver access is implemented** (patient-granted, scoped, expiring, three separate permissions). |
 | 7.11 AI and background jobs | Partial | FR-102 (replaceable provider), FR-104, FR-106, FR-107 (manual fallback), FR-113 implemented. FR-103 partial (suggestions grouped by type and linked to sources, no narrative summary). FR-110 to FR-112 partial: job status (queued / processing / failed / completed), atomic claim that prevents duplicate runs, retry only after failure, but it runs inside the API process, **not** in a queue. **FR-100 (independent AI service), FR-101 (local OCR) and FR-105 (rule-based alerts) are not implemented.** |
-| 7.12 Notifications and dashboards | Partial | **FR-120 to FR-123 (in-app and email notifications) are not implemented.** FR-130, FR-131, FR-132, FR-133, FR-134 are implemented as dashboards for managers, doctors and platform administrators. |
+| 7.12 Notifications and dashboards | Partial | **FR-120 (in-app notifications) and FR-123 (read status) are implemented** (migration 004, `docs/notifications.md`; periodic refresh, not real time; no notifications for center managers, no consent or AI-review events). **FR-121 and FR-122 (email) are not implemented.** FR-130, FR-131, FR-132, FR-133, FR-134 are implemented as dashboards for managers, doctors and platform administrators. |
 | 7.13 Privacy and audit | Partial | FR-140 to FR-142 and FR-144 implemented (audit log, append-only guards, consent scope and revocation). **FR-143, FR-145, FR-146 (privacy requests and retention policy) are not implemented.** |
 | 8 Non-functional | Partial | Arabic RTL and English LTR throughout the app; loading, empty and error states; backup and restore documented in the README, restore not exercised in this session; performance not measured. |
 | 16 Testing | Partial | Vitest and Supertest suites for authorization, isolation, conflicts, workflows. A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the typechecks, backend tests on a throwaway PostgreSQL, frontend tests and the build on every pull request. **It has not run yet**, so the first run will show whether the 003 tests pass. Making it a required check is a repository setting (see `docs/team-guide.md`). |
 
-Added beyond the original requirements: operational messaging between reception and clinicians, a patient document library, a manager calendar (counts only), and the caregiver workspace. See `docs/workspaces.md`.
+Added beyond the original requirements: operational messaging between reception and clinicians, a patient document library, a manager calendar (counts only), the caregiver workspace, a Settings page and account API for every role, and an installable app (PWA, `docs/pwa.md`). See `docs/workspaces.md`.
 
 ## 1. Executive Summary
 
@@ -524,7 +524,7 @@ naseej/
 
 This structure is a starting point and may be refined. Secrets and real patient files must never be committed to GitHub.
 
-As built there is no `ai-service/` folder; the AI adapter lives in `backend/src/services/ai`. Migrations are `001`, `002` and `003` in `database/migrations`, with rollbacks in `database/migrations/rollback`.
+As built there is no `ai-service/` folder; the AI adapter lives in `backend/src/services/ai`. Migrations are `001` to `004` in `database/migrations`, with rollbacks in `database/migrations/rollback`.
 
 ## 11. Initial Data Model
 
@@ -581,7 +581,8 @@ These routes are examples for coordinating frontend and backend work. Exact name
 | Documents | `POST /api/documents`, `GET /api/documents/:id` |
 | AI jobs | `POST /api/ai/ocr`, `POST /api/ai/summaries`, `GET /api/ai/jobs/:id` |
 | Messages | `GET /api/messages`, `POST /api/messages` |
-| Notifications | `GET /api/notifications`, `PATCH /api/notifications/:id/read` |
+| Notifications | `GET /api/notifications`, `GET /api/notifications/unread-count`, `POST /api/notifications/:id/read`, `POST /api/notifications/read-all`, `POST /api/notifications/:id/dismiss`, `POST /api/notifications/:id/refresh` |
+| Account | `GET /api/account`, `PATCH /api/account/profile`, `PATCH /api/account/patient-contact`, `POST /api/account/password` |
 | Privacy | `POST /api/privacy-requests`, `GET /api/privacy-requests` |
 | Audit | `GET /api/audit-logs`, subject to permissions |
 
@@ -858,7 +859,8 @@ Original plan: before implementation begins, finalize three practical artifacts 
 1. Apply migration 003 on a clean database, run the full backend test suite, and fix anything the new caregiver, messaging and AI tests reveal.
 2. Exercise AI document reading once with a synthetic file and a real key, and record the result.
 3. Decide the open policy questions: guardianship for minors and incapacitated adults, caregiver file downloads, maximum delegation length.
-4. Choose and implement notifications (FR-120 to FR-123) and the privacy-request workflow (FR-143, FR-146), or formally move them out of scope.
+4. Decide on email notifications (FR-121, FR-122) and the privacy-request workflow (FR-143, FR-146), or formally move them out of scope. In-app notifications (FR-120, FR-123) are done.
+4a. Add automated tests for the account API, the notifications API and the notification events; they were verified by hand only.
 5. Watch the first CI run, fix what it shows, then make the two CI jobs required checks on `main`.
 
 > **Naseej's core principle:** Connecting information does not mean opening it to everyone. Every item must retain its source, context, and access boundaries, and final medical decisions remain the responsibility of the clinician.

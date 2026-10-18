@@ -45,3 +45,15 @@ This matrix traces PRD functional requirements (FR) and acceptance criteria (AC)
 - **AC-04 (Tenant Isolation)**: Verified. Requests for resources belonging to another center return 403 Forbidden / 404 Not Found even when resource identifiers or tenant headers are manipulated.
 - **AC-07 (Laboratory Results)**: Verified. Unapproved laboratory results are strictly withheld from the patient portal until approved by the attending clinician.
 - **AC-08 (Security Audit & Tamper Resistance)**: Verified. All sensitive operations, approvals, and cross-tenant attempts automatically write immutable audit logs.
+
+---
+
+## Added after the baseline (no automated test yet)
+
+| Req ID | Behaviour | Code | Status |
+|---|---|---|---|
+| FR-120 | In-app notifications | `backend/src/services/notificationService.ts`, `routes/notificationRoutes.ts`, `frontend/src/app/notifications` | Implemented, verified by hand |
+| FR-123 | Read status | `notifications.read_at` / `handled_at` | Implemented, verified by hand |
+| FR-121, FR-122 | Email notifications | none | Not implemented |
+| (new) | Per-role settings and account API | `routes/accountRoutes.ts`, `frontend/src/app/pages/settings.tsx` | Implemented, verified by hand |
+| (new) | Installable app | `frontend/vite.config.ts`, `frontend/src/pwa` | Implemented, not tested on devices |

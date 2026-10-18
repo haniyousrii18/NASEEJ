@@ -76,3 +76,10 @@ Naseej is a multi-tenant healthcare information platform connecting patient heal
   5. Navigate to **My Laboratory Results** to review verified lab tests with reference ranges.
   6. Click **Ask Care Team a Question** to submit inquiries or refill requests.
   7. Click **Log Daily Symptom** to track symptoms and assign severity scores (1 to 10).
+
+---
+
+## 6. All roles: notifications, settings and installing the app
+- **Notifications:** the bell in the top bar shows how many are unread. Select it for the newest items, or open **Notifications** in the sidebar (above Settings) for the inbox with All, Unread and Archived tabs and category filters. Archive an item to hide it; restore it from the Archived tab. Selecting an item opens the related screen (a reception request opens that appointment). "Read" only means you have seen it; an item is marked "handled" when the task is actually done. Reception can confirm a pending appointment request straight from its notification (it asks first). Notifications are not for emergencies.
+- **Settings:** at the bottom of the sidebar, above Sign out. Change your name and phone (patients: contact and emergency details), your password (the current password is required), the interface language and the light or dark mode (saved on this device). Caregivers can end their own access there.
+- **Install the app:** use the install icon in the top bar of the public site. If your browser has no install prompt, the app shows the steps for your device (iPhone and iPad: Share, then Add to Home Screen). Details in `docs/pwa.md`.
