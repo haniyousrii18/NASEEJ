@@ -709,23 +709,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .site-bar,
-  .site-nav button,
-  .site-nav button::after,
-  .site-util,
-  .site-link,
-  .site-account,
-  .site-collapsible,
-  .site-drawer-backdrop {
-    transition: none;
-  }
-
-  .site-collapsible {
-    animation: none !important;
-  }
-}
-
 /* ------------------------------------------------------------------ containers */
 .page-shell {
   width: 100%;
