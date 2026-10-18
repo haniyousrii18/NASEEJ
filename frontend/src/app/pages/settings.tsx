@@ -74,23 +74,12 @@ function useUnsavedGuard(dirty: boolean, message: string) {
 }
 
 /** One group of related controls inside a tab panel. `heading` is used only when a panel holds more than one group. */
-const Block: React.FC<{ heading?: string; hint?: string; children: React.ReactNode }> = ({ heading, hint, children }) => (
+const Block: React.FC<{ heading?: string; children: React.ReactNode }> = ({ heading, children }) => (
   <div className="na-set-block">
     {heading && <h3 className="na-set-h">{heading}</h3>}
-    {hint && <p className="na-set-hint">{hint}</p>}
     {children}
   </div>
 );
-
-const Scope: React.FC<{ kind: 'account' | 'center' | 'device'; editable?: boolean }> = ({ kind, editable }) => {
-  const B = useA().settings.badges;
-  return (
-    <div className="na-set-badges">
-      <Pill tone="info">{kind === 'account' ? B.thisAccount : kind === 'center' ? B.thisCenter : B.thisDevice}</Pill>
-      {editable !== undefined && <Pill tone={editable ? 'ok' : 'neutral'}>{editable ? `✓ ${B.editable}` : B.readOnly}</Pill>}
-    </div>
-  );
-};
 
 const ReadRow: React.FC<{ label: string; children: React.ReactNode; ltr?: boolean }> = ({ label, children, ltr }) => (
   <>
@@ -139,8 +128,7 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
   };
 
   return (
-    <Block hint={S.account.hint}>
-      <Scope kind="account" editable={data.nameEditable} />
+    <Block>
       {data.nameEditable ? (
         <form onSubmit={submit} noValidate className="na-set-form">
           <div className="na-grid na-grid--2">
@@ -152,11 +140,11 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
               <input id="set-name-en" className="na-input" lang="en" dir="ltr" maxLength={120} value={form.nameEn} aria-invalid={!!errors.nameEn} aria-describedby={errors.nameEn ? 'set-name-en-err' : undefined} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} />
               {errors.nameEn && <p id="set-name-en-err" className="na-set-error">{errors.nameEn}</p>}
             </Field>
-            <Field label={S.account.phone} htmlFor="set-phone" help={S.account.phoneHelp}>
+            <Field label={S.account.phone} htmlFor="set-phone">
               <input id="set-phone" type="tel" className="na-input" dir="ltr" autoComplete="tel" maxLength={20} value={form.phone} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'set-phone-err' : undefined} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               {errors.phone && <p id="set-phone-err" className="na-set-error">{errors.phone}</p>}
             </Field>
-            <Field label={S.account.email} htmlFor="set-email" help={S.account.emailHelp}>
+            <Field label={S.account.email} htmlFor="set-email">
               <input id="set-email" className="na-input" dir="ltr" value={data.email} readOnly aria-readonly="true" />
             </Field>
           </div>
@@ -170,7 +158,6 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
                 {S.actions.discard}
               </Button>
             )}
-            {dirty && <span className="na-muted" role="status">{S.account.unsaved}</span>}
           </div>
         </form>
       ) : (
@@ -180,7 +167,6 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
             <ReadRow label={S.account.nameEn} ltr>{data.fullNameEn}</ReadRow>
             <ReadRow label={S.account.email} ltr>{data.email}</ReadRow>
           </dl>
-          <p className="na-muted">{S.account.nameManagedPatient}</p>
         </>
       )}
     </Block>
@@ -224,15 +210,14 @@ const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }
   };
 
   return (
-    <Block hint={S.contact.hint}>
-      <Scope kind="account" editable />
+    <Block>
       <form onSubmit={submit} noValidate className="na-set-form">
         <div className="na-grid na-grid--2">
           <Field label={S.contact.phone} htmlFor="set-pc-phone">
             <input id="set-pc-phone" type="tel" className="na-input" dir="ltr" autoComplete="tel" maxLength={20} value={form.phone} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'set-pc-phone-err' : undefined} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             {errors.phone && <p id="set-pc-phone-err" className="na-set-error">{errors.phone}</p>}
           </Field>
-          <Field label={S.contact.email} htmlFor="set-pc-email" help={S.contact.emailHelp}>
+          <Field label={S.contact.email} htmlFor="set-pc-email">
             <input id="set-pc-email" type="email" className="na-input" dir="ltr" autoComplete="email" maxLength={255} value={form.email} aria-invalid={!!errors.email} aria-describedby={errors.email ? 'set-pc-email-err' : undefined} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             {errors.email && <p id="set-pc-email-err" className="na-set-error">{errors.email}</p>}
           </Field>
@@ -250,7 +235,6 @@ const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }
             {save.pending ? S.actions.saving : S.actions.save}
           </Button>
           {dirty && <Button variant="quiet" onClick={() => { setForm(initial); setErrors({}); }}>{S.actions.discard}</Button>}
-          {dirty && <span className="na-muted" role="status">{S.account.unsaved}</span>}
         </div>
       </form>
     </Block>
@@ -264,16 +248,14 @@ const PatientSharingSection: React.FC<{ navigate: (route: string) => void }> = (
   const consents = useApiData<Array<{ state: string }>>('/api/portal/consents');
   const count = (s: typeof caregivers.state) => (s.status === 'ready' ? String(s.data.filter((r) => r.state === 'active').length) : '…');
   return (
-    <Block hint={S.sharing.hint}>
-      <Scope kind="account" />
+    <Block>
       <ul className="na-list">
         <li className="na-list-item">
           <div className="na-row na-row--between">
             <div>
               <strong>{S.sharing.caregivers}</strong>
-              <p className="na-muted">{S.sharing.caregiversBody}</p>
             </div>
-            <span className="na-bignum" aria-label={`${S.sharing.caregiversBody}: ${count(caregivers.state)}`}>{count(caregivers.state)}</span>
+            <span className="na-bignum" aria-label={`${S.sharing.caregivers}: ${count(caregivers.state)}`}>{count(caregivers.state)}</span>
           </div>
           <div className="na-row">
             <Button small onClick={() => navigate('patient/caregivers')}>{S.sharing.manageCaregivers}</Button>
@@ -283,9 +265,8 @@ const PatientSharingSection: React.FC<{ navigate: (route: string) => void }> = (
           <div className="na-row na-row--between">
             <div>
               <strong>{S.sharing.consents}</strong>
-              <p className="na-muted">{S.sharing.consentsBody}</p>
             </div>
-            <span className="na-bignum" aria-label={`${S.sharing.consentsBody}: ${count(consents.state)}`}>{count(consents.state)}</span>
+            <span className="na-bignum" aria-label={`${S.sharing.consents}: ${count(consents.state)}`}>{count(consents.state)}</span>
           </div>
           <div className="na-row">
             <Button small onClick={() => navigate('patient/consents')}>{S.sharing.manageConsents}</Button>
@@ -330,10 +311,9 @@ const CaregiverDelegationsSection: React.FC<{ navigate: (route: string) => void 
   };
 
   return (
-    <Block hint={S.hint}>
-      <Scope kind="account" editable={false} />
+    <Block>
       {flash && <Notice tone={flash.tone} live>{flash.text}</Notice>}
-      <Async state={list.state} onRetry={list.reload} isEmpty={(d) => d.filter((x) => x.state === 'active').length === 0} empty={<EmptyState title={S.none} body={S.noneBody} />}>
+      <Async state={list.state} onRetry={list.reload} isEmpty={(d) => d.filter((x) => x.state === 'active').length === 0} empty={<EmptyState title={S.none} />}>
         {(rows) => (
           <ul className="na-list">
             {rows
@@ -376,8 +356,7 @@ const AffiliationSection: React.FC<{ centers: Center[]; showProfessional: boolea
   const S = A.settings.affiliations;
   if (centers.length === 0) return null;
   return (
-    <Block heading={headed ? S.title : undefined} hint={S.hint}>
-      <Scope kind="account" editable={false} />
+    <Block heading={headed ? S.title : undefined}>
       <ul className="na-list">
         {centers.map((c) => (
           <li key={c.id} className="na-list-item">
@@ -390,7 +369,6 @@ const AffiliationSection: React.FC<{ centers: Center[]; showProfessional: boolea
           </li>
         ))}
       </ul>
-      {showProfessional && <Pill tone="neutral">{A.settings.badges.managed}</Pill>}
     </Block>
   );
 };
@@ -405,9 +383,7 @@ const CenterSection: React.FC<{ centers: Center[]; navigate: (route: string) => 
   if (!center) return null;
   const row = center as unknown as Record<string, unknown>;
   return (
-    <Block heading={headed ? S.title : undefined} hint={S.hint}>
-      <Scope kind="center" editable={false} />
-      <Pill tone="neutral">{A.settings.badges.managedAdmin}</Pill>
+    <Block heading={headed ? S.title : undefined}>
       <dl className="na-dl">
         <ReadRow label={S.name}>{pick(A.lang, row, 'name')}</ReadRow>
         <ReadRow label={S.code} ltr>{center.code}</ReadRow>
@@ -429,14 +405,12 @@ const CenterSection: React.FC<{ centers: Center[]; navigate: (route: string) => 
 const PlatformSection: React.FC<{ navigate: (route: string) => void }> = ({ navigate }) => {
   const S = useA().settings.platform;
   return (
-    <Block hint={S.hint}>
-      <Scope kind="account" />
+    <Block>
       <div className="na-row">
         <Button small onClick={() => navigate('admin/centers')}>{S.centers}</Button>
         <Button small onClick={() => navigate('admin/accounts')}>{S.accounts}</Button>
         <Button small onClick={() => navigate('admin/audit')}>{S.audit}</Button>
       </div>
-      <Notice tone="info" icon="shield">{S.wall}</Notice>
     </Block>
   );
 };
@@ -448,8 +422,7 @@ const PreferencesSection: React.FC = () => {
   const { lang, setLang } = useLang();
   const { workspace } = useTheme();
   return (
-    <Block hint={S.hint}>
-      <Scope kind="device" editable />
+    <Block>
       <div className="na-set-pref">
         <div role="group" aria-labelledby="set-lang-label">
           <p id="set-lang-label" className="na-label">{S.language}</p>
@@ -460,7 +433,6 @@ const PreferencesSection: React.FC = () => {
               </Button>
             ))}
           </div>
-          <p className="na-help">{S.languageHelp}</p>
         </div>
         <div role="group" aria-labelledby="set-theme-label">
           <p id="set-theme-label" className="na-label">{S.theme}</p>
@@ -471,7 +443,6 @@ const PreferencesSection: React.FC = () => {
               </Button>
             ))}
           </div>
-          <p className="na-help">{S.themeHelp}</p>
         </div>
       </div>
     </Block>
@@ -511,8 +482,8 @@ const SecuritySection: React.FC = () => {
     }
   };
 
-  const field = (id: 'current' | 'next' | 'confirm', label: string, help?: string) => (
-    <Field label={label} htmlFor={`set-pw-${id}`} help={help}>
+  const field = (id: 'current' | 'next' | 'confirm', label: string) => (
+    <Field label={label} htmlFor={`set-pw-${id}`}>
       <input
         id={`set-pw-${id}`}
         type="password"
@@ -529,12 +500,11 @@ const SecuritySection: React.FC = () => {
   );
 
   return (
-    <Block hint={S.security.hint}>
-      <Scope kind="account" editable />
+    <Block>
       <form onSubmit={submit} noValidate className="na-set-form" autoComplete="off">
         <div className="na-grid na-grid--3">
           {field('current', S.security.current)}
-          {field('next', S.security.next, S.security.rule)}
+          {field('next', S.security.next)}
           {field('confirm', S.security.confirm)}
         </div>
         {flash && <Notice tone={flash.tone} live>{flash.text}</Notice>}
@@ -544,8 +514,6 @@ const SecuritySection: React.FC = () => {
           </Button>
         </div>
       </form>
-      <h3 className="na-card-title">{S.security.sessionsTitle}</h3>
-      <p className="na-muted">{S.security.sessionsBody}</p>
       <div className="na-row">
         <Button small icon="logout" onClick={logout}>{S.actions.signOut}</Button>
       </div>
@@ -629,7 +597,7 @@ export const Settings: React.FC<{ role: AppRole; navigate: (route: string) => vo
 
   return (
     <>
-      <PageHead title={S.title} subtitle={S.roleIntro[role]} />
+      <PageHead title={S.title} />
       <Async state={account.state} onRetry={account.reload}>
         {(data) => {
           // Every panel stays mounted (hidden when inactive) so unsaved edits survive a tab switch.
@@ -672,7 +640,6 @@ export const Settings: React.FC<{ role: AppRole; navigate: (route: string) => vo
                     <AppIcon name={TAB_ICON[id]} size={20} className="na-icon" />
                     <span className="na-set-tab-text">
                       <span className="na-set-tab-title">{S.tabs[id].title}</span>
-                      <span className="na-set-tab-sub">{S.tabs[id].sub}</span>
                     </span>
                   </button>
                 ))}
@@ -682,7 +649,6 @@ export const Settings: React.FC<{ role: AppRole; navigate: (route: string) => vo
                   <section key={id} id={`set-panel-${id}`} role="tabpanel" aria-labelledby={`set-tab-${id}`} hidden={tab !== id} className="na-set-panel">
                     <header className="na-set-panel-h">
                       <h2 className="na-set-panel-title">{S.tabs[id].title}</h2>
-                      <p className="na-set-panel-sub">{S.tabs[id].panel}</p>
                     </header>
                     {panels[id]}
                   </section>

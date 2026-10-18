@@ -2923,30 +2923,31 @@ th[data-today] .na-sched-daybtn {
 }
 
 /* ------------------------------------------------------------------ settings pages (workspace only) */
-/* One content card on the reading side, a vertical tab list on the other. Tabs fold into a scrolling row on phones. */
+/* A compact tabbed layout: tab list on the reading side, one content card beside it. Type is deliberately small and
+   fluid; the tab list folds into a scrolling row on narrow screens. */
 .na-set-shell {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
-  gap: clamp(20px, 3vw, 36px);
+  grid-template-columns: clamp(170px, 21vw, 250px) minmax(0, 1fr);
+  gap: clamp(14px, 2.4vw, 28px);
   align-items: start;
-  max-width: 1120px;
+  max-width: 1040px;
+  font-size: clamp(12.5px, 0.3vw + 11.8px, 14px);
 }
 
 .na-set-nav {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   position: sticky;
   inset-block-start: 84px;
 }
 
 .na-set-tab {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  padding: 10px 16px;
-  border-radius: 16px;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 12px;
   text-align: start;
   color: var(--color-ink);
   transition: background-color var(--t-fast, 0.15s) ease, color var(--t-fast, 0.15s) ease;
@@ -2966,25 +2967,20 @@ th[data-today] .na-sched-daybtn {
   outline-offset: 2px;
 }
 
+.na-set-tab .na-icon {
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+}
+
 .na-set-tab-text {
-  display: grid;
-  gap: 1px;
   min-width: 0;
 }
 
 .na-set-tab-title {
-  font-size: 15px;
-  font-weight: 620;
-}
-
-.na-set-tab-sub {
-  font-size: 12.5px;
-  color: var(--color-body-gray);
+  font-size: 1em;
+  font-weight: 600;
   overflow-wrap: anywhere;
-}
-
-.na-set-tab[aria-selected='true'] .na-set-tab-sub {
-  color: rgba(255, 255, 255, 0.88);
 }
 
 .na-set-content {
@@ -2993,12 +2989,12 @@ th[data-today] .na-sched-daybtn {
 
 .na-set-panel {
   display: grid;
-  gap: 24px;
+  gap: clamp(14px, 2vw, 20px);
   align-content: start;
-  padding: clamp(20px, 3vw, 36px);
+  padding: clamp(14px, 2.4vw, 26px);
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: var(--na-card-shadow, none);
 }
 
@@ -3011,61 +3007,53 @@ th[data-today] .na-sched-daybtn {
 }
 
 .na-set-panel-h {
-  display: grid;
-  gap: 4px;
-  padding-block-end: 18px;
+  padding-block-end: 12px;
   border-block-end: 1px solid var(--color-border-subtle);
 }
 
 .na-set-panel-title {
   margin: 0;
-  font-size: clamp(22px, 2.4vw, 27px);
+  font-size: clamp(16px, 0.6vw + 14.5px, 19px);
   font-weight: 620;
-  letter-spacing: -0.015em;
-}
-
-.na-set-panel-sub {
-  margin: 0;
-  color: var(--color-body-gray);
-  font-size: 14.5px;
+  letter-spacing: -0.01em;
 }
 
 .na-set-id {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 .na-set-avatar {
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: 84px;
-  block-size: 84px;
+  inline-size: clamp(52px, 7vw, 64px);
+  block-size: clamp(52px, 7vw, 64px);
   border-radius: 50%;
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-strong);
   color: var(--color-accent-text);
-  font-size: 28px;
+  font-size: clamp(18px, 2.4vw, 22px);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 .na-set-id-text {
   display: grid;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
-  font-size: 14px;
+  font-size: 1em;
 }
 
 .na-set-id-text strong {
-  font-size: 18px;
+  font-size: 1.15em;
   overflow-wrap: anywhere;
 }
 
 .na-set-block {
   display: grid;
-  gap: 16px;
+  gap: 14px;
   align-content: start;
 }
 
@@ -3075,47 +3063,57 @@ th[data-today] .na-sched-daybtn {
 }
 
 .na-set-block + .na-set-block {
-  padding-block-start: 22px;
+  padding-block-start: 18px;
   border-block-start: 1px solid var(--color-border-subtle);
 }
 
 .na-set-h {
-  font-size: 17px;
+  font-size: 1.1em;
   font-weight: 620;
-}
-
-.na-set-hint {
-  color: var(--color-body-gray);
-  font-size: 14px;
-}
-
-.na-set-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .na-set-form {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .na-set-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 12px;
+  gap: 8px 10px;
 }
 
 .na-set-error {
-  margin: 6px 0 0;
-  font-size: 13.5px;
+  margin: 4px 0 0;
+  font-size: 0.95em;
   color: var(--color-status-danger-text);
 }
 
 .na-set-error::before {
   content: '! ';
   font-weight: 700;
+}
+
+/* Compact type for everything inside the panel. Inputs stay at 16px on phones so browsers do not zoom on focus. */
+.na-set-panel .na-label {
+  font-size: 0.92em;
+}
+
+.na-set-panel .na-input,
+.na-set-panel .na-select {
+  font-size: 1em;
+  min-height: 42px;
+}
+
+.na-set-panel .na-btn {
+  font-size: 0.95em;
+}
+
+.na-set-panel .na-dl,
+.na-set-panel .na-list-item,
+.na-set-panel .na-muted {
+  font-size: 1em;
 }
 
 .na-set-panel input[aria-invalid='true'] {
@@ -3129,8 +3127,15 @@ th[data-today] .na-sched-daybtn {
 
 .na-set-pref {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+}
+
+/* Tablet: tighter tab column. */
+@media (max-width: 1099px) and (min-width: 900px) {
+  .na-set-shell {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 899px) {
@@ -3138,11 +3143,11 @@ th[data-today] .na-sched-daybtn {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* The tab row scrolls inside its own bounded strip, never the page. */
+  /* The tab row scrolls inside its own strip, never the page. */
   .na-set-nav {
     position: static;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     overflow-x: auto;
     padding-block-end: 4px;
     scroll-snap-type: x proximity;
@@ -3150,35 +3155,31 @@ th[data-today] .na-sched-daybtn {
 
   .na-set-tab {
     flex: none;
-    min-height: 48px;
     scroll-snap-align: start;
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border-subtle);
     border-radius: 999px;
+    padding-inline: 14px;
+    white-space: nowrap;
   }
 
   .na-set-tab[aria-selected='true'] {
     border-color: var(--color-accent);
   }
-
-  .na-set-tab-sub {
-    display: none;
-  }
-
-  .na-set-id {
-    gap: 14px;
-  }
-
-  .na-set-avatar {
-    inline-size: 68px;
-    block-size: 68px;
-    font-size: 23px;
-  }
 }
 
 @media (max-width: 640px) {
+  .na-set-panel .na-input,
+  .na-set-panel .na-select {
+    font-size: 16px;
+  }
+
   .na-set-actions .na-btn {
     flex: 1 1 auto;
+  }
+
+  .na-set-id {
+    gap: 12px;
   }
 }
 
