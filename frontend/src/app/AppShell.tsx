@@ -6,6 +6,7 @@ import { AppIcon } from './AppIcons.js';
 import { UNAUTHORIZED_EVENT } from './api.js';
 import { NAV, ROLE_BASE, appRoleOf, belongsToRole, currentItem, homeRoute, isActive } from './nav.js';
 import { resolvePage } from './routes.js';
+import { WorkspaceMotion } from '../components/motion.js';
 import { NotificationBell } from './notifications/NotificationBell.js';
 import { NotificationsProvider, useUnreadCount } from './notifications/NotificationsContext.js';
 import { useA } from './useA.js';
@@ -463,12 +464,16 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
 export const AppShell: React.FC<Props> = (props) => {
   const { currentRole } = useAuth();
   const role = appRoleOf(currentRole);
-  return role ? (
-    <NotificationsProvider role={role}>
-      <AppShellInner {...props} />
-    </NotificationsProvider>
-  ) : (
-    <AppShellInner {...props} />
+  return (
+    <WorkspaceMotion>
+      {role ? (
+        <NotificationsProvider role={role}>
+          <AppShellInner {...props} />
+        </NotificationsProvider>
+      ) : (
+        <AppShellInner {...props} />
+      )}
+    </WorkspaceMotion>
   );
 };
 

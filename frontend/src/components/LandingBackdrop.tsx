@@ -88,12 +88,11 @@ const PULSES = [
 
 export const LandingBackdrop: React.FC = () => {
   const ref = useRef<HTMLDivElement>(null);
-  const [reduce] = useState(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   // Slow parallax: the threads drift a little against the scroll, so the weave feels deeper than the page.
   useEffect(() => {
     const el = ref.current;
-    if (!el || reduce) return;
+    if (!el) return;
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -105,7 +104,7 @@ export const LandingBackdrop: React.FC = () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('scroll', onScroll);
     };
-  }, [reduce]);
+  }, []);
 
   return (
     <div ref={ref} className="lb" aria-hidden="true">
@@ -123,8 +122,7 @@ export const LandingBackdrop: React.FC = () => {
             {WARP.map((d, i) => (
               <path key={`w${i}`} className="lb-warp" d={d} />
             ))}
-            {!reduce &&
-              PULSES.map((p, i) => (
+            {PULSES.map((p, i) => (
                 <g key={`p${i}`} className="lb-pulse">
                   <circle r="11" className="lb-pulse-halo" />
                   <circle r="3.4" className="lb-pulse-core" />

@@ -81,7 +81,7 @@ Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top b
 - Visible focus ring on everything interactive; keyboard-operable controls; skip link; page title receives focus on route change.
 - Logical CSS properties (`inline-start`, `inset-inline`, `padding-inline`) so RTL needs no mirrored stylesheet.
 - Both languages ship together: Arabic is the source and English is typed against it (`app/i18n`), so a missing string is a compile error.
-- `prefers-reduced-motion` turns off backdrop drift, progress easing and page rise.
+- The public site (landing, login) always plays its motion, even when the system asks for reduced motion (product decision). The signed-in workspace still honours `prefers-reduced-motion`: it turns off backdrop drift, progress easing and page rise.
 
 ## 10. Do and don't
 - Do reuse the tokens in section 3; add a new token in `theme.css` for both themes if one is genuinely needed.
