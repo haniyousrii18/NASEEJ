@@ -116,6 +116,17 @@ const ar = {
     audit: 'سجل التدقيق',
     wall: 'الوصول السريري محجوب عن مسؤول المنصة بنيوياً، ولا تغيّره أي إعدادات.',
   },
+  tabs: {
+    profile: { title: 'الملف الشخصي', sub: 'الاسم والهاتف', panel: 'هكذا يظهر اسمك لفريق العمل وفي رسائل النظام.' },
+    contact: { title: 'التواصل والطوارئ', sub: 'هاتفك وجهة الطوارئ', panel: 'بيانات يراها فريق الرعاية في مراكزك.' },
+    sharing: { title: 'المشاركة والمرافقون', sub: 'من يطّلع على ملفك', panel: 'ملخص من لديهم وصول إلى ملفك الصحي.' },
+    access: { title: 'صلاحيات المتابعة', sub: 'المرضى الذين منحوك الوصول', panel: 'الصلاحيات التي منحك إياها المرضى.' },
+    org: { title: 'المركز والدور', sub: 'للقراءة فقط', panel: 'مركزك ودورك كما يسجلهما مدير المركز أو مسؤول المنصة.' },
+    platform: { title: 'إدارة المنصة', sub: 'روابط الإدارة', panel: 'المنصة تُدار من صفحاتها المخصصة.' },
+    security: { title: 'كلمة المرور والأمان', sub: 'كلمة المرور والجلسة', panel: 'حافظ على حسابك آمناً.' },
+    prefs: { title: 'اللغة والمظهر', sub: 'لغة الواجهة والوضع', panel: 'اختر كيف تظهر لك مساحة العمل.' },
+  },
+  roleNames: { patient: 'مريض', caregiver: 'مرافق', doctor: 'طبيب', reception: 'استقبال', care_coordinator: 'منسّق رعاية', center_manager: 'مدير المركز', platform_admin: 'مسؤول المنصة' },
   states: { loadError: 'تعذّر تحميل إعداداتك', empty: 'غير مسجَّل' },
   leave: 'لديك تعديلات لم تُحفظ. هل تريد المغادرة وفقدانها؟',
 };
@@ -236,6 +247,18 @@ const en: typeof ar = {
     audit: 'Audit Log',
     wall: 'Clinical access is structurally closed to the platform administrator, and no setting changes that.',
   },
+
+  tabs: {
+    profile: { title: 'Profile', sub: 'Name and phone', panel: 'This is how your name appears to your team and in system messages.' },
+    contact: { title: 'Contact and emergency', sub: 'Your phone and emergency contact', panel: 'Details your care team sees at your centers.' },
+    sharing: { title: 'Sharing and caregivers', sub: 'Who can see your file', panel: 'A summary of who has access to your health file.' },
+    access: { title: 'Access you were given', sub: 'Patients who granted access', panel: 'The access patients have granted you.' },
+    org: { title: 'Center and role', sub: 'Read-only', panel: 'Your center and role as recorded by the center manager or platform administrator.' },
+    platform: { title: 'Platform administration', sub: 'Admin links', panel: 'The platform is managed from its own pages.' },
+    security: { title: 'Password and security', sub: 'Password and session', panel: 'Keep your account safe.' },
+    prefs: { title: 'Language and appearance', sub: 'Interface language and mode', panel: 'Choose how your workspace looks to you.' },
+  },
+  roleNames: { patient: 'Patient', caregiver: 'Caregiver', doctor: 'Doctor', reception: 'Reception', care_coordinator: 'Care coordinator', center_manager: 'Center manager', platform_admin: 'Platform administrator' },
   states: { loadError: 'Your settings could not be loaded', empty: 'Not recorded' },
   leave: 'You have unsaved changes. Leave and lose them?',
 };

@@ -5,7 +5,8 @@ import { useTheme } from '../../context/ThemeContext.js';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate, nameOf, pick } from '../format.js';
 import type { AppRole } from '../nav.js';
-import { Async, Button, Card, Dialog, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
+import { AppIcon, type IconName } from '../AppIcons.js';
+import { Async, Button, Dialog, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { ScopeList } from './caregiver.js';
 
@@ -72,6 +73,15 @@ function useUnsavedGuard(dirty: boolean, message: string) {
   }, [dirty, message]);
 }
 
+/** One group of related controls inside a tab panel. `heading` is used only when a panel holds more than one group. */
+const Block: React.FC<{ heading?: string; hint?: string; children: React.ReactNode }> = ({ heading, hint, children }) => (
+  <div className="na-set-block">
+    {heading && <h3 className="na-set-h">{heading}</h3>}
+    {hint && <p className="na-set-hint">{hint}</p>}
+    {children}
+  </div>
+);
+
 const Scope: React.FC<{ kind: 'account' | 'center' | 'device'; editable?: boolean }> = ({ kind, editable }) => {
   const B = useA().settings.badges;
   return (
@@ -129,7 +139,7 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
   };
 
   return (
-    <Card title={S.account.title} hint={S.account.hint}>
+    <Block hint={S.account.hint}>
       <Scope kind="account" editable={data.nameEditable} />
       {data.nameEditable ? (
         <form onSubmit={submit} noValidate className="na-set-form">
@@ -173,7 +183,7 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
           <p className="na-muted">{S.account.nameManagedPatient}</p>
         </>
       )}
-    </Card>
+    </Block>
   );
 };
 
@@ -214,7 +224,7 @@ const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }
   };
 
   return (
-    <Card title={S.contact.title} hint={S.contact.hint}>
+    <Block hint={S.contact.hint}>
       <Scope kind="account" editable />
       <form onSubmit={submit} noValidate className="na-set-form">
         <div className="na-grid na-grid--2">
@@ -243,7 +253,7 @@ const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }
           {dirty && <span className="na-muted" role="status">{S.account.unsaved}</span>}
         </div>
       </form>
-    </Card>
+    </Block>
   );
 };
 
@@ -254,7 +264,7 @@ const PatientSharingSection: React.FC<{ navigate: (route: string) => void }> = (
   const consents = useApiData<Array<{ state: string }>>('/api/portal/consents');
   const count = (s: typeof caregivers.state) => (s.status === 'ready' ? String(s.data.filter((r) => r.state === 'active').length) : '…');
   return (
-    <Card title={S.sharing.title} hint={S.sharing.hint}>
+    <Block hint={S.sharing.hint}>
       <Scope kind="account" />
       <ul className="na-list">
         <li className="na-list-item">
@@ -282,7 +292,7 @@ const PatientSharingSection: React.FC<{ navigate: (route: string) => void }> = (
           </div>
         </li>
       </ul>
-    </Card>
+    </Block>
   );
 };
 
@@ -320,7 +330,7 @@ const CaregiverDelegationsSection: React.FC<{ navigate: (route: string) => void 
   };
 
   return (
-    <Card title={S.title} hint={S.hint}>
+    <Block hint={S.hint}>
       <Scope kind="account" editable={false} />
       {flash && <Notice tone={flash.tone} live>{flash.text}</Notice>}
       <Async state={list.state} onRetry={list.reload} isEmpty={(d) => d.filter((x) => x.state === 'active').length === 0} empty={<EmptyState title={S.none} body={S.noneBody} />}>
@@ -356,17 +366,17 @@ const CaregiverDelegationsSection: React.FC<{ navigate: (route: string) => void 
           </div>
         </Dialog>
       )}
-    </Card>
+    </Block>
   );
 };
 
 /* ------------------------------------------------------------------ Staff: read-only affiliation */
-const AffiliationSection: React.FC<{ centers: Center[]; showProfessional: boolean }> = ({ centers, showProfessional }) => {
+const AffiliationSection: React.FC<{ centers: Center[]; showProfessional: boolean; headed?: boolean }> = ({ centers, showProfessional, headed }) => {
   const A = useA();
   const S = A.settings.affiliations;
   if (centers.length === 0) return null;
   return (
-    <Card title={S.title} hint={S.hint}>
+    <Block heading={headed ? S.title : undefined} hint={S.hint}>
       <Scope kind="account" editable={false} />
       <ul className="na-list">
         {centers.map((c) => (
@@ -381,12 +391,12 @@ const AffiliationSection: React.FC<{ centers: Center[]; showProfessional: boolea
         ))}
       </ul>
       {showProfessional && <Pill tone="neutral">{A.settings.badges.managed}</Pill>}
-    </Card>
+    </Block>
   );
 };
 
 /* ------------------------------------------------------------------ Manager: whole-center details */
-const CenterSection: React.FC<{ centers: Center[]; navigate: (route: string) => void }> = ({ centers, navigate }) => {
+const CenterSection: React.FC<{ centers: Center[]; navigate: (route: string) => void; headed?: boolean }> = ({ centers, navigate, headed }) => {
   const A = useA();
   const S = A.settings.center;
   const { currentOrgId } = useAuth();
@@ -395,7 +405,7 @@ const CenterSection: React.FC<{ centers: Center[]; navigate: (route: string) => 
   if (!center) return null;
   const row = center as unknown as Record<string, unknown>;
   return (
-    <Card title={S.title} hint={S.hint}>
+    <Block heading={headed ? S.title : undefined} hint={S.hint}>
       <Scope kind="center" editable={false} />
       <Pill tone="neutral">{A.settings.badges.managedAdmin}</Pill>
       <dl className="na-dl">
@@ -411,7 +421,7 @@ const CenterSection: React.FC<{ centers: Center[]; navigate: (route: string) => 
         <Button small onClick={() => navigate('manager/services')}>{S.services}</Button>
         <Button small onClick={() => navigate('manager/schedule')}>{S.schedule}</Button>
       </div>
-    </Card>
+    </Block>
   );
 };
 
@@ -419,7 +429,7 @@ const CenterSection: React.FC<{ centers: Center[]; navigate: (route: string) => 
 const PlatformSection: React.FC<{ navigate: (route: string) => void }> = ({ navigate }) => {
   const S = useA().settings.platform;
   return (
-    <Card title={S.title} hint={S.hint}>
+    <Block hint={S.hint}>
       <Scope kind="account" />
       <div className="na-row">
         <Button small onClick={() => navigate('admin/centers')}>{S.centers}</Button>
@@ -427,7 +437,7 @@ const PlatformSection: React.FC<{ navigate: (route: string) => void }> = ({ navi
         <Button small onClick={() => navigate('admin/audit')}>{S.audit}</Button>
       </div>
       <Notice tone="info" icon="shield">{S.wall}</Notice>
-    </Card>
+    </Block>
   );
 };
 
@@ -438,7 +448,7 @@ const PreferencesSection: React.FC = () => {
   const { lang, setLang } = useLang();
   const { workspace } = useTheme();
   return (
-    <Card title={S.title} hint={S.hint}>
+    <Block hint={S.hint}>
       <Scope kind="device" editable />
       <div className="na-set-pref">
         <div role="group" aria-labelledby="set-lang-label">
@@ -464,7 +474,7 @@ const PreferencesSection: React.FC = () => {
           <p className="na-help">{S.themeHelp}</p>
         </div>
       </div>
-    </Card>
+    </Block>
   );
 };
 
@@ -519,7 +529,7 @@ const SecuritySection: React.FC = () => {
   );
 
   return (
-    <Card title={S.security.title} hint={S.security.hint}>
+    <Block hint={S.security.hint}>
       <Scope kind="account" editable />
       <form onSubmit={submit} noValidate className="na-set-form" autoComplete="off">
         <div className="na-grid na-grid--3">
@@ -539,36 +549,148 @@ const SecuritySection: React.FC = () => {
       <div className="na-row">
         <Button small icon="logout" onClick={logout}>{S.actions.signOut}</Button>
       </div>
-    </Card>
+    </Block>
   );
 };
 
 /* ------------------------------------------------------------------ The page */
+type TabId = 'profile' | 'contact' | 'sharing' | 'access' | 'org' | 'platform' | 'security' | 'prefs';
+
+const TAB_ICON: Record<TabId, IconName> = { profile: 'user', contact: 'message', sharing: 'users', access: 'users', org: 'building', platform: 'building', security: 'shield', prefs: 'globe' };
+
+/** Which tabs each role has, in display order. A tab exists only when it holds working controls. */
+const TABS_BY_ROLE: Record<AppRole, TabId[]> = {
+  patient: ['profile', 'contact', 'sharing', 'security', 'prefs'],
+  caregiver: ['profile', 'access', 'security', 'prefs'],
+  doctor: ['profile', 'org', 'security', 'prefs'],
+  reception: ['profile', 'org', 'security', 'prefs'],
+  care_coordinator: ['profile', 'org', 'security', 'prefs'],
+  center_manager: ['profile', 'org', 'security', 'prefs'],
+  platform_admin: ['profile', 'platform', 'security', 'prefs'],
+};
+
+const initials = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .filter((w) => /\p{L}/u.test(w))
+    .slice(0, 2)
+    .map((w) => Array.from(w)[0])
+    .join('')
+    .toUpperCase();
+
+const ProfileHeader: React.FC<{ data: AccountData; role: AppRole }> = ({ data, role }) => {
+  const A = useA();
+  const name = nameOf(A.lang, { full_name_ar: data.fullNameAr, full_name_en: data.fullNameEn });
+  return (
+    <div className="na-set-id">
+      <span className="na-set-avatar" aria-hidden="true">
+        {initials(name) || '·'}
+      </span>
+      <div className="na-set-id-text">
+        <strong>{name}</strong>
+        <span className="na-muted">
+          <bdi dir="ltr">{data.email}</bdi> · {A.settings.roleNames[role]}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export const Settings: React.FC<{ role: AppRole; navigate: (route: string) => void }> = ({ role, navigate }) => {
   const A = useA();
   const S = A.settings;
   const account = useApiData<AccountData>('/api/account');
   const reload = useCallback(() => void account.reload(), [account]);
+  const tabs = TABS_BY_ROLE[role];
+  const fromUrl = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('tab') as TabId | null;
+  const [tab, setTab] = useState<TabId>(fromUrl && tabs.includes(fromUrl) ? fromUrl : tabs[0]);
+
+  const select = (id: TabId) => {
+    setTab(id);
+    // Keep the tab in the address so a refresh or a shared link lands on it. No navigation happens, so no unsaved-edit prompt.
+    const route = window.location.hash.replace(/^#\/?/, '').split('?')[0];
+    window.history.replaceState(null, '', `#/${route}?tab=${id}`);
+  };
+
+  const onKey = (e: React.KeyboardEvent, i: number) => {
+    const forward = A.isRtl ? 'ArrowLeft' : 'ArrowRight';
+    const back = A.isRtl ? 'ArrowRight' : 'ArrowLeft';
+    let next = -1;
+    if (e.key === 'ArrowDown' || e.key === forward) next = (i + 1) % tabs.length;
+    else if (e.key === 'ArrowUp' || e.key === back) next = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = tabs.length - 1;
+    if (next < 0) return;
+    e.preventDefault();
+    select(tabs[next]);
+    document.getElementById(`set-tab-${tabs[next]}`)?.focus();
+  };
 
   return (
     <>
       <PageHead title={S.title} subtitle={S.roleIntro[role]} />
       <Async state={account.state} onRetry={account.reload}>
-        {(data) => (
-          <div className="na-set">
-            <AccountSection data={data} onSaved={reload} />
-            {role === 'patient' && data.patient && <PatientContactSection data={data} onSaved={reload} />}
-            {role === 'patient' && <PatientSharingSection navigate={navigate} />}
-            {role === 'caregiver' && <CaregiverDelegationsSection navigate={navigate} />}
-            {(role === 'doctor' || role === 'reception' || role === 'care_coordinator' || role === 'center_manager') && (
-              <AffiliationSection centers={data.centers} showProfessional={role === 'doctor'} />
-            )}
-            {role === 'center_manager' && <CenterSection centers={data.centers} navigate={navigate} />}
-            {role === 'platform_admin' && <PlatformSection navigate={navigate} />}
-            <PreferencesSection />
-            <SecuritySection />
-          </div>
-        )}
+        {(data) => {
+          // Every panel stays mounted (hidden when inactive) so unsaved edits survive a tab switch.
+          const panels: Record<TabId, React.ReactNode> = {
+            profile: (
+              <>
+                <ProfileHeader data={data} role={role} />
+                <AccountSection data={data} onSaved={reload} />
+              </>
+            ),
+            contact: data.patient ? <PatientContactSection data={data} onSaved={reload} /> : null,
+            sharing: <PatientSharingSection navigate={navigate} />,
+            access: <CaregiverDelegationsSection navigate={navigate} />,
+            org: (
+              <>
+                <AffiliationSection centers={data.centers} showProfessional={role === 'doctor'} headed={role === 'center_manager'} />
+                {role === 'center_manager' && <CenterSection centers={data.centers} navigate={navigate} headed />}
+              </>
+            ),
+            platform: <PlatformSection navigate={navigate} />,
+            security: <SecuritySection />,
+            prefs: <PreferencesSection />,
+          };
+          return (
+            <div className="na-set-shell">
+              <div className="na-set-nav" role="tablist" aria-orientation="vertical" aria-label={S.title}>
+                {tabs.map((id, i) => (
+                  <button
+                    key={id}
+                    id={`set-tab-${id}`}
+                    type="button"
+                    role="tab"
+                    className="na-set-tab"
+                    aria-selected={tab === id}
+                    aria-controls={`set-panel-${id}`}
+                    tabIndex={tab === id ? 0 : -1}
+                    onClick={() => select(id)}
+                    onKeyDown={(e) => onKey(e, i)}
+                  >
+                    <AppIcon name={TAB_ICON[id]} size={20} className="na-icon" />
+                    <span className="na-set-tab-text">
+                      <span className="na-set-tab-title">{S.tabs[id].title}</span>
+                      <span className="na-set-tab-sub">{S.tabs[id].sub}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <div className="na-set-content">
+                {tabs.map((id) => (
+                  <section key={id} id={`set-panel-${id}`} role="tabpanel" aria-labelledby={`set-tab-${id}`} hidden={tab !== id} className="na-set-panel">
+                    <header className="na-set-panel-h">
+                      <h2 className="na-set-panel-title">{S.tabs[id].title}</h2>
+                      <p className="na-set-panel-sub">{S.tabs[id].panel}</p>
+                    </header>
+                    {panels[id]}
+                  </section>
+                ))}
+              </div>
+            </div>
+          );
+        }}
       </Async>
     </>
   );
