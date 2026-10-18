@@ -12,7 +12,7 @@ web
 
 - Frontend: React 18, Vite, TypeScript, plain CSS design tokens (responsive, bilingual Arabic RTL / English LTR)
 - Backend: Node.js, Express, TypeScript / ES modules, pg (PostgreSQL driver)
-- Database: PostgreSQL (SQL migrations 001-003, relational schema with foreign keys and tenant scoping)
+- Database: PostgreSQL (SQL migrations 001-004, relational schema with foreign keys and tenant scoping)
 - Testing: Vitest and Supertest for API, permission and isolation tests
 - Optional AI: provider adapters inside the API (Google Gemini over HTTPS, Anthropic SDK), off unless configured
 
@@ -53,7 +53,10 @@ Unlike generic EHRs that isolate data inside one clinic, or networks that merge 
 - **AI document reading (optional)**: when a provider is configured and the patient allowed it for that file, a document can be read (OCR, type suggestion, candidate facts with page and passage). Results are unreviewed suggestions that a clinician accepts, corrects or rejects; they never appear to patients or caregivers as verified. Not run against a live provider yet.
 - **Synthetic data only**: real patient data is forbidden.
 - **Autonomous decisions prohibited**: the system does not diagnose, prescribe or change treatment.
-- **Not implemented**: notifications and email, privacy-request workflow, voice dictation, external identity provider, background job queue.
+- **In-app notifications**: created on the server after the business operation, minimal content (event type and a date or time), recipients from roles and active delegations, typed destinations, one quick action (confirm an appointment). Periodic refresh, not real time. Not an emergency channel. See `docs/notifications.md`.
+- **Account settings**: every role has a Settings page (profile, password, language and appearance; patients also edit contact and emergency details; caregivers see and can end their own access). The API acts on the signed-in account only.
+- **Installable app**: a PWA with a versioned static cache; authenticated API responses are never cached. See `docs/pwa.md`.
+- **Not implemented**: email and push notifications, privacy-request workflow, voice dictation, external identity provider, background job queue.
 
 ## Brand Commitments
 

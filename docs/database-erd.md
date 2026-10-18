@@ -302,3 +302,14 @@ erDiagram
 
 Additive and reversible (`database/migrations/rollback/002_down.sql`), applied by the tracked runner (`npm --prefix backend run migrate`). Adds `care_cases`, `care_tasks`, `care_referrals`, `care_followup_log` (append-only), provenance/review/visibility columns and `NOT VALID` check constraints on `documents`, consent status/scope constraints, the `care_coordinator` membership role, and indexes for timeline paging. Synthetic data: `database/seeds/synthetic_seed_002.sql`.
 `npm --prefix backend run migrate -- --reset` re-runs everything from 001 and **destroys data**; the API test suite changes state, so reseed (`migrate -- --reset` then `seed`) before re-running it.
+
+## 4. Migration 004: notifications
+
+Additive and reversible (`database/migrations/rollback/004_down.sql`). One table, `notifications`:
+- `id`, `recipient_user_id` (FK users, cascade), `recipient_role` (the role the person holds for this item), `organization_id` (nullable, FK organizations)
+- `event_type`, `category`, `params` (JSONB, allow-listed non-sensitive values only: dates, times, record kind)
+- `related_type`, `related_id` (the record concerned), `destination_kind` (a key of the client's typed map, never a URL), `destination_id` (the related record, or the delegation for a caregiver's patient-related item)
+- `dedupe_key` with a unique index on `(recipient_user_id, recipient_role, dedupe_key)`
+- `created_at`, `read_at` (seen), `handled_at` (set by the server when the record shows the task is done), `dismissed_at`, `expires_at`
+
+Indexes serve the inbox, the unread count and lookup by related record. No clinical text, names or message bodies are stored.

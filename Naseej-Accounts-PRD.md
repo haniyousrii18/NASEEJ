@@ -324,5 +324,10 @@ Written when this document was reconciled with the code. "Implemented" means the
 ### 15.7 Care Coordinator
 - Present in the application and unchanged. Operational follow-up only.
 
+### 15.7a Settings and notifications (all roles)
+- **Implemented:** every role (patient, caregiver, doctor, reception, center manager, platform administrator, care coordinator) has a Settings page at `#/<role>/settings`. All have Profile (display names and phone for staff and administrators; a patient's name comes from the registered identity), Password and security, and Language and appearance (stored on the device). Patients also have Contact and emergency details and a sharing summary; caregivers have a list of the access they were given with "end my access"; staff roles see their center and role read-only (doctors also licence and specialty); managers see their center's details read-only; administrators get links to platform pages. Nothing on these pages edits clinical content or widens access.
+- **Implemented:** every role has a notification bell and inbox. Recipients and destinations per event are in `docs/notifications.md`. Center managers receive none because the application has no supported manager event.
+- **Not implemented:** editing a center's contact details by its manager, notification preferences, active-session listing and remote sign-out, account deactivation.
+
 ### 15.8 Acceptance criteria (section 12)
 - Covered by automated tests in the repository: 2, 3, 4, 5, 6, 7, 8, 9. Criterion 1 now includes the caregiver and coordinator roles. Criterion 10, the end-to-end synthetic journey, is possible with the demo accounts in the README but was not re-run end to end after the workspace rebuild. Criterion 11 (Arabic and English) is implemented; a full manual review of every screen in both languages has not been done.
