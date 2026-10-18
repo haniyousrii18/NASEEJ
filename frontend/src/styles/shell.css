@@ -455,21 +455,22 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    transform: translateX(100%);
+    /* Closed: a fade with a slight drop, never positioned outside the viewport. A drawer parked outside the viewport widens the
+       scrollable area on phones (visible as a blank band and sideways scrolling), especially in RTL. */
+    transform: translateY(-8px);
+    opacity: 0;
     transition: transform var(--motion-duration-moderate) var(--motion-ease-out),
+                opacity var(--motion-duration-moderate) var(--motion-ease-out),
                 box-shadow var(--motion-duration-moderate) var(--motion-ease-out),
                 visibility 0s linear var(--motion-duration-moderate);
     visibility: hidden;
     pointer-events: none;
   }
 
-  [dir='rtl'] .site-collapsible {
-    transform: translateX(-100%);
-  }
-
   .site-collapsible[data-open='true'],
   .site-collapsible.is-open {
     transform: translateX(0);
+    opacity: 1;
     visibility: visible;
     pointer-events: auto;
     box-shadow: -14px 0 44px var(--drawer-shadow);
