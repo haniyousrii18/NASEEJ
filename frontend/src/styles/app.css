@@ -193,7 +193,8 @@
   text-transform: none;
 }
 
-.na-nav ul {
+.na-nav ul,
+.na-side-foot ul {
   display: flex;
   flex-direction: column;
   gap: 2px;

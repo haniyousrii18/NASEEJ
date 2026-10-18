@@ -235,7 +235,9 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
 
         <nav className="na-nav" aria-label={A.common.shell.primaryNav}>
           {role &&
-            NAV[role].map((group) => (
+            NAV[role]
+              .filter((group) => group.id !== 'account')
+              .map((group) => (
               <div key={group.id}>
                 <p className="na-group-label">{A.nav.groups[group.id]}</p>
                 <ul>
@@ -262,27 +264,36 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
         </nav>
 
         <div className="na-side-foot">
-          <button
-            type="button"
-            className="na-nav-link"
-            onClick={() => {
-              setCurrentView('home');
-              setDrawer(false);
-            }}
-            title={rail ? A.common.shell.publicSite : undefined}
-          >
-            <AppIcon name="external" className="na-icon" />
-            <span className="na-nav-label">{A.common.shell.publicSite}</span>
-          </button>
-          <button
-            type="button"
-            className="na-nav-link na-collapse-btn"
-            onClick={toggleCollapsed}
-            aria-pressed={collapsed}
-            title={collapsed ? A.common.shell.expand : A.common.shell.collapse}
-          >
-            <AppIcon name="collapse" className="na-icon na-collapse-icon" />
-            <span className="na-nav-label">{collapsed ? A.common.shell.expand : A.common.shell.collapse}</span>
+          {role &&
+            NAV[role]
+              .filter((group) => group.id === 'account')
+              .map((group) => (
+                <div key={group.id}>
+                  <p className="na-group-label">{A.nav.groups[group.id]}</p>
+                  <ul>
+                    {group.items.map((item) => (
+                      <li key={item.route}>
+                        <button
+                          type="button"
+                          className="na-nav-link"
+                          aria-current={isActive(item, route) ? 'page' : undefined}
+                          title={rail ? A.nav.items[item.label] : undefined}
+                          onClick={() => {
+                            navigate(item.route);
+                            setDrawer(false);
+                          }}
+                        >
+                          <AppIcon name={item.icon} className="na-icon" />
+                          <span className="na-nav-label">{A.nav.items[item.label]}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+          <button type="button" className="na-nav-link" onClick={signOut} title={rail ? A.common.shell.signOut : undefined}>
+            <AppIcon name="logout" className="na-icon" />
+            <span className="na-nav-label">{A.common.shell.signOut}</span>
           </button>
         </div>
       </aside>
@@ -309,6 +320,20 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
           >
             <AppIcon name={drawer ? 'close' : 'menu'} />
           </button>
+
+          {isDesktop && (
+            <button
+              type="button"
+              className="na-icon-btn na-collapse-btn"
+              onClick={toggleCollapsed}
+              aria-pressed={collapsed}
+              aria-controls="na-sidebar"
+              aria-label={collapsed ? A.common.shell.expand : A.common.shell.collapse}
+              title={collapsed ? A.common.shell.expand : A.common.shell.collapse}
+            >
+              <AppIcon name="collapse" className="na-collapse-icon" />
+            </button>
+          )}
 
           <div className="na-top-title">
             {found && <span className="na-top-group">{A.nav.groups[found.group.id]}</span>}
