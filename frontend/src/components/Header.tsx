@@ -214,6 +214,11 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           <button type="button" className="site-act" onClick={() => setLang(otherLang)} lang={otherLang} aria-label={otherLangName} title={otherLangName}>
             <GlobeIcon />
           </button>
+          {!user && currentView !== 'login' && (
+            <button type="button" className="site-act site-act--primary" onClick={() => go('login')} aria-label={t.nav.login} title={t.nav.login}>
+              <UserIcon />
+            </button>
+          )}
           {currentView !== 'login' && (
             <button
               type="button"
@@ -225,11 +230,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
               onClick={() => setOpen((o) => !o)}
             >
               <MenuIcon open={open} />
-            </button>
-          )}
-          {!user && currentView !== 'login' && (
-            <button type="button" className="site-act site-act--primary" onClick={() => go('login')} aria-label={t.nav.login} title={t.nav.login}>
-              <UserIcon />
             </button>
           )}
         </div>
