@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import type Anthropic from '@anthropic-ai/sdk';
 import { ENV } from '../../config/env.js';
 import { sanitizeAnalysis } from './sanitize.js';
 import { AnalyzeInput, DOCUMENT_TYPES, DocumentAnalysis, DocumentAnalysisProvider, FACT_KINDS, ProviderError } from './types.js';
@@ -53,6 +53,19 @@ const TOOL = {
   },
 };
 
+/**
+ * The SDK is loaded only when a document is actually analyzed. AI is optional and off by default, so a machine that
+ * has not run `npm install` since the SDK was added must still be able to start the API.
+ */
+async function loadSdk(): Promise<typeof Anthropic> {
+  try {
+    const mod: any = await import('@anthropic-ai/sdk');
+    return mod.default?.default ?? mod.default ?? mod;
+  } catch {
+    throw new ProviderError('NOT_CONFIGURED', 'The AI SDK is not installed. Run npm install.');
+  }
+}
+
 export class AnthropicProvider implements DocumentAnalysisProvider {
   readonly name = 'anthropic';
   readonly model = ENV.AI_MODEL;
@@ -63,7 +76,8 @@ export class AnthropicProvider implements DocumentAnalysisProvider {
 
   async analyze({ buffer, mimeType }: AnalyzeInput): Promise<DocumentAnalysis> {
     if (!this.isConfigured()) throw new ProviderError('NOT_CONFIGURED', 'The AI provider is not configured.');
-    const client = new Anthropic({ apiKey: ENV.ANTHROPIC_API_KEY, timeout: ENV.AI_TIMEOUT_MS, maxRetries: 1 });
+    const AnthropicClient = await loadSdk();
+    const client = new AnthropicClient({ apiKey: ENV.ANTHROPIC_API_KEY, timeout: ENV.AI_TIMEOUT_MS, maxRetries: 1 });
     const data = buffer.toString('base64');
     const source =
       mimeType === 'application/pdf'
