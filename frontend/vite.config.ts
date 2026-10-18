@@ -2,10 +2,12 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// App is served from the domain root. Change BASE if deployed under a sub-path (keep the trailing slash);
+// manifest paths, navigation fallback, API exclusion and the service worker scope follow it.
+const BASE = '/';
+
 export default defineConfig({
-  // App is served from the domain root. Change `base` here if it is deployed under a sub-path;
-  // manifest start_url/scope and the service worker scope follow it automatically.
-  base: '/',
+  base: BASE,
   plugins: [
     react(),
     VitePWA({
@@ -14,24 +16,24 @@ export default defineConfig({
       injectRegister: false, // registered manually in src/pwa/PwaPrompts.tsx
       includeAssets: ['logo.png', 'icons/apple-touch-icon.png'],
       manifest: {
-        id: '/',
+        id: './',
         name: 'Naseej | نَسيج — Connected Healthcare Platform',
         short_name: 'نَسيج',
         description:
           'منصة نسيج الصحية السحابية لربط الملفات الطبية وسجلات المرضى عبر المراكز والمستشفيات المتعددة بأعلى معايير الخصوصية والعزل التام.',
         lang: 'ar',
         dir: 'rtl',
-        start_url: '/',
-        scope: '/',
+        start_url: './',
+        scope: './',
         display: 'standalone',
         orientation: 'any',
-        background_color: '#1a1411',
-        theme_color: '#1a1411',
+        background_color: '#faf7f4',
+        theme_color: '#faf7f4',
         categories: ['medical', 'health', 'productivity'],
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
@@ -41,11 +43,11 @@ export default defineConfig({
         clientsClaim: false, // do not take over open tabs mid-session; the update banner controls it
         skipWaiting: false, // new worker waits until the user accepts the update
         // SPA routing: every navigation falls back to the precached shell, except API and file downloads.
-        navigateFallback: '/index.html',
+        navigateFallback: `${BASE}index.html`,
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           // Authenticated API traffic is never cached: no stale or cross-user clinical data.
-          { urlPattern: ({ url }) => url.pathname.startsWith('/api/'), handler: 'NetworkOnly' },
+          { urlPattern: new RegExp(`${BASE}api/`), handler: 'NetworkOnly' },
           // Google Fonts stylesheet: public, non-personal, safe to serve stale while revalidating.
           {
             urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
@@ -64,7 +66,8 @@ export default defineConfig({
           },
         ],
       },
-      devOptions: { enabled: false }, // no service worker during `vite dev`
+      // Service worker also runs under `vite dev` so the app is installable on the dev port (localhost counts as secure).
+      devOptions: { enabled: true, type: 'module', navigateFallbackAllowlist: [/^\/index\.html$/] },
     }),
   ],
   server: {

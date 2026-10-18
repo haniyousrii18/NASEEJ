@@ -200,7 +200,12 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
 
           <div className="site-end">
             <div className="site-tools">
-              {/* Install button hidden per user request */}
+              {installApp.available && (
+                <button type="button" className="site-util" onClick={() => void installApp.install()} aria-label={t.nav.install} title={t.nav.install}>
+                  <DownloadIcon />
+                  <span className="site-util-label">{t.nav.install}</span>
+                </button>
+              )}
               <ThemeToggle />
               <button
                 type="button"
