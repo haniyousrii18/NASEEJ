@@ -28,7 +28,8 @@ const roleOf = (req: Request): Role => (req.currentMembership!.role === 'doctor'
 const participantSql = (role: Role) =>
   role === 'doctor'
     ? `m.organization_id = $1 AND ((m.to_role = 'doctor' AND (m.to_user_id IS NULL OR m.to_user_id = $2)) OR m.from_user_id = $2)`
-    : `m.organization_id = $1 AND (m.from_role = 'reception' OR m.to_role = 'reception')`;
+    : // $2 is referenced too: PostgreSQL rejects a bound parameter that the statement never uses.
+      `m.organization_id = $1 AND $2::uuid IS NOT NULL AND (m.from_role = 'reception' OR m.to_role = 'reception')`;
 
 /** True when this account is on the receiving side of the message. */
 const isRecipient = (role: Role, m: any, userId: string) =>
