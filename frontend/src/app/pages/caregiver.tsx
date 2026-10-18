@@ -183,11 +183,6 @@ export const CaregiverPatient: React.FC<{ id: string; tab: string; navigate: (r:
         return (
           <>
             <PageHead title={name} back={{ label: C.back, onClick: () => navigate('caregiver/home') }} />
-            <div className="cg-banner" role="note">
-              <Pill tone="lilac">{A.common.roles.caregiver}</Pill>
-              <span>{fill(C.actingAs, { name })}</span>
-              <span className="na-muted">{fill(C.ends, { date: formatDate(A.lang, d.expires_at) })}</span>
-            </div>
             <nav className="na-tabs" aria-label={name}>
               {tabs.map((t) => (
                 <button key={t} type="button" className="na-tab" aria-current={current === t ? 'page' : undefined} onClick={() => navigate(`caregiver/patient/${id}/${t}`)}>

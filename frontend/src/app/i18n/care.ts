@@ -19,7 +19,6 @@ const ar = {
   caregiver: {
     homeTitle: 'الرعاية بالنيابة',
     homeSubtitle: 'ترى هنا من فوّضك للاطلاع على رعايته، وما الذي يشمله التفويض بالضبط.',
-    actingAs: 'أنت تتصرف بصفتك مرافقًا معتمدًا لـ {name}، ولست المريض نفسه.',
     scopeNote: 'يقتصر ما تراه وتفعله على ما حدّده المريض. تنتهي الصلاحية تلقائيًا في تاريخ الانتهاء أو عند سحبها.',
     invitations: 'دعوات بانتظارك',
     invitationBody: 'دعاك {name} إلى متابعة رعايته. لن يُتاح لك شيء قبل أن تقبل.',
@@ -292,7 +291,6 @@ const en: typeof ar = {
   caregiver: {
     homeTitle: 'Care on someone’s behalf',
     homeSubtitle: 'See who authorized you to follow their care, and exactly what the authorization covers.',
-    actingAs: 'You are acting as a caregiver for {name}. You are not the patient.',
     scopeNote: 'What you can see and do is limited to what the patient chose. Access ends on its own at the end date or when it is revoked.',
     invitations: 'Invitations waiting for you',
     invitationBody: '{name} invited you to follow their care. Nothing is available to you until you accept.',
