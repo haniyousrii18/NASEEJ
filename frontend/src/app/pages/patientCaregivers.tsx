@@ -81,12 +81,11 @@ export const PatientCaregivers: React.FC = () => {
     list.reload();
   };
 
-  const check = (key: 'view' | 'appointments' | 'messages', label: string, help: string) => (
+  const check = (key: 'view' | 'appointments' | 'messages', label: string) => (
     <label className="cg-check" key={key}>
       <input type="checkbox" checked={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.checked })} />
       <span>
         <strong>{label}</strong>
-        <span className="na-help">{help}</span>
       </span>
     </label>
   );
@@ -95,9 +94,6 @@ export const PatientCaregivers: React.FC = () => {
     <>
       <PageHead title={P.title} subtitle={P.subtitle} />
       <div className="na-stack">
-        <Notice tone="info" icon="shield">
-          {P.principle}
-        </Notice>
         {msg && (
           <Notice tone={msg.tone} live>
             {msg.text}
@@ -106,17 +102,17 @@ export const PatientCaregivers: React.FC = () => {
         <div className="na-grid na-grid--2">
           <Card title={P.inviteTitle}>
             <form className="na-form na-form--stack" onSubmit={submit} noValidate>
-              <Field label={P.email} htmlFor="cg-email" help={P.emailHelp}>
+              <Field label={P.email} htmlFor="cg-email">
                 <input id="cg-email" type="email" dir="ltr" className="na-input" autoComplete="off" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </Field>
-              <Field label={P.relationship} htmlFor="cg-rel" help={P.relationshipHelp}>
+              <Field label={P.relationship} htmlFor="cg-rel">
                 <input id="cg-rel" className="na-input" maxLength={60} value={form.relationship} onChange={(e) => setForm({ ...form, relationship: e.target.value })} />
               </Field>
               <fieldset className="na-fieldset">
                 <legend className="na-label">{P.permissions}</legend>
-                {check('view', P.permView, P.permViewHelp)}
-                {check('appointments', P.permAppointments, P.permAppointmentsHelp)}
-                {check('messages', P.permMessages, P.permMessagesHelp)}
+                {check('view', P.permView)}
+                {check('appointments', P.permAppointments)}
+                {check('messages', P.permMessages)}
               </fieldset>
               <Field label={P.duration} htmlFor="cg-days">
                 <select id="cg-days" className="na-select" value={form.days} onChange={(e) => setForm({ ...form, days: Number(e.target.value) })}>

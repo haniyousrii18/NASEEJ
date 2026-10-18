@@ -66,9 +66,6 @@ export const CaregiverHome: React.FC<{ navigate: (r: string) => void }> = ({ nav
     <>
       <PageHead title={C.homeTitle} subtitle={C.homeSubtitle} />
       <div className="na-stack">
-        <Notice tone="info" icon="shield">
-          {C.scopeNote}
-        </Notice>
         {message && (
           <Notice tone={message.tone} live>
             {message.text}
@@ -216,7 +213,6 @@ const CgSummary: React.FC<{ id: string }> = ({ id }) => {
   const summary = useApiData<PortalSummary>(`/api/caregiver/patients/${id}/summary`);
   return (
     <>
-      <Notice tone="info">{A.care.caregiver.summaryNote}</Notice>
       <Async state={summary.state} onRetry={summary.reload}>
         {(s) => <SummaryView s={s} />}
       </Async>
@@ -292,7 +288,7 @@ const CgRequest: React.FC<{ id: string; onSent: () => void }> = ({ id, onSent })
   };
 
   return (
-    <Card title={C.newRequest} hint={C.requestHint}>
+    <Card title={C.newRequest}>
       <form className="na-form" onSubmit={submit} noValidate>
         <Field label={C.center} htmlFor="cg-center">
           <select id="cg-center" className="na-select" value={orgId} onChange={(e) => { setOrg(e.target.value); setDoctor(''); setSlot(''); }}>

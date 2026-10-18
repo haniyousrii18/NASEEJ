@@ -45,7 +45,6 @@ const DocRow: React.FC<{ item: TimelineItem; aiConfigured: boolean; onChanged: (
         {aiState && <Pill tone={AI_TONE[aiState] ?? 'neutral'}>{(L.aiStates as Record<string, string>)[aiState] ?? aiState}</Pill>}
         {Number(item.data.factsReviewed) > 0 && <Pill tone="ok">{fill(L.factsReviewed, { n: Number(item.data.factsReviewed) })}</Pill>}
       </div>
-      <span className="na-help">{reviewed ? L.verifiedHelp : L.pendingHelp}</span>
       <div className="na-row">
         <Button small variant="quiet" icon="download" onClick={() => download(item.source.id, String(item.data.fileName || 'document'))}>
           {L.sourceFile}
@@ -137,7 +136,6 @@ export const PatientLibrary: React.FC = () => {
               </select>
             </Field>
           </div>
-          <p className="na-help">{L.specialtyNote}</p>
           <Async state={docs.state} onRetry={docs.reload} isEmpty={(d) => d.length === 0} empty={<EmptyState title={A.record.documents.docsEmpty} body={A.record.documents.docsEmptyBody} />}>
             {() =>
               visible.length === 0 ? (

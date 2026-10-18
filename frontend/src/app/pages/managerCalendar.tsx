@@ -70,7 +70,7 @@ export const ManagerCalendar: React.FC<{ doctors: Array<{ user_id: string; full_
   };
 
   return (
-    <Card title={C.title} hint={C.subtitle}>
+    <Card title={C.title}>
       <div className="mc-bar-top">
         <div className="rec-filters" role="group" aria-label={C.title}>
           {(['week', 'month'] as View[]).map((v) => (
@@ -116,7 +116,6 @@ export const ManagerCalendar: React.FC<{ doctors: Array<{ user_id: string; full_
           );
         }}
       </Async>
-      <p className="na-help">{C.note}</p>
     </Card>
   );
 };
