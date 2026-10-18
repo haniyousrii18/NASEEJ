@@ -682,6 +682,19 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .scene *,
+  .scene *::after,
+  .scene-group {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .scene-ecg-pulse {
+    stroke-dasharray: none;
+  }
+}
+
 /* Narrow screens: the illustration sits on top and the text follows on the hero surface. */
 @media (max-width: 959px) {
   .hero {
@@ -1091,3 +1104,14 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .lb *,
+  .lb {
+    animation: none !important;
+  }
+
+  .lb-layer--back,
+  .lb-layer--front {
+    transform: none;
+  }
+}

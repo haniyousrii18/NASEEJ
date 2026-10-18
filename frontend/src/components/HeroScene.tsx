@@ -41,12 +41,12 @@ export const HeroScene: React.FC = () => {
   const L = t.landing;
   const ref = useRef<HTMLDivElement>(null);
 
-  // Gentle pointer parallax. Skipped on touch screens.
+  // Gentle pointer parallax. Skipped for reduced motion and touch screens.
   useEffect(() => {
     const el = ref.current;
     const host = el?.closest('.hero');
     if (!el || !host) return;
-    if (window.matchMedia('(pointer: coarse)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia('(pointer: coarse)').matches) return;
     let raf = 0;
     const set = (x: number, y: number) => {
       cancelAnimationFrame(raf);
