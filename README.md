@@ -58,7 +58,7 @@ Details per role: [docs/workspaces.md](docs/workspaces.md).
 - **Database:** PostgreSQL 16+, plain SQL migrations in `database/migrations`.
 - **Tests:** Vitest and Supertest (backend, against a real PostgreSQL), Vitest (frontend).
 - **Files:** protected local storage outside any web root (`storage/protected/`), served only through authorized routes.
-- **Optional AI:** `@anthropic-ai/sdk` behind a provider adapter in `backend/src/services/ai`.
+- **Optional AI:** provider adapters in `backend/src/services/ai` for Google Gemini (plain HTTPS, free tier available) and Anthropic (`@anthropic-ai/sdk`).
 
 Repository layout:
 
@@ -117,16 +117,25 @@ Off by default. With no key, uploaded files simply wait for a clinician to revie
 To turn it on, set in `.env` (never commit the key):
 
 ```ini
-AI_PROVIDER=anthropic
-ANTHROPIC_API_KEY=your-key
-AI_MODEL=claude-sonnet-5-5
+# Option A: Google Gemini (free key from https://aistudio.google.com)
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your-key
+
+# Option B: Anthropic (paid credits, https://console.anthropic.com)
+# AI_PROVIDER=anthropic
+# ANTHROPIC_API_KEY=your-key
+
+# Optional: override the default model (gemini-2.5-flash / claude-sonnet-5-5)
+# AI_MODEL=
 ```
 
+Restart the backend after editing `.env`. A synthetic file to try is in `docs/samples/synthetic-lab-report.pdf` (added in a separate PR if not yet merged).
+
 What to know before enabling it:
-- The file is sent to the provider's API. Use **synthetic files only** unless your own data-protection policy allows an external processor.
+- The file is sent to the provider's API. Use **synthetic files only** unless your own data-protection policy allows an external processor. **On Google's free tier, content may be used to improve Google's products and seen by human reviewers.**
 - A patient's file is processed only after that patient allowed it for that file.
 - Results are stored as *unreviewed suggestions* (with page, passage and the model's own confidence). A clinician must accept, correct or reject each one. Patients and caregivers never see unreviewed suggestions.
-- This path has been type-checked and reviewed but has **not** been run against a live provider yet.
+- The Gemini adapter is covered by unit tests with a stubbed HTTP call (`backend/tests/ai-providers.test.ts`). Neither adapter has been run against a live provider yet.
 
 More detail: [docs/workspaces.md](docs/workspaces.md#aiocr).
 

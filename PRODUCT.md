@@ -14,7 +14,7 @@ web
 - Backend: Node.js, Express, TypeScript / ES modules, pg (PostgreSQL driver)
 - Database: PostgreSQL (SQL migrations 001-003, relational schema with foreign keys and tenant scoping)
 - Testing: Vitest and Supertest for API, permission and isolation tests
-- Optional AI: provider adapter inside the API (`@anthropic-ai/sdk`), off unless configured
+- Optional AI: provider adapters inside the API (Google Gemini over HTTPS, Anthropic SDK), off unless configured
 
 ## Users
 

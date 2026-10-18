@@ -1,5 +1,6 @@
 import { ENV } from '../../config/env.js';
 import { AnthropicProvider } from './anthropicProvider.js';
+import { GeminiProvider } from './geminiProvider.js';
 import { DocumentAnalysisProvider } from './types.js';
 
 /**
@@ -8,6 +9,7 @@ import { DocumentAnalysisProvider } from './types.js';
  */
 export function getProvider(): DocumentAnalysisProvider | null {
   if (ENV.AI_PROVIDER === 'anthropic') return new AnthropicProvider();
+  if (ENV.AI_PROVIDER === 'gemini') return new GeminiProvider();
   return null;
 }
 
