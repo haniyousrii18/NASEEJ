@@ -20,6 +20,8 @@ export const ENV = {
   // Optional AI document analysis. Off unless AI_PROVIDER and the matching key are set. Never commit a real key.
   AI_PROVIDER: (process.env.AI_PROVIDER || '').toLowerCase(),
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
-  AI_MODEL: process.env.AI_MODEL || 'claude-sonnet-5-5',
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  // Empty means each provider uses its own default model.
+  AI_MODEL: process.env.AI_MODEL || '',
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '120000', 10),
 };
