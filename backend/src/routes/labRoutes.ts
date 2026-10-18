@@ -6,6 +6,7 @@ import { blockPlatformAdminFromClinical, requireClinicalReader } from '../middle
 import { isPatientLinkedToOrg } from '../services/accessService.js';
 import { isUuid } from '../services/validation.js';
 import { logAuditEvent } from '../services/auditService.js';
+import { onRecordApproved } from '../services/notificationService.js';
 
 export const labRouter = Router();
 
@@ -210,6 +211,8 @@ labRouter.post('/results/:id/approve', async (req: Request, res: Response): Prom
       ipAddress: req.ip,
       details: { parameter: approveRes.rows[0].parameter_name },
     });
+    const owner = await query('SELECT patient_id FROM lab_orders WHERE id = $1', [approveRes.rows[0].lab_order_id]);
+    if (owner.rows[0]) await onRecordApproved('lab_result', resultId, owner.rows[0].patient_id, orgId, clinicianId);
 
     res.json({ success: true, data: approveRes.rows[0] });
   } catch (err: any) {

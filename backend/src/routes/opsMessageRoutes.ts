@@ -7,6 +7,7 @@ import { logAuditEvent } from '../services/auditService.js';
 import { isActiveDoctorInOrg } from '../services/appointmentService.js';
 import { isPatientLinkedToOrg } from '../services/accessService.js';
 import { apiError, isUuid, serverError, trimmed } from '../services/validation.js';
+import { onOpsMessage, onOpsReply } from '../services/notificationService.js';
 
 /**
  * Operational messages between reception and clinicians of ONE center. They coordinate bookings, arrivals and
@@ -199,6 +200,7 @@ opsMessageRouter.post('/', async (req: Request, res: Response): Promise<void> =>
       // Message text is never copied into the audit trail.
       details: { count: 1, ...(patientId ? { patientId } : {}) },
     });
+    await onOpsMessage({ id: insert.rows[0].id, organization_id: orgId, to_role: toRole as 'doctor' | 'reception', to_user_id: role === 'reception' ? recipient : null }, req.user!.id);
     const created = await query(`${SELECT} WHERE m.id = $1`, [insert.rows[0].id]);
     res.status(201).json({ success: true, data: { ...created.rows[0], direction: 'sent' } });
   } catch (err) {
@@ -242,6 +244,7 @@ opsMessageRouter.post('/:id/replies', async (req: Request, res: Response): Promi
       ipAddress: req.ip,
       details: { count: 1 },
     });
+    await onOpsReply(insert.rows[0].id, message.id, req.tenantId!, req.user!.id, role as 'doctor' | 'reception');
     res.status(201).json({ success: true, data: insert.rows[0] });
   } catch (err) {
     res.status(500).json(serverError(err));

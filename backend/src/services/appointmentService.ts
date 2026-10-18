@@ -1,5 +1,6 @@
 import { query, withTransaction } from '../config/db.js';
 import { toMinutes } from './validation.js';
+import { onAppointmentRequested } from './notificationService.js';
 
 export interface AppointmentSlot {
   start_time: string;
@@ -82,7 +83,7 @@ export async function createPendingAppointment(input: {
 }): Promise<PendingAppointmentOutcome> {
   const { patientId, organization_id, clinician_id, appointment_date, start_time, end_time } = input;
   const patientUserId = input.createdBy;
-  return withTransaction(async (client) => {
+  const outcome = await withTransaction(async (client) => {
     // Use the same lock key as staff bookings so patient requests cannot race a staff booking.
     await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`${organization_id}:${clinician_id}:${appointment_date}`]);
 
@@ -125,4 +126,9 @@ export async function createPendingAppointment(input: {
     );
     return { created: created.rows[0] as Record<string, unknown> };
   });
+  // Told only after the request is stored; a notification problem never fails the request.
+  if ('created' in outcome) {
+    await onAppointmentRequested(outcome.created as any, patientUserId);
+  }
+  return outcome;
 }

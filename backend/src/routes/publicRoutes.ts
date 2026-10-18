@@ -3,6 +3,7 @@ import { query } from '../config/db.js';
 import { authenticate } from '../middleware/auth.js';
 import { requirePlatformAdmin } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
+import { onDemoRequest } from '../services/notificationService.js';
 
 export const publicRouter = Router();
 
@@ -35,6 +36,7 @@ publicRouter.post('/demo-requests', async (req: Request, res: Response): Promise
       details: { organizationName: organization_name, contactName: contact_name },
     });
 
+    await onDemoRequest(insertRes.rows[0].id);
     res.status(201).json({
       success: true,
       data: {
