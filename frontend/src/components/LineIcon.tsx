@@ -58,6 +58,13 @@ export const DownloadIcon: React.FC = () => (
   </svg>
 );
 
+export const UserIcon: React.FC = () => (
+  <svg {...base} width={18} height={18}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c1-4 4.5-6 8-6s7 2 8 6" />
+  </svg>
+);
+
 export const GlobeIcon: React.FC = () => (
   <svg {...base} width={18} height={18}>
     <circle cx="12" cy="12" r="9" />

@@ -65,7 +65,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact }) => {
   return (
     <button
       type="button"
-      className={`site-util${compact ? ' site-util--compact' : ''}`}
+      className={compact ? 'site-act' : 'site-util'}
       aria-label={description}
       title={description}
       onClick={() => setPreference(target)}
