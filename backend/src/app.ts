@@ -16,6 +16,9 @@ import { coordinationRouter } from './routes/coordinationRoutes.js';
 import { centerRouter } from './routes/centerRoutes.js';
 import { adminRouter } from './routes/adminRoutes.js';
 import { doctorRouter } from './routes/doctorRoutes.js';
+import { documentReviewRouter } from './routes/documentReviewRoutes.js';
+import { patientCaregiverRouter, caregiverRouter } from './routes/caregiverRoutes.js';
+import { opsMessageRouter } from './routes/opsMessageRoutes.js';
 
 export const app: Express = express();
 
@@ -43,11 +46,15 @@ app.use('/api/appointments', appointmentRouter);
 app.use('/api/visits', visitRouter);
 app.use('/api/prescriptions', prescriptionRouter);
 app.use('/api/labs', labRouter);
+app.use('/api/portal/caregivers', patientCaregiverRouter);
 app.use('/api/portal', portalRouter);
 app.use('/api/audit-logs', auditRouter);
 app.use('/api/public', publicRouter);
 app.use('/api/portal/consents', consentRouter);
+app.use('/api/documents', documentReviewRouter);
 app.use('/api/documents', documentRouter);
+app.use('/api/caregiver', caregiverRouter);
+app.use('/api/ops-messages', opsMessageRouter);
 app.use('/api/coordination', coordinationRouter);
 app.use('/api/center', centerRouter);
 app.use('/api/admin', adminRouter);

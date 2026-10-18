@@ -2083,3 +2083,827 @@
     animation: none;
   }
 }
+
+/* ------------------------------------------------------------------ reception schedule */
+.na-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.na-flip {
+  transform: scaleX(-1);
+}
+
+[dir='rtl'] .na-flip {
+  transform: none;
+}
+
+[dir='rtl'] .na-flip-rtl {
+  transform: scaleX(-1);
+}
+
+.na-sched-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.na-sched-title {
+  margin: 0;
+  min-width: 11ch;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 620;
+}
+
+.na-sched-scroll {
+  overflow-x: auto;
+  margin: -4px;
+  padding: 4px;
+}
+
+.na-sched {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: separate;
+  border-spacing: 4px;
+  table-layout: fixed;
+}
+
+.na-sched--week {
+  min-width: 760px;
+}
+
+.na-sched--month {
+  min-width: 520px;
+}
+
+.na-sched th {
+  padding: 6px 4px;
+  font-size: 13px;
+  font-weight: 560;
+  color: var(--color-body-gray);
+  text-align: center;
+}
+
+.na-sched tbody th {
+  width: 56px;
+  font-variant-numeric: tabular-nums;
+}
+
+.na-sched td {
+  height: 44px;
+  padding: 0;
+  vertical-align: top;
+}
+
+.na-sched th[data-today] {
+  color: var(--color-ink);
+}
+
+.na-sched-daybtn {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.na-sched-daybtn b {
+  font-size: 15px;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+
+.na-sched-daybtn:hover,
+.na-sched-day:hover {
+  background: var(--color-cloud-card-hover);
+}
+
+th[data-today] .na-sched-daybtn {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.na-sched-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-subtle);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.na-sched-chip[aria-pressed='true'] {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.na-sched-chip[data-status='pending'],
+.na-sched-chip[data-status='no_show'] {
+  background: var(--color-status-draft-bg);
+  border-color: var(--color-status-draft-border);
+  color: var(--color-status-draft-text);
+}
+
+.na-sched-chip[data-status='no_show'] {
+  border-style: dashed;
+}
+
+.na-sched-chip[data-status='confirmed'] {
+  background: var(--color-status-info-bg);
+  border-color: var(--color-status-info-border);
+  color: var(--color-status-info-text);
+}
+
+.na-sched-chip[data-status='checked_in'],
+.na-sched-chip[data-status='in_consultation'] {
+  background: var(--color-status-approved-bg);
+  border-color: var(--color-status-approved-border);
+  color: var(--color-status-approved-text);
+}
+
+.na-sched-chip-text {
+  display: grid;
+  min-width: 0;
+}
+
+.na-sched-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 560;
+}
+
+.na-sched-chip-status {
+  font-size: 12px;
+}
+
+.na-sched-free {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 44px;
+  border: 1px dashed var(--color-border-strong, var(--color-border-subtle));
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-body-gray);
+  cursor: pointer;
+}
+
+.na-sched-free:hover {
+  background: var(--color-cloud-card-hover);
+  color: var(--color-ink);
+}
+
+.na-sched-off {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border-radius: 10px;
+  background: var(--color-bg-subtle);
+  color: var(--color-body-gray);
+}
+
+.na-sched-day {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  width: 100%;
+  min-height: 72px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-elevated);
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.na-sched-day b {
+  font-variant-numeric: tabular-nums;
+}
+
+.na-sched-day span {
+  font-size: 12.5px;
+  color: var(--color-body-gray);
+}
+
+.na-sched-day[data-level='1'] {
+  background: color-mix(in srgb, var(--color-accent) 7%, var(--color-bg-elevated));
+}
+
+.na-sched-day[data-level='2'] {
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-bg-elevated));
+}
+
+.na-sched-day[data-level='3'] {
+  background: color-mix(in srgb, var(--color-accent) 22%, var(--color-bg-elevated));
+}
+
+.na-sched-day[data-today] {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+/* ------------------------------------------------------------------ side drawer (reception) */
+.na-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+  background: var(--color-overlay);
+}
+
+.na-drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  height: 100%;
+  background: var(--color-bg-elevated);
+  border-inline-start: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-modal);
+  animation: na-drawer-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.na-drawer-h {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(18px, env(safe-area-inset-top)) 20px 14px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.na-drawer-h p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+}
+
+.na-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  padding: 18px 20px max(20px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.na-drawer-section {
+  display: grid;
+  gap: 10px;
+}
+
+.na-drawer-section h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 620;
+}
+
+.na-drawer-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.na-drawer-facts dt {
+  color: var(--color-body-gray);
+}
+
+.na-drawer-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.na-drawer-pick {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.na-drawer-pick button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-subtle);
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.na-drawer-pick button:hover {
+  background: var(--color-cloud-card-hover);
+}
+
+@keyframes na-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[dir='rtl'] .na-drawer {
+  animation-name: na-drawer-in-rtl;
+}
+
+@keyframes na-drawer-in-rtl {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-drawer,
+  [dir='rtl'] .na-drawer {
+    animation: none;
+  }
+}
+
+.na-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 560;
+  text-align: start;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong, var(--color-border-subtle));
+  text-underline-offset: 3px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.na-link:hover {
+  text-decoration-color: currentColor;
+}
+
+/* ------------------------------------------------------------------ reception quick find */
+.na-qf-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.na-qf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-strong, var(--color-border-subtle));
+  background: var(--color-bg-elevated);
+  color: var(--color-body-gray);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.na-qf-btn:hover {
+  background: var(--color-cloud-card-hover);
+  color: var(--color-ink);
+}
+
+.na-qf-btn kbd {
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-subtle);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: center;
+}
+
+@media (hover: none) {
+  .na-qf-btn kbd {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   Workspace component language (see DESIGN.md section 5; Naseej tokens)
+   Large radius cards on a hairline, filled quiet inputs that gain a ring on focus, capsule buttons and badges.
+   Colour comes only from the existing landing tokens (orange accent in light, warm onyx in dark); nothing here
+   defines a palette. Every rule is scoped to .na-app, so public pages cannot be affected.
+   ============================================================================= */
+.na-app {
+  --na-radius: 24px;
+  --na-field-radius: 18px;
+  --na-card-shadow: 0 0 0 1px color-mix(in srgb, var(--color-ink) 4%, transparent), 0 1px 3px color-mix(in srgb, var(--color-ink) 8%, transparent);
+}
+
+.na-app .na-card,
+.na-app .na-stat {
+  border-radius: var(--na-radius);
+  box-shadow: var(--na-card-shadow);
+}
+
+.na-app .na-input,
+.na-app .na-select,
+.na-app .na-textarea {
+  border-radius: var(--na-field-radius);
+  background: var(--color-bg-subtle);
+  border-color: transparent;
+}
+
+.na-app .na-input:focus-visible,
+.na-app .na-select:focus-visible,
+.na-app .na-textarea:focus-visible {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-elevated);
+}
+
+.na-app .na-pill {
+  padding: 2px 10px;
+  letter-spacing: 0;
+}
+
+.na-app .na-notice {
+  border-radius: var(--na-field-radius);
+}
+
+.na-app .na-title,
+.na-app .na-card-title {
+  letter-spacing: -0.015em;
+}
+
+/* ------------------------------------------------------------------ caregiver and delegation */
+.cg-scopes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13.5px;
+}
+
+.cg-scopes li[data-on='false'] {
+  color: var(--color-text-muted);
+}
+
+.cg-scopes li[data-on='true'] {
+  color: var(--color-status-approved-text);
+  font-weight: 560;
+}
+
+.cg-card {
+  display: grid;
+  gap: 8px;
+}
+
+.cg-sub {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-body-gray);
+}
+
+.cg-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 16px;
+  margin-block-end: 14px;
+  border-radius: var(--na-field-radius);
+  border: 1px dashed var(--color-status-lilac-border);
+  background: var(--color-status-lilac-bg);
+}
+
+.cg-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  cursor: pointer;
+}
+
+.cg-check input {
+  inline-size: 20px;
+  block-size: 20px;
+  margin-block-start: 2px;
+  accent-color: var(--color-accent);
+  flex: none;
+}
+
+.cg-check > span {
+  display: grid;
+  gap: 2px;
+}
+
+/* ------------------------------------------------------------------ AI suggestions (always labelled, never styled as confirmed) */
+.ai-panel {
+  display: grid;
+  gap: 12px;
+  margin-block-start: 10px;
+}
+
+.ai-title,
+.ai-group {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 620;
+}
+
+.ai-group {
+  margin-block: 10px 6px;
+  color: var(--color-body-gray);
+}
+
+.ai-facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.ai-fact {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px dashed var(--color-status-lilac-border);
+  background: var(--color-bg-subtle);
+  border-inline-start: 4px solid var(--color-status-lilac-border);
+}
+
+.ai-fact[data-status='accepted'],
+.ai-fact[data-status='corrected'] {
+  border-style: solid;
+  border-inline-start-color: var(--color-status-approved-text);
+}
+
+.ai-fact[data-status='rejected'] {
+  opacity: 0.72;
+  border-inline-start-color: var(--color-status-danger-text);
+}
+
+.ai-fact-main {
+  margin: 0;
+}
+
+.ai-fact-value {
+  margin-inline-start: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-fact-passage {
+  margin: 0;
+  padding: 8px 12px;
+  border-inline-start: 2px solid var(--color-border-strong);
+  display: grid;
+  gap: 2px;
+  font-size: 13.5px;
+}
+
+.ai-fact-passage q {
+  quotes: none;
+}
+
+/* ------------------------------------------------------------------ operational messages */
+.ops-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--na-gap);
+  align-items: start;
+}
+
+.ops-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ops-item {
+  inline-size: 100%;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  text-align: start;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-subtle);
+  background: transparent;
+}
+
+.ops-item:hover {
+  background: var(--color-bg-subtle);
+}
+
+.ops-item[aria-current='true'] {
+  border-color: var(--color-accent);
+  background: var(--color-bg-subtle);
+}
+
+.ops-item[data-unread='true'] strong {
+  font-weight: 700;
+}
+
+.ops-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ops-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ops-questions > li {
+  display: grid;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .ops-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------------ document library and upload progress */
+.doc-filters {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+}
+
+.doc-row {
+  display: grid;
+  gap: 6px;
+}
+
+.up-progress {
+  position: relative;
+  margin-block-start: 12px;
+  block-size: 22px;
+  border-radius: 999px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.up-progress > span {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  transition: inline-size 120ms linear;
+}
+
+.up-progress > small {
+  position: relative;
+  display: block;
+  padding-inline: 12px;
+  font-size: 12px;
+  line-height: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .up-progress > span {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ manager calendar (counts only) */
+.mc-bar-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-block-end: 8px;
+}
+
+.mc-grid {
+  display: grid;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.mc-head,
+.mc-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(112px, 1fr));
+  gap: 6px;
+}
+
+.mc-head span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-body-gray);
+  text-align: center;
+}
+
+.mc-cell {
+  inline-size: 100%;
+  min-block-size: 92px;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 8px 10px;
+  text-align: start;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-elevated);
+}
+
+.mc-cell:hover {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-strong);
+}
+
+.mc-cell[data-today='true'] {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.mc-day {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-load,
+.mc-mix {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--color-body-gray);
+}
+
+.mc-bar {
+  block-size: 6px;
+  border-radius: 999px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.mc-bar i {
+  display: block;
+  block-size: 100%;
+  background: var(--color-accent);
+}
+
+.mc-empty {
+  min-block-size: 92px;
+}
+
+/* Filter chips are shared by the doctor record and the new message and calendar screens. Their tokens used to exist
+   only inside the doctor record (.rec), so outside it the chips had no border or text color. */
+.na-app {
+  --rec-line: var(--color-border-strong);
+  --rec-muted: var(--color-body-gray);
+  --rec-ink: var(--color-ink);
+}

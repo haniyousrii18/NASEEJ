@@ -10,7 +10,7 @@ import { apiError, isUuid, serverError } from '../services/validation.js';
 export const organizationRouter = Router();
 
 // Roles a membership can hold. Only a platform administrator may create a center manager.
-const MEMBER_ROLES = ['doctor', 'reception', 'care_coordinator', 'center_manager'] as const;
+const MEMBER_ROLES = ['doctor', 'reception', 'care_coordinator', 'center_manager', 'caregiver'] as const;
 type MemberRole = (typeof MEMBER_ROLES)[number];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

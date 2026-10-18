@@ -38,13 +38,15 @@ interface Props {
   /** Restricts the record types offered (e.g. a page that only needs documents). */
   types?: TimelineItem['type'][];
   pageSize?: number;
+  /** False for a caregiver: original files are downloaded by the patient and clinicians only. */
+  canDownload?: boolean;
 }
 
 /**
  * The chronological record. Filters by type, center and date; pages with a cursor; every entry shows where it
  * came from (center, author, provenance, review state) and links to its source. It never summarizes or interprets.
  */
-export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize = 20 }) => {
+export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize = 20, canDownload = true }) => {
   const A = useA();
   const T = A.record.timeline;
   const request = useRequest();
@@ -214,7 +216,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                   </button>
                   {openIds.has(item.id) && (
                     <div className="na-tl-detail">
-                      <Details item={item} onDownload={async () => {
+                      <Details item={item} onDownload={!canDownload ? undefined : async () => {
                         const failure = await download(item.source.id, String(item.data.fileName || 'document'));
                         setNotice(failure ? T.downloadFailed : '');
                       }} />
@@ -266,7 +268,7 @@ export function titleOf(item: TimelineItem, A: ReturnType<typeof useA>): string 
 }
 
 /** The recorded fields of one entry. Values are shown as stored; nothing is rated, ranked or summarized. */
-const Details: React.FC<{ item: TimelineItem; onDownload: () => void }> = ({ item, onDownload }) => {
+const Details: React.FC<{ item: TimelineItem; onDownload?: () => void }> = ({ item, onDownload }) => {
   const A = useA();
   const R = A.common.record;
   const d = item.data;
@@ -334,11 +336,13 @@ const Details: React.FC<{ item: TimelineItem; onDownload: () => void }> = ({ ite
           {row(R.fileName, d.fileName)}
           {row(R.fileSize, formatBytes(d.fileSize))}
         </dl>
-        <div>
-          <Button small icon="download" onClick={onDownload}>
-            {R.download}
-          </Button>
-        </div>
+        {onDownload && (
+          <div>
+            <Button small icon="download" onClick={onDownload}>
+              {R.download}
+            </Button>
+          </div>
+        )}
       </div>
     );
   }

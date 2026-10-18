@@ -36,6 +36,7 @@ export const as = {
   receptionNoor: () => tokenFor('reception.noor@naseej.health'),
   coordinatorNoor: () => tokenFor('coordinator.noor@naseej.health'),
   patient: () => tokenFor('patient@naseej.health'),
+  caregiverNoor: () => tokenFor('caregiver.noor@naseej.health'),
 };
 
 type Method = 'get' | 'post' | 'patch' | 'put' | 'delete';
@@ -48,17 +49,23 @@ export function call(method: Method, path: string, token: string, orgId?: string
 }
 
 /** A future date that varies per run, so repeated runs on one database do not collide on booked slots. */
-export function futureDate(offsetDays = 40): string {
-  const d = new Date(Date.now() + (offsetDays + Math.floor(Math.random() * 300)) * 86400000);
+export function futureDate(offsetDays = 40, spreadDays = 300): string {
+  const d = new Date(Date.now() + (offsetDays + Math.floor(Math.random() * spreadDays)) * 86400000);
   return d.toISOString().slice(0, 10);
 }
 
+/** A random hour of the day (0-16), so tests booking on a random date rarely meet a slot taken by an earlier run. */
+export const quietHour = () => Math.floor(Math.random() * 17);
+
 /** A calendar day safely in the past, randomised so repeated runs do not collide on the same slot. */
-export function pastDate(offsetDays = 30): string {
-  const d = new Date(Date.now() - (offsetDays + Math.floor(Math.random() * 300)) * 86400000);
+export function pastDate(offsetDays = 30, spreadDays = 3000): string {
+  const d = new Date(Date.now() - (offsetDays + Math.floor(Math.random() * spreadDays)) * 86400000);
   return d.toISOString().slice(0, 10);
 }
 
 /** Smallest valid PDF-looking buffer (the server checks magic bytes, not content). */
 export const tinyPdfBase64 = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n').toString('base64');
 export const tinyPngBase64 = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(32)]).toString('base64');
+
+/** The seeded active delegation (seed 003): patient 1 -> caregiver.noor, view records + manage appointments, no messaging. */
+export const SEEDED_DELEGATION = 'c0000000-0000-0000-0000-000000000001';

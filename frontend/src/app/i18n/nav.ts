@@ -13,6 +13,7 @@ const ar = {
     people: 'الفريق',
     platform: 'المنصة',
     oversight: 'الرقابة',
+    delegated: 'الرعاية بالنيابة',
   },
   items: {
     patientHome: 'الرئيسية',
@@ -23,11 +24,14 @@ const ar = {
     patientAppointments: 'المواعيد',
     patientMessages: 'الأسئلة والأعراض',
     patientConsents: 'الموافقات والمشاركة',
+    patientCaregivers: 'المرافقون المعتمدون',
+    caregiverHome: 'من أتابع رعايتهم',
 
     doctorHome: 'لوحة الطبيب',
     doctorAppointments: 'مواعيدي',
     doctorPatients: 'البحث عن مريض',
     doctorPending: 'بانتظار الاعتماد',
+    doctorMessages: 'الرسائل',
 
     coordHome: 'لوحة التنسيق',
     coordCases: 'الحالات التي أتابعها',
@@ -39,6 +43,7 @@ const ar = {
     receptionSchedule: 'جدول اليوم',
     receptionBook: 'حجز موعد',
     receptionPatients: 'بحث إداري عن مريض',
+    receptionMessages: 'رسائل الأطباء',
 
     managerHome: 'لوحة المركز',
     managerSchedule: 'المواعيد والموارد',
@@ -72,6 +77,7 @@ const en: typeof ar = {
     people: 'Team',
     platform: 'Platform',
     oversight: 'Oversight',
+    delegated: 'Delegated care',
   },
   items: {
     patientHome: 'Home',
@@ -82,11 +88,14 @@ const en: typeof ar = {
     patientAppointments: 'Appointments',
     patientMessages: 'Questions and Symptoms',
     patientConsents: 'Consents and Sharing',
+    patientCaregivers: 'Authorized Caregivers',
+    caregiverHome: 'People I Support',
 
     doctorHome: 'Doctor Dashboard',
     doctorAppointments: 'My Appointments',
     doctorPatients: 'Find a Patient',
     doctorPending: 'Pending Sign-off',
+    doctorMessages: 'Messages',
 
     coordHome: 'Coordination Dashboard',
     coordCases: 'Cases I Follow',
@@ -98,6 +107,7 @@ const en: typeof ar = {
     receptionSchedule: "Today's Schedule",
     receptionBook: 'Book Appointment',
     receptionPatients: 'Administrative Patient Search',
+    receptionMessages: 'Clinician Messages',
 
     managerHome: 'Center Dashboard',
     managerSchedule: 'Appointments and Resources',

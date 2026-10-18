@@ -1,6 +1,6 @@
 # Naseej | نَسيج — Five-Account Workspace PRD
 
-**Document status:** Working draft  
+**Document status:** Working draft, reconciled with the implementation (see section 15 for what exists)  
 **Scope:** Authenticated workspaces and account architecture for five roles  
 **Product:** Multi-tenant healthcare information platform  
 **Languages:** Arabic (primary, RTL) and English (LTR)
@@ -21,7 +21,7 @@ It covers what each role can do, the shared authenticated application, account a
 
 The public landing page, marketing website, demo-request flow, and login page are outside this PRD. Authentication is treated as an upstream entry point: this document begins after a user has authenticated and the system has resolved their role and permitted organization context.
 
-This PRD describes the intended five-role product scope. The current repository also contains care-coordination routes and workspaces; those are explicitly excluded from this five-account baseline and should not be treated as a sixth role in this document.
+This PRD describes the original five-role scope. **As built, the application has seven workspaces:** these five, an authorized **Caregiver** workspace (added later), and a **Care Coordinator** workspace that is outside this baseline and was left unchanged. A later product decision also rebuilt the Patient, Caregiver, Doctor, Reception and Center Manager workspaces together; where that decision differs from the requirement text below, section 15 says so and the implementation is what the product does today.
 
 ## 2. Product Summary
 
@@ -86,11 +86,11 @@ Roles are mutually constrained by authorization policy. A user may have membersh
 
 - Public landing page and marketing site.
 - Login, registration, password recovery, and external identity-provider user journeys. Their post-authentication role resolution contract is included, but their screens are not.
-- Care coordinator as a standalone sixth account/workspace for this baseline.
-- Optional caregiver account as a separate role.
+- Care coordinator as a standalone account/workspace in this baseline. (It exists in the application, unchanged, and is not described here.)
+- Caregiver accounts in the original baseline. (Implemented later; see section 15 and `docs/workspaces.md`.)
 - Real patient data, production clinical deployment, and regulatory certification claims.
 - Autonomous diagnosis, treatment selection, or prescription generation.
-- OCR, AI-generated clinical summaries, and external HIS/HL7 integrations unless separately approved in a later PRD.
+- Autonomous AI summaries and external HIS/HL7 integrations. (Optional AI document reading was added later as unreviewed suggestions only; see section 15.)
 
 ## 7. Shared Authenticated Application Architecture
 
@@ -281,15 +281,48 @@ A patient may be linked to more than one center, with a distinct local MRN per c
 
 ## 13. Risks, Assumptions, and Open Decisions
 
-- **Role inventory mismatch:** The current repository includes a care coordinator role and workspace. This PRD intentionally limits the baseline to five accounts. Product owners must decide whether coordinator remains a separate future role or whether any coordinator duties should be reassigned to one of the five roles.
+- **Role inventory:** The application includes a care coordinator workspace in addition to the five roles here, and a caregiver workspace. Product owners still need to decide whether the coordinator remains a separate role.
 - **Center manager clinical access:** This PRD assumes managers see operational metadata but do not see clinical content by default. Any exception requires an explicit permission and audit policy.
-- **Cross-center sharing:** Consent structures may exist before complete sharing workflows. No cross-center access should be inferred until the feature is implemented and verified end to end.
+- **Cross-center sharing:** Implemented: the patient grants a scoped, expiring, revocable consent between two centers they are registered at, the server checks it on every read, and each cross-center read is audited. A patient-center link alone still grants nothing.
 - **Authentication:** The login page and provider selection are excluded, but the identity, role, membership, session revocation, and active-organization contracts must remain compatible with this workspace architecture.
-- **Caregiver access:** Not included in the five-role baseline. Delegated access requires a separate consent and authorization specification.
+- **Caregiver access:** Not part of the original baseline. A conservative implementation now exists (patient-granted, scoped, expiring delegations enforced server-side; see `docs/workspaces.md`). Guardianship for minors and incapacitated adults is still unspecified.
 - **Production readiness:** The prototype's synthetic-data and local-evaluation context does not establish production security, compliance, availability, or clinical safety certification.
 
 ## 14. Source Files and Alignment Notes
 
 This draft is based on the repository's `PRODUCT.md`, `Naseej-PRD.md`, `docs/architecture.md`, `docs/user-guide.md`, `docs/traceability-matrix.md`, and the authenticated application routes/workspaces under `frontend/src/app`.
 
-The current application route model contains a sixth `care_coordinator` role. The five-account scope here is deliberate and should be reconciled against that implementation before this document is treated as a final product baseline.
+The application route model contains `caregiver` and `care_coordinator` roles in addition to the five here (section 15).
+
+## 15. Implementation status by role
+
+Written when this document was reconciled with the code. "Implemented" means the screens and server routes exist and were reviewed; backend tests exist for most boundaries, but the tests for caregiver delegation, operational messages and AI review (migration 003) were written and have not yet been run on a database with 003 applied. This is not a certification or clinical-validation claim.
+
+### 15.1 Platform Administrator (section 8.1)
+- **Implemented:** overview (service health, active and suspended centers, accounts, audit events in 24 hours, new demo requests), centers, accounts and roles, demo requests, audit log. Clinical routes are blocked and audited.
+- **Differs from the text above:** the text makes centers read-only and puts account administration and audit review out of scope. The application lets the administrator add and suspend centers, manage accounts, and read the audit log.
+- **Not implemented:** support tracking (support requests list and the email on resolution).
+
+### 15.2 Medical Center Manager (section 8.2)
+- **Implemented:** overview, working hours of each clinician (windows and activation), a center calendar (week and month) showing booked appointments against slot capacity with counts only, staff and roles (add staff and caregiver logins, change role and status, never the last active manager), services derived from doctors' specialties, aggregate reports, coordination oversight, and a center activity log with clinical keys redacted.
+- **Differs from the text above (later product decision):** the manager now manages clinician schedules and sees schedule load, can add staff accounts and change their status, and has coordination oversight. The text excluded all of this. The rule that managers never see individual clinical records is unchanged and enforced by the API.
+- **Not implemented:** center events calendar, announcements by role (in system and by email), operational risk alerts, editing the center's contact details, patient ratings and complaints, versioned center policies, and center-level working hours with date exceptions.
+
+### 15.3 Doctor / Clinician (section 8.3)
+- **Implemented:** appointments, authorized patient record, visit drafts with approval, prescriptions with allergy visibility, lab orders and results, provenance and review state on every item, document review, AI suggestions to accept, correct or reject (when AI is configured), an inbox of patient and caregiver questions, and operational messages from reception.
+
+### 15.4 Reception Staff (section 8.4)
+- **Implemented:** patient registration with a center-specific MRN, administrative patient search, booking with server-side conflict prevention, confirm / decline / reschedule / cancel, check-in, day / week / month calendar with a clinician view, a stale-data indicator, and operational messages to clinicians. No clinical content is returned to reception.
+
+### 15.5 Patient (section 8.5)
+- **Implemented:** approved record, timeline, a document library with upload progress and filters (center, source, review state, date), medications, appointments, questions and symptoms, cross-center consent, and caregiver authorization with access history and revocation.
+
+### 15.6 Caregiver (added after this baseline)
+- **Implemented:** the caregiver signs in, accepts or declines an invitation addressed to their email, sees exactly what is included, and can view the approved record, request appointments and message the care team only if the patient allowed each. Every request is checked on the server against an active, unexpired delegation. Caregivers never see drafts or AI suggestions and cannot download files.
+- **Open policy decisions:** guardianship for minors and incapacitated adults, whether caregivers may download original files, maximum delegation length (currently 365 days).
+
+### 15.7 Care Coordinator
+- Present in the application and unchanged. Operational follow-up only.
+
+### 15.8 Acceptance criteria (section 12)
+- Covered by automated tests in the repository: 2, 3, 4, 5, 6, 7, 8, 9. Criterion 1 now includes the caregiver and coordinator roles. Criterion 10, the end-to-end synthetic journey, is possible with the demo accounts in the README but was not re-run end to end after the workspace rebuild. Criterion 11 (Arabic and English) is implemented; a full manual review of every screen in both languages has not been done.

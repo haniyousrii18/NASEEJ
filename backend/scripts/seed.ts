@@ -51,6 +51,15 @@ async function runSeed() {
       console.log('[Seed] Migration 002 not applied: skipped seed 002. Run `npm run migrate` first.');
     }
 
+    // Seed 003 needs migration 003 (caregiver delegations, operational messages, AI review).
+    const has003 = (await pool.query("SELECT to_regclass('public.caregiver_delegations') AS t")).rows[0].t !== null;
+    if (has003) {
+      await pool.query(fs.readFileSync(path.join(seedsDir, 'synthetic_seed_003.sql'), 'utf-8'));
+      console.log('[Seed] Synthetic seed 003 (caregiver demo account and delegation) applied.');
+    } else {
+      console.log('[Seed] Migration 003 not applied: skipped seed 003. Run `npm run migrate` first.');
+    }
+
     console.log('[Seed] Synthetic seed data successfully applied.');
     await pool.end();
   } catch (err) {

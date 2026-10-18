@@ -1,442 +1,86 @@
-# Bevel — Style Reference
-> Morning metrics in cloudlight. Build screens as a bright white health journal punctuated by a softly glowing wearable dashboard.
-
-**Theme:** light
-
-Source measurements are normalized; roles and recommendations are interpreted. Font summary lists are independent, not paired by position. HTML examples are reconstructions, not source components.
-
-Bevel frames health data as a sunlit consumer device experience: a white editorial canvas, near-black SF Pro headlines, mist-blue bento surfaces, and realistic iPhone/Apple Watch product imagery. Oversized 600-weight headings use tight negative tracking and compact line-height, while supporting copy stays soft gray and generously spaced. Color is restrained in the site shell; pale sky gradients and small multicolor health-data rings are reserved for product visuals and feature atmosphere rather than universal controls.
-
-## Tokens — Colors
-
-| Name | Value | Token | Role |
-|------|-------|-------|------|
-| Paper White | `#ffffff` | `--color-paper-white` | Page backgrounds, navigation surfaces, footer backgrounds, and open whitespace |
-| Charcoal | `#1f2025` | `--color-charcoal` | Filled download controls, dark surface blocks, logos, and monochrome iconography |
-| Ink | `#222326` | `--color-ink` | Display headings, section headings, feature titles, and primary text |
-| Cloud Card | `#ebf0f8` | `--color-cloud-card` | Feature-card surfaces, light icon fills, and text inside Charcoal download controls |
-| Body Gray | `#747679` | `--color-body-gray` | Body copy, muted navigation links, helper text, and secondary labels |
-| Signal Gold | `#ffca00` | `--color-signal-gold` | Rating stars and small positive health-data indicators |
-| Coral Signal | `#ffab94` | `--color-coral-signal` | Warm metric accents and lower-edge washes in feature visualizations |
-| Recovery Green | `#31ce01` | `--color-recovery-green` | Recovery rings and green-tinted metric visualizations |
-| Metric Blue | `#415eee` | `--color-metric-blue` | Circular metric indicators and blue gradient treatments in product visuals |
-| Sleep Lilac | `#b9a6ff` | `--color-sleep-lilac` | Sleep-oriented metric rings and soft violet visual accents |
-| Hero Sky | `linear-gradient(#d2e5ff, #fff9ee)` | `--color-hero-sky` | Top hero atmosphere behind the device composition, fading from cool daylight into warm paper |
-
-## Tokens — Typography
-
-### -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif — SF Pro system typography carries every interface layer. Use 600-weight display text at 40px–80px with -0.03em tracking: its compact, almost lockup-like lines make wellness claims feel like product labels rather than editorial copy. Use 400-weight body text at 18px–24px and 500-weight navigation/actions at 16px–18px. · `--font-apple-system-blinkmacsystemfont-inter-segoe-ui-sans-serif`
-- **Substitute:** Inter
-- **Weights:** 400, 500, 600
-- **Sizes:** 12px, 16px, 18px, 24px, 40px, 64px, 80px
-- **Line height:** 0.90, 1.00, 1.10, 1.30, 1.40
-- **Letter spacing:** -2.4px at 80px, -1.92px at 64px, -1.2px at 40px, -0.24px at 24px, +0.16px at 18px navigation, and normal at 16px body controls
-- **Role:** SF Pro system typography carries every interface layer. Use 600-weight display text at 40px–80px with -0.03em tracking: its compact, almost lockup-like lines make wellness claims feel like product labels rather than editorial copy. Use 400-weight body text at 18px–24px and 500-weight navigation/actions at 16px–18px.
-
-### Type Scale
-
-| Role | Family | Weight | Size | Line Height | Letter Spacing | Token |
-|------|--------|--------|------|-------------|----------------|-------|
-| caption | -apple-system | 400 | 12px | 1.1 | 0px | `--text-caption` |
-| nav | -apple-system | 500 | 16px | 1.4 | 0px | `--text-nav` |
-| brand-nav | -apple-system | 500 | 18px | 1.4 | 0.162px | `--text-brand-nav` |
-| body | -apple-system | 400 | 24px | 1.3 | 0px | `--text-body` |
-| section-label | -apple-system | 600 | 24px | 0.9 | -0.24px | `--text-section-label` |
-| card-heading | -apple-system | 600 | 40px | 1 | -1.2px | `--text-card-heading` |
-| display | -apple-system | 600 | 64px | 1 | -1.92px | `--text-display` |
-| hero-display | -apple-system | 600 | 80px | 1 | -2.4px | `--text-hero-display` |
-
-## Tokens — Spacing & Shapes
-
-**Base unit:** 8px
-
-**Density:** comfortable
-
-### Spacing Scale
-
-| Name | Value | Token |
-|------|-------|-------|
-| 8 | 8px | `--spacing-8` |
-| 16 | 16px | `--spacing-16` |
-| 24 | 24px | `--spacing-24` |
-| 32 | 32px | `--spacing-32` |
-| 40 | 40px | `--spacing-40` |
-| 48 | 48px | `--spacing-48` |
-| 80 | 80px | `--spacing-80` |
-| 96 | 96px | `--spacing-96` |
-| 160 | 160px | `--spacing-160` |
-
-### Border Radius
-
-| Element | Value |
-|---------|-------|
-| cards | 24-32px |
-| pills | 9999px |
-| images | 16-24px |
-| buttons | 128px |
-| navigation | 32px |
-
-### Shadows
-
-| Name | Value | Token |
-|------|-------|-------|
-| md | `rgba(0, 0, 0, 0.25) 0px 0px 16px -8px` | `--shadow-md` |
-| subtle | `rgb(255, 255, 255) 0px 1px 0px 0px inset, rgba(255, 255, ...` | `--shadow-subtle` |
-| lg | `rgb(255, 255, 255) 0px 0px 24px 0px inset` | `--shadow-lg` |
-| md-2 | `rgba(0, 0, 0, 0.15) 0px 2px 16px 0px` | `--shadow-md-2` |
-| subtle-2 | `rgba(255, 255, 255, 0.36) 0px 1px 0px 0px inset` | `--shadow-subtle-2` |
-
-### Layout
-
-- **Section gap:** 80px
-- **Card padding:** 32px
-- **Element gap:** 16px
-
-## Components
-
-### Floating Capsule Navigation
-**Role:** Public-site header
-
-Use a Paper White (#ffffff) rounded bar with a 32px radius, a 12-20px backdrop blur, and 16px internal control spacing. Brand text is Ink at 18px/25.2px, weight 500, +0.16px tracking; secondary links are Body Gray at 16px/22.4px, weight 500.
-
-### Charcoal Download Pill
-**Role:** Public conversion control
-
-Fill with Charcoal (#1f2025), set Cloud Card (#ebf0f8) label and Apple icon color, use 128px radius, 8px vertical and 16px horizontal padding, and 16px/22.4px weight-500 text. Keep the control short and capsule-shaped rather than promoting it into a rectangular button.
-
-### Cloudlight Device Hero
-**Role:** Hero product showcase
-
-Use the Hero Sky gradient from #d2e5ff to #fff9ee as a tall rounded visual field, then center layered iPhone and Apple Watch renders beneath an Ink headline. Keep the device artwork raw and dimensional; the hero background, not a card border, contains the composition.
-
-### Hero Rating Strip
-**Role:** App-store proof
-
-Place compact Signal Gold (#ffca00) stars beside small Body Gray metadata below the Charcoal download pill. Use 12px text for metadata and keep the strip visually subordinate to the hero callout.
-
-### Wearable Partner Row
-**Role:** Compatibility proof
-
-Center an Ink 24px/21.6px, weight-600 heading with -0.24px tracking above a single horizontal row of monochrome partner wordmarks. Keep wordmarks Charcoal (#1f2025) with generous 24px gaps and no enclosing cards.
-
-### Recognition Laurel Pair
-**Role:** Editorial social proof
-
-Render two small neutral-gray laurel marks and award labels centered above the next display headline. Use Body Gray (#747679) for the labels and preserve a 16px gap between the two awards.
-
-### Community Story Carousel Card
-**Role:** Member social-proof media
-
-Use portrait-format photographic and app-capture tiles with 16px rounded corners. Apply the image lift shadow rgba(0, 0, 0, 0.25) 0px 0px 16px -8px and allow outer carousel tiles to fade into the page edge.
-
-### Cloud Feature Card
-**Role:** Health metric explanation
-
-Use a Cloud Card (#ebf0f8) surface with a 24px radius and 32px padding. Set the feature name in Ink at 40px/40px, weight 600, -1.2px tracking; body copy uses Body Gray at 24px/31.2px, weight 400.
-
-### Inset Metric Visualization
-**Role:** Feature-card product preview
-
-Layer compact health charts, circular scores, and metric chips inside rounded 16px-24px imagery. Use Recovery Green (#31ce01), Metric Blue (#415eee), Sleep Lilac (#b9a6ff), and Coral Signal (#ffab94) only as data-category accents against pale surfaces.
-
-### Elevated QR Download Card
-**Role:** Persistent mobile-download prompt
-
-Use a compact Charcoal (#1f2025) card with Cloud Card (#ebf0f8) text and a high-contrast QR code. Round the card to 16px and apply rgba(0, 0, 0, 0.15) 0px 2px 16px 0px elevation.
-
-### Footer Link Group
-**Role:** Site footer navigation
-
-Group Ink (#222326) 18px/25.2px weight-500 links under compact headings on Paper White (#ffffff). Use 16px vertical link spacing and preserve the generous 160px section padding used around footer content.
-
-## Do's and Don'ts
-
-### Do
-- Use Paper White (#ffffff) as the default canvas and Cloud Card (#ebf0f8) for large feature surfaces.
-- Set display headings in Ink (#222326), weight 600, with -0.03em tracking at the 40px, 64px, and 80px steps.
-- Use 80px vertical section gaps and 32px padding inside Cloud Feature Cards.
-- Use 128px radius, 8px 16px padding, Charcoal (#1f2025) fill, and Cloud Card (#ebf0f8) text for public download buttons.
-- Use 24px or 32px card radii and 16px-24px radii for product imagery.
-- Keep Body Gray (#747679) supporting copy at 24px/31.2px, weight 400.
-- Restrict Recovery Green (#31ce01), Metric Blue (#415eee), Sleep Lilac (#b9a6ff), and Coral Signal (#ffab94) to health-data visuals and soft washes.
-
-### Don't
-- Do not use saturated metric colors as universal page backgrounds or filled public conversion buttons.
-- Do not set large headings above 600 weight or remove their -0.03em tracking.
-- Do not use square buttons; public download controls require a 128px radius.
-- Do not add visible borders to Cloud Feature Cards; use #ebf0f8 surfaces with no border and no shadow.
-- Do not replace the 80px section rhythm with dense 24px-40px stacked sections.
-- Do not use heavy drop shadows on cards; reserve rgba(0, 0, 0, 0.25) 0px 0px 16px -8px for floating imagery.
-- Do not turn the supporting Body Gray (#747679) copy into black or weight 600 text.
-
-## Surfaces
-
-| Level | Name | Value | Purpose |
-|-------|------|-------|---------|
-| 0 | Paper White | `#ffffff` | Primary page canvas, open sections, navigation, and footer. |
-| 1 | Cloud Card | `#ebf0f8` | Feature-card backgrounds and pale inset surfaces. |
-| 2 | Charcoal | `#1f2025` | Download pills, QR prompt surfaces, and dark monochrome blocks. |
-
-## Elevation
-
-- **Community Story Carousel Card:** `rgba(0, 0, 0, 0.25) 0px 0px 16px -8px`
-- **Elevated QR Download Card:** `rgba(0, 0, 0, 0.15) 0px 2px 16px 0px`
-
-## Imagery
-
-Product-render imagery leads the page: a realistic iPhone dashboard and Apple Watch overlap within the hero, with soft reflections and raw device edges rather than flat illustrations. Community proof appears as a horizontal sequence of portrait social posts, candid fitness images, food captures, and app screenshots, each rounded at 16px and softly lifted from the white canvas. Product visuals use small multicolor data rings and metric chips against mostly pale UI surfaces; the site shell itself remains almost entirely monochrome. Partner logos are black wordmarks, while award laurels are faint gray editorial marks. The composition is text-dominant between media moments, with imagery used as product evidence and member proof rather than decoration.
-
-## Layout
-
-The page is a vertically scrolling, center-aligned public landing page on Paper White, opening with a large rounded full-width hero field rather than a boxed content panel. A floating capsule navigation bar sits over the hero and remains visually available as the page moves through product imagery. The first screen centers a large two-line headline, muted supporting copy, a pill download control, compact rating proof, and overlapping phone-and-watch renders over a pale sky-to-warm gradient. Subsequent sections use broad white bands with centered compatibility logos, award proof, and large centered display statements; a horizontal community-media strip breaks the text rhythm with edge-faded portrait tiles. The lower content shifts to centered introduction copy followed by a three-column row of pale-blue feature cards, creating spacious 80px section intervals rather than dense dashboard stacking.
-
-## Agent Prompt Guide
-
-Quick Color Reference:
-- Paper White: #ffffff — Page backgrounds, navigation surfaces, footer backgrounds, and open whitespace
-- Charcoal: #1f2025 — Filled download controls, dark surface blocks, logos, and monochrome iconography
-- Ink: #222326 — Display headings, section headings, feature titles, and primary text
-- Cloud Card: #ebf0f8 — Feature-card surfaces, light icon fills, and text inside Charcoal download controls
-- Body Gray: #747679 — Body copy, muted navigation links, helper text, and secondary labels
-- Signal Gold: #ffca00 — Rating stars and small positive health-data indicators
-- Coral Signal: #ffab94 — Warm metric accents and lower-edge washes in feature visualizations
-- Recovery Green: #31ce01 — Recovery rings and green-tinted metric visualizations
-- Metric Blue: #415eee — Circular metric indicators and blue gradient treatments in product visuals
-- Sleep Lilac: #b9a6ff — Sleep-oriented metric rings and soft violet visual accents
-- Hero Sky: linear-gradient(#d2e5ff, #fff9ee) — Top hero atmosphere behind the device composition, fading from cool daylight into warm paper
-
-Create a centered health-app hero on the Hero Sky gradient, with an Ink (#222326) 80px/80px, weight-600 headline tracked at -2.4px; place Body Gray (#747679) 24px/31.2px copy, a Charcoal Download Pill, then overlapping iPhone and Apple Watch renders.
-Create a compatibility section on Paper White (#ffffff) with an Ink (#222326) 24px/21.6px, weight-600 heading tracked at -0.24px and a centered monochrome partner-wordmark row with 24px gaps.
-Create three Cloud Feature Cards using #ebf0f8, 24px radius, and 32px padding; set each title in Ink at 40px/40px, weight 600, -1.2px tracking, and its supporting copy in Body Gray at 24px/31.2px.
-Create a community-story carousel of rounded 16px portrait media tiles, using photographic member posts and app captures with rgba(0, 0, 0, 0.25) 0px 0px 16px -8px shadows and faded outer edges.
-
-## Similar Brands
-
-- **Gentler Streak** — Shares the Apple-platform health framing, large SF-style type, pale surfaces, and wearable-data visualization.
-- **Apple Fitness+** — Shares prominent Apple Watch product imagery, dark capsule controls, and restrained metric-color accents.
-- **Oura** — Shares a bright wellness canvas with product-led health insights and compact circular score visualizations.
-- **WHOOP** — Shares wearables-centered performance tracking, recovery-focused metric categories, and member-proof content.
-
-## Quick Start
-
-### CSS Custom Properties
-
-```css
-:root {
-  /* Colors */
-  --color-paper-white: #ffffff;
-  --color-charcoal: #1f2025;
-  --color-ink: #222326;
-  --color-cloud-card: #ebf0f8;
-  --color-body-gray: #747679;
-  --color-signal-gold: #ffca00;
-  --color-coral-signal: #ffab94;
-  --color-recovery-green: #31ce01;
-  --color-metric-blue: #415eee;
-  --color-sleep-lilac: #b9a6ff;
-  --color-hero-sky: #d2e5ff;
-  --gradient-hero-sky: linear-gradient(#d2e5ff, #fff9ee);
-
-  /* Typography — Font Families */
-  --font-apple-system-blinkmacsystemfont-inter-segoe-ui-sans-serif: '-apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-  /* Typography — Scale */
-  --text-caption: 12px;
-  --leading-caption: 1.1;
-  --tracking-caption: 0px;
-  --text-nav: 16px;
-  --leading-nav: 1.4;
-  --tracking-nav: 0px;
-  --text-brand-nav: 18px;
-  --leading-brand-nav: 1.4;
-  --tracking-brand-nav: 0.162px;
-  --text-body: 24px;
-  --leading-body: 1.3;
-  --tracking-body: 0px;
-  --text-section-label: 24px;
-  --leading-section-label: 0.9;
-  --tracking-section-label: -0.24px;
-  --text-card-heading: 40px;
-  --leading-card-heading: 1;
-  --tracking-card-heading: -1.2px;
-  --text-display: 64px;
-  --leading-display: 1;
-  --tracking-display: -1.92px;
-  --text-hero-display: 80px;
-  --leading-hero-display: 1;
-  --tracking-hero-display: -2.4px;
-
-  /* Typography — Weights */
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-
-  /* Spacing */
-  --spacing-unit: 8px;
-  --spacing-8: 8px;
-  --spacing-16: 16px;
-  --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
-  --spacing-48: 48px;
-  --spacing-80: 80px;
-  --spacing-96: 96px;
-  --spacing-160: 160px;
-
-  /* Layout */
-  --section-gap: 80px;
-  --card-padding: 32px;
-  --element-gap: 16px;
-
-  /* Border Radius */
-  --radius-2xl: 16px;
-  --radius-3xl: 24px;
-  --radius-3xl-2: 32px;
-  --radius-full: 128px;
-  --radius-full-2: 9999px;
-
-  /* Named Radii */
-  --radius-cards: 24-32px;
-  --radius-pills: 9999px;
-  --radius-images: 16-24px;
-  --radius-buttons: 128px;
-  --radius-navigation: 32px;
-
-  /* Shadows */
-  --shadow-md: rgba(0, 0, 0, 0.25) 0px 0px 16px -8px;
-  --shadow-subtle: rgb(255, 255, 255) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.25) 0px 0px 4px 0px inset;
-  --shadow-lg: rgb(255, 255, 255) 0px 0px 24px 0px inset;
-  --shadow-md-2: rgba(0, 0, 0, 0.15) 0px 2px 16px 0px;
-  --shadow-subtle-2: rgba(255, 255, 255, 0.36) 0px 1px 0px 0px inset;
-
-  /* Surfaces */
-  --surface-paper-white: #ffffff;
-  --surface-cloud-card: #ebf0f8;
-  --surface-charcoal: #1f2025;
-}
-```
-
-### Tailwind v4
-
-```css
-@theme {
-  /* Colors */
-  --color-paper-white: #ffffff;
-  --color-charcoal: #1f2025;
-  --color-ink: #222326;
-  --color-cloud-card: #ebf0f8;
-  --color-body-gray: #747679;
-  --color-signal-gold: #ffca00;
-  --color-coral-signal: #ffab94;
-  --color-recovery-green: #31ce01;
-  --color-metric-blue: #415eee;
-  --color-sleep-lilac: #b9a6ff;
-  --color-hero-sky: #d2e5ff;
-
-  /* Typography */
-  --font-apple-system-blinkmacsystemfont-inter-segoe-ui-sans-serif: '-apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-  /* Typography — Scale */
-  --text-caption: 12px;
-  --leading-caption: 1.1;
-  --tracking-caption: 0px;
-  --text-nav: 16px;
-  --leading-nav: 1.4;
-  --tracking-nav: 0px;
-  --text-brand-nav: 18px;
-  --leading-brand-nav: 1.4;
-  --tracking-brand-nav: 0.162px;
-  --text-body: 24px;
-  --leading-body: 1.3;
-  --tracking-body: 0px;
-  --text-section-label: 24px;
-  --leading-section-label: 0.9;
-  --tracking-section-label: -0.24px;
-  --text-card-heading: 40px;
-  --leading-card-heading: 1;
-  --tracking-card-heading: -1.2px;
-  --text-display: 64px;
-  --leading-display: 1;
-  --tracking-display: -1.92px;
-  --text-hero-display: 80px;
-  --leading-hero-display: 1;
-  --tracking-hero-display: -2.4px;
-
-  /* Spacing */
-  --spacing-8: 8px;
-  --spacing-16: 16px;
-  --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
-  --spacing-48: 48px;
-  --spacing-80: 80px;
-  --spacing-96: 96px;
-  --spacing-160: 160px;
-
-  /* Border Radius */
-  --radius-2xl: 16px;
-  --radius-3xl: 24px;
-  --radius-3xl-2: 32px;
-  --radius-full: 128px;
-  --radius-full-2: 9999px;
-
-  /* Shadows */
-  --shadow-md: rgba(0, 0, 0, 0.25) 0px 0px 16px -8px;
-  --shadow-subtle: rgb(255, 255, 255) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.25) 0px 0px 4px 0px inset;
-  --shadow-lg: rgb(255, 255, 255) 0px 0px 24px 0px inset;
-  --shadow-md-2: rgba(0, 0, 0, 0.15) 0px 2px 16px 0px;
-  --shadow-subtle-2: rgba(255, 255, 255, 0.36) 0px 1px 0px 0px inset;
-}
-```
-
-## Doctor Workspace (components, motion, shortcuts)
-
-The doctor workspace (`frontend/src/pages/DoctorWorkspace.tsx`) is split into small components in `frontend/src/components/doctor/`. It only presents data and statuses the existing API returns; it adds no clinical logic.
-
-- **PatientOverview**: identity, recorded allergies (as recorded, icon + word), latest approved visit, current check-in state. Missing data is stated as "not recorded" and never as "none exists". Source line: this center's records only.
-- **PendingPanel**: drafts that still await the clinician's approval (visit, prescription, lab result), each with a Draft chip and a "Hidden from patient" chip. It reflects the existing draft status only, not what the clinician has viewed.
-- **LabsPanel / MedsPanel**: lab rows show the recorded value, reference range, the record's own out-of-range flag, and the arithmetic difference to the previous result of the same parameter; both show Draft/Approved and whether the patient can see the item.
-- **VisitComposer**: the existing visit fields in a two-column form with a plain "what will be saved" echo. Same `POST /api/visits` payload. A failed save keeps everything typed, validation is announced, unsaved text is held in memory only, and leaving with unsaved text asks first.
-- **ApprovalDialog**: shows what becomes visible to the patient, states that linked prescriptions and lab results are approved separately, blocks a second submit, shows "approved" only after the API confirms, and offers a retry on failure. Calls the unchanged approve endpoint.
-- **ItemApprovalDialog**: the same explicit approval step for a draft prescription or lab result, calling the existing `POST /api/prescriptions/:id/approve` and `POST /api/labs/results/:id/approve`. Shared state lives in `useApprovalFlow` (no second submit while one runs, "approved" only after the API confirms, retry on failure).
-- **Dialog**: accessible modal (portal to `<body>`, focus trap, focus restore, Esc).
-- **PatientSearch, ShortcutsDialog, DemoTour, useDoctorShortcuts**: `/` or `Ctrl+K` search, `[` `]` sections, `G` then `D` waiting room, `F` focus mode, `?` help. Matched on `event.code`, so they work on Arabic and Latin layouts; never fire while typing or while a dialog is open; none saves, submits or approves.
-- **Focus mode**: hides the context rail only. The allergy alert, patient header and site navigation stay visible.
-
-### Motion
-One vocabulary, shared by the React layer (`components/motion.tsx`, Framer Motion with `LazyMotion`) and the CSS layer (`theme.css` motion tokens and `.motion-*` classes):
-- **enter** 120-300ms, exponential ease-out (`--ease`), 8px travel. **stagger** 30ms, capped at 6. **press** scale 0.98. **no hover lift**: hover changes colour or shadow only. **urgent** alerts appear at once (`<Rise urgent>`, `.motion-alert-enter` is opacity-only).
-- Exports: `MotionRoot` (reducedMotion="user"), `PageTransition` (keyed by view in `App.tsx`, no exit), `Rise`, `Stagger`, `Reveal`, `Pressable`, `Collapse`, `LoadSwap` (instant skeleton swap, content fades in), `Presence` and `Backdrop` (dialogs, panels; `slide` mirrors for RTL), `GrowBar`, `CountUp` (renders the number as is), `AnimatedCheck`.
-- Only opacity and transform are animated and nothing loops. Content never waits on an exit animation.
-- Reduced motion: `MotionConfig` drops transforms; the CSS block in `theme.css` zeroes animations and keeps 100ms colour/opacity feedback.
-
-### Storage
-Only two non-sensitive UI values are stored in `localStorage`: the focus-mode flag and the tour-done flag. Neither key nor value contains a user or patient identifier. Clinical text lives in component memory only.
-
-## Visual direction: Mercury adaptation (dark theme and shared structure)
-
-Adapted from the Mercury style reference (not product requirements). Naseej keeps its logo, bilingual behavior, light/dark themes and clinical content; only the visual system changed.
-
-- **Dark theme** is the Mercury-style world in espresso brown: canvas `#1a1411`, cards `#241c18`, secondary fills `#2e2420`, warm ivory text `#f3ebe3`, secondary text `#cdbfb4`. Tokens: `--color-onyx`, `--color-graphite`, `--color-obsidian`, `--color-ivory`, `--color-ash`.
-- **One chromatic action:** `.btn-pill-charcoal` / `.btn-pill-brand` render orange `#c2410c` with white text (hover `#d9480f` in dark, `#9a3412` in light). Text-safe orange: `#b4380a` on light, `#fdba74` on dark. Secondary buttons are obsidian, ghost buttons are outlines. Selected navigation is a neutral pill, not orange. Focus ring on dark is `#fed7aa`.
-- **Light theme** is the same system on a warm ivory canvas (`#faf7f4`): white cards, warm ink (`#1f1a17`), secondary text (`#5e5650`), orange as the one chromatic action. The logo stays; no blue remains in the UI palette.
-- **Flat:** every decorative shadow token is `none`. Dialogs separate by border and scrim; light-theme dialogs keep one quiet shadow.
-- **Shape:** cards 12px, nav 40px, buttons and single-line inputs 32px pills, multi-line fields 20px.
-- **Type:** headings 480, emphasis 520/560, nothing bolder than 560. Latin headings get +0.01-0.015em tracking. Arabic is never letter-spaced (it breaks letter joining), enforced with `[dir='rtl'] body * { letter-spacing: normal !important }`. Fonts load as variable (`Cairo` and `Inter`, weight 300-700).
-- **Icons:** decorative emoji marks were replaced by line icons (`components/LineIcon.tsx`); remaining feature pictographs are rendered monochrome (`.emoji-quiet`). Warnings are an icon plus a word.
-- **Clinical status colors are not removed.** Draft, danger and approved keep muted tints because safety states cannot be monochrome; they always carry an icon and a word.
-- **Not applied (Mercury-specific):** the full-bleed photographic hero (no suitable asset), the banking copy and navigation, the email-capture pill form, and the rule "no green/red/orange" (conflicts with clinical status).
-
-### Motion in this direction
-- Entrances: `.motion-stagger` children rise in 70ms apart (capped), table rows cascade, the nav slides in, landing sections reveal on scroll (`Reveal`), views and tabs rise 16px.
-- Interaction: buttons and cards lift 2-3px on hover and press to 0.98; dashboard figures count up (`CountUp`).
-- Reduced motion: all of the above are switched off (`prefers-reduced-motion` in `theme.css`; `CountUp` shows the final value at once).
-
-## Site structure and landing page
-
-- **Shell:** a sticky site bar (`components/Header.tsx`, `styles/shell.css`): brand, primary navigation, account actions, theme and language. Below 960px the navigation and actions collapse into one menu (`aria-expanded`, closes on navigation and Escape). A skip link jumps to `#main`.
-- **Page header:** dashboards use `components/PageHeader.tsx` (eyebrow, one h1, optional subtitle, actions). The doctor workspace keeps its own header because it carries workspace controls.
-- **Landing (`pages/PublicHome.tsx`, `styles/landing.css`):** hero (message, two calls to action, three supported points, image-led visual) → why Naseej (three cards from the existing capability copy) → how it works (the five workflow steps) → who it serves (five roles) → privacy and trust (dark band, existing copy) → final call to action. No awards, ratings, testimonials, health metrics or compliance badges: none are supported by the product.
-- **Hero:** full width, like a banner. The photograph sits behind on the end side and fades into a dark surface on the text side (mirrored for RTL); the headline, supporting copy and two actions sit on that surface, and the supported points run along the bottom edge as pills under a hairline. Below 960px the photograph stacks on top and the text follows.
-- **Hero image:** `src/assets/hero/hero-ar.jpg` and `hero-en.jpg` (picked by page language; any other image there is a fallback). Without an image the hero shows a designed fallback (line weave plus product cards with synthetic data). No remote images are requested. See `src/assets/hero/README.md`.
-- **Layout rules:** containers max 1240-1280px with fluid side padding; sections 56-96px apart; cards 12px; hero panel and trust band 24px; the hero grid becomes one column below 960px and mirrors in RTL through logical properties.
+# Naseej | نَسيج — Design System
+> Calm clinical warmth: warm ivory by day, warm onyx by night, one orange action color. Public site and signed-in workspaces share one identity and differ only in density.
+
+This file describes what the code **does today**. If code and this file disagree, the code in `frontend/src/styles/theme.css` is the source of truth; fix the file.
+
+History: an earlier `DESIGN.md` described a different reference system ("Bevel", mist-blue, SF Pro) that was never implemented, and `accounts-design.md` was a separate shadcn-style reference for the signed-in app. Both are merged here. The original reference is kept for reading in `docs/archive/accounts-design.reference.md`; it is not a second source of rules.
+
+## 1. Two surfaces, one identity
+
+| Surface | Where | Look |
+|---|---|---|
+| **Public site** | landing, features, workflow, demo request, login (`landing.css`, `auth.css`, `shell.css`) | Expressive: hero imagery, gradients, large type. Uses the global light/dark preference (`naseej_theme`). |
+| **Workspaces** | everything under `#/patient`, `#/caregiver`, `#/doctor`, `#/reception`, `#/manager`, `#/coordinator`, `#/admin` (`app.css`, `doctor.css`) | Operational: compact, flat, scannable. Own light/dark preference (`naseej_ws_theme`). |
+
+Shared by both: the color tokens below, Cairo (Arabic) and Inter (Latin) type, Arabic RTL as the primary language, English LTR as a full equal.
+
+## 2. Theme isolation (important)
+- Tokens live in `frontend/src/styles/theme.css`: `:root` for light and `:root[data-theme='dark']` for dark.
+- The signed-in shell applies its own choice through `ThemeContext.workspace` only while it is mounted, and restores the public preference when the user leaves. The public site never reads `naseej_ws_theme`.
+- Workspace rules are scoped to `.na-app` or `na-`/`rec-`/`ai-`/`cg-`/`ops-`/`mc-`/`doc-`/`up-` prefixed classes. Do not restyle a bare element or a global token from workspace CSS.
+
+## 3. Color tokens (real values)
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--color-bg-canvas` | `#faf7f4` warm ivory | `#1a1411` warm onyx | page |
+| `--color-bg-elevated` / `--color-cloud-card` | `#ffffff` | `#241c18` | cards, sidebar |
+| `--color-bg-subtle` | `#f3eee9` | `#1d1612` | quiet fields, tinted bands |
+| `--color-cloud-card-hover` | `#f1ebe6` | `#2e2420` | hover |
+| `--color-ink` / `--color-text-primary` | `#1f1a17` | `#f3ebe3` | text |
+| `--color-body-gray` / secondary | `#5e5650` | `#cdbfb4` | secondary text |
+| `--color-text-muted` | `#6e655e` | `#b3a498` | helper text |
+| `--color-border-subtle` | ink at 10% | ivory at 10% | hairlines |
+| `--color-border-strong` | ink at 30% | ivory at 34% | controls |
+| `--color-accent` | `#c2410c` orange | `#c2410c` | primary action, selected state |
+| `--color-accent-hover` | `#9a3412` | `#d9480f` | |
+| `--color-accent-text` | `#b4380a` | `#fdba74` | orange used as text |
+| `--color-focus-ring` | `#b4380a` | (accent tint) | focus |
+
+Status tokens (`--color-status-{draft,approved,info,danger,lilac}-{bg,text,border}`) are muted and **always paired with a word or glyph**; state is never carried by color alone. Orange is the only chromatic brand color. Green, amber-red and lilac exist only as status tints.
+
+## 4. Type
+- Arabic `Cairo`, Latin `Inter` (loaded in `index.html`), with system fallbacks. No other families.
+- Workspaces: body 15px / 1.55, page title ~28–30px weight 600 with slightly tight tracking (−0.015em), card title 16.5px / 620, helper 12.5–13.5px. Public site scales type up with `clamp()`.
+- Numbers, MRNs, phone numbers, dates and units inside RTL text use `dir="ltr"` / `.na-ltr` so they stay readable.
+
+## 5. Shape, depth, spacing (workspaces)
+Adapted from the reference in `docs/archive/accounts-design.reference.md`: large-radius cards on a hairline, filled quiet fields, capsule controls.
+
+| Element | Spec |
+|---|---|
+| Card | radius 24px, 1px hairline plus a faint 1px ring and 1px shadow (`--na-card-shadow`), padding `clamp(16px, 2vw, 24px)` |
+| Inputs, selects, textareas | radius 18px, filled with `--color-bg-subtle`, no border at rest, border + elevated fill on focus, min height 44px |
+| Buttons | capsule (radius 999px), min height 44px (36px small), primary = orange fill with white text, quiet = transparent, danger = status-danger tint |
+| Pills / badges | capsule, 12.5px / 560, tinted background + border + text from the status tokens |
+| Notices | radius 18px, tinted status background |
+| Drawers, dialogs | slide in from the reading-end edge, focus trapped, Escape closes, focus returns to the opener |
+| Spacing | 4px base; gaps `clamp(14px, 2vw, 22px)`; max content width follows the page |
+| Shadows | none on the public site and buttons; only the faint card ring in workspaces |
+
+Deliberate differences from the reference: color comes from the Naseej tokens above, not the reference's monochrome; touch targets stay at 44px; the reference's Geist font is **not** used.
+
+## 6. Layout (workspaces)
+Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top bar (64px) + content. Below 1024px the sidebar becomes a drawer. A faint animated line backdrop sits behind content (`AppBackdrop`) and is disabled for reduced motion.
+
+## 7. Components (workspaces)
+`PageHead`, `Card`, `Stat`, `Pill`, `Notice`, `Button`, `Field`, `EmptyState`, `Loading` (skeleton), `ErrorState`, `Async`, `Dialog`, `Drawer` in `app/ui.tsx`. Domain pieces: record `Timeline`, `ReviewPill`/`ProvenancePill`, `AiPanel` (AI suggestions), the reception calendar, the manager calendar (counts only), caregiver scope lists, operational message list.
+
+## 8. Clinical content rules (design-level)
+- Provenance (who or what the entry came from) and review state are visible on every record. "Not recorded" never reads as "absent".
+- AI-derived content is dashed-bordered, labelled "AI-generated", carries its source page and passage, and is never styled like confirmed data until a clinician accepts it.
+- Drafts and unreviewed items never appear in patient or caregiver views.
+- Urgent-care wording: messaging and question screens state they are not for emergencies.
+
+## 9. Accessibility and language
+- Visible focus ring on everything interactive; keyboard-operable controls; skip link; page title receives focus on route change.
+- Logical CSS properties (`inline-start`, `inset-inline`, `padding-inline`) so RTL needs no mirrored stylesheet.
+- Both languages ship together: Arabic is the source and English is typed against it (`app/i18n`), so a missing string is a compile error.
+- `prefers-reduced-motion` turns off backdrop drift, progress easing and page rise.
+
+## 10. Do and don't
+- Do reuse the tokens in section 3; add a new token in `theme.css` for both themes if one is genuinely needed.
+- Do keep workspace-only styling under the scoped prefixes.
+- Don't introduce a second brand color, a new font family, gradients on workspace surfaces, or decorative shadows.
+- Don't change `landing.css`, `auth.css` or the public components when styling a workspace, and vice versa.
+- Don't signal state by color alone.

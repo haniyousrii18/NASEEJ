@@ -4,9 +4,15 @@ import { AdminAccounts, AdminAudit, AdminCenters, AdminHome, AdminRequests } fro
 import { CaseDetail, CoordinatorCases, CoordinatorHome, CoordinatorReferrals, CoordinatorTasks, FollowupLog } from './pages/coordinator.js';
 import { DoctorAppointments, DoctorHome, DoctorPatients, DoctorPending, PatientWorkspace } from './pages/doctor.js';
 import { ManagerActivity, ManagerCoordination, ManagerHome, ManagerReports, ManagerSchedule, ManagerServices, ManagerStaff } from './pages/manager.js';
-import { PatientAppointments, PatientConsents, PatientDocuments, PatientHome, PatientMedications, PatientMessages, PatientSummary, PatientTimeline } from './pages/patient.js';
+import { PatientAppointments, PatientConsents, PatientHome, PatientMedications, PatientMessages, PatientSummary, PatientTimeline } from './pages/patient.js';
+import { CaregiverHome, CaregiverPatient } from './pages/caregiver.js';
+import { DoctorMessages, OpsMessages } from './pages/messages.js';
+import { PatientCaregivers } from './pages/patientCaregivers.js';
+import { PatientLibrary } from './pages/patientLibrary.js';
 import { FrontDesk } from './reception/FrontDesk.js';
-import { ReceptionBook, ReceptionPatients, ReceptionSchedule } from './pages/reception.js';
+import { Patients } from './reception/Patients.js';
+import { ReceptionFrame } from './reception/ReceptionFrame.js';
+import { Schedule } from './reception/Schedule.js';
 
 export interface PageContext {
   role: AppRole;
@@ -20,9 +26,31 @@ const hashParam = (name: string): string | undefined => {
 };
 
 /** Maps a route to its page. The shell has already refused routes outside the signed-in role's base segment. */
+function receptionPage(route: string, navigate: (route: string) => void): React.ReactNode {
+  switch (route) {
+    case 'reception/home':
+    case 'reception/arrivals':
+      return <FrontDesk navigate={navigate} />;
+    case 'reception/schedule':
+      return <Schedule navigate={navigate} />;
+    case 'reception/book':
+      return <Schedule navigate={navigate} bookRoute preset={{ patientId: hashParam('patient'), doctorId: hashParam('doctor'), date: hashParam('date'), time: hashParam('time') }} />;
+    case 'reception/patients':
+      return <Patients navigate={navigate} openId={hashParam('open')} />;
+    case 'reception/messages':
+      return <OpsMessages role="reception" />;
+  }
+  return null;
+}
+
 export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
   const { navigate } = ctx;
   const parts = route.split('/');
+
+  if (parts[0] === 'reception') {
+    const page = receptionPage(route, navigate);
+    return page && <ReceptionFrame navigate={navigate}>{page}</ReceptionFrame>;
+  }
 
   switch (route) {
     // Patient
@@ -33,7 +61,7 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
     case 'patient/timeline':
       return <PatientTimeline />;
     case 'patient/documents':
-      return <PatientDocuments />;
+      return <PatientLibrary />;
     case 'patient/medications':
       return <PatientMedications />;
     case 'patient/appointments':
@@ -42,6 +70,12 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
       return <PatientMessages />;
     case 'patient/consents':
       return <PatientConsents />;
+    case 'patient/caregivers':
+      return <PatientCaregivers />;
+
+    // Caregiver (delegated access)
+    case 'caregiver/home':
+      return <CaregiverHome navigate={navigate} />;
 
     // Doctor
     case 'doctor/home':
@@ -52,6 +86,8 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
       return <DoctorPending navigate={navigate} />;
     case 'doctor/patients':
       return <DoctorPatients navigate={navigate} />;
+    case 'doctor/messages':
+      return <DoctorMessages />;
 
     // Care coordinator
     case 'coordinator/home':
@@ -65,17 +101,6 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
     case 'coordinator/log':
       return <FollowupLog />;
 
-    // Reception
-    case 'reception/home':
-      return <FrontDesk navigate={navigate} />;
-    case 'reception/schedule':
-      return <ReceptionSchedule />;
-    case 'reception/book':
-      return <ReceptionBook initialPatientId={hashParam('patient')} />;
-    case 'reception/arrivals':
-      return <FrontDesk navigate={navigate} />;
-    case 'reception/patients':
-      return <ReceptionPatients navigate={navigate} />;
 
     // Center manager
     case 'manager/home':
@@ -109,6 +134,9 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
   // Parameterised routes
   if (parts[0] === 'doctor' && parts[1] === 'patient' && parts[2]) {
     return <PatientWorkspace key={parts[2]} patientId={parts[2]} tab={parts[3] ?? 'summary'} navigate={navigate} />;
+  }
+  if (parts[0] === 'caregiver' && parts[1] === 'patient' && parts[2]) {
+    return <CaregiverPatient key={parts[2]} id={parts[2]} tab={parts[3] ?? ''} navigate={navigate} />;
   }
   if (parts[0] === 'coordinator' && parts[1] === 'case' && parts[2]) {
     return <CaseDetail key={parts[2]} caseId={parts[2]} navigate={navigate} />;

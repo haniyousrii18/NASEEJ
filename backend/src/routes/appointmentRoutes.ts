@@ -334,6 +334,119 @@ async function transition(req: Request, res: Response, target: AppointmentStatus
   }
 }
 
+// PATCH /api/appointments/:id  (reception, center manager): move a pending or confirmed appointment to another
+// time and/or another doctor of the same center. Both clinician-days are locked, in a fixed order, while the
+// new slot is checked, so a booking and a move cannot both take it.
+appointmentRouter.patch('/:id', async (req: Request, res: Response): Promise<void> => {
+  const orgId = req.tenantId!;
+  const role = req.currentMembership!.role;
+  const appointmentId = req.params.id;
+  const { clinician_id, appointment_date, start_time, end_time, reason } = req.body || {};
+
+  if (role === 'doctor') {
+    res.status(403).json(apiError('FORBIDDEN_ROLE', 'Only reception and center managers can reschedule an appointment.'));
+    return;
+  }
+  if (!isUuid(appointmentId)) {
+    res.status(404).json(apiError('APPOINTMENT_NOT_FOUND', 'Appointment not found in this medical center.'));
+    return;
+  }
+  if (!isIsoDate(appointment_date) || !isTime(start_time) || !isTime(end_time) || (clinician_id !== undefined && !isUuid(clinician_id))) {
+    res.status(400).json(apiError('VALIDATION_ERROR', 'appointment_date (YYYY-MM-DD), start_time and end_time (HH:MM) are required; clinician_id must be a valid identifier.'));
+    return;
+  }
+  if (toMinutes(end_time) <= toMinutes(start_time)) {
+    res.status(400).json(apiError('VALIDATION_ERROR', 'end_time must be after start_time.'));
+    return;
+  }
+  if (reason !== undefined && reason !== null && (typeof reason !== 'string' || reason.length > 500)) {
+    res.status(400).json(apiError('VALIDATION_ERROR', 'reason must be text of at most 500 characters.'));
+    return;
+  }
+
+  try {
+    if (clinician_id && !(await isActiveDoctorInOrg(clinician_id, orgId))) {
+      res.status(400).json(apiError('INVALID_CLINICIAN', 'The selected clinician is not an active doctor in this medical center.'));
+      return;
+    }
+
+    const outcome = await withTransaction(async (client) => {
+      const found = await client.query(
+        'SELECT id, status, clinician_id, appointment_date, start_time, end_time FROM appointments WHERE id = $1 AND organization_id = $2 FOR UPDATE',
+        [appointmentId, orgId]
+      );
+      if (found.rowCount === 0) return { notFound: true as const };
+      const before = found.rows[0];
+      if (before.status !== 'pending' && before.status !== 'confirmed') return { notReschedulable: before.status as string };
+
+      const target = clinician_id ?? before.clinician_id;
+      const past = await client.query('SELECT ($1::date + $2::time) < NOW() AS is_past', [appointment_date, start_time]);
+      if (past.rows[0].is_past) return { past: true as const };
+
+      const keys = [...new Set([`${orgId}:${before.clinician_id}:${before.appointment_date}`, `${orgId}:${target}:${appointment_date}`])].sort();
+      for (const key of keys) await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [key]);
+
+      const conflict = await client.query(
+        `SELECT id FROM appointments
+         WHERE organization_id = $1 AND clinician_id = $2 AND appointment_date = $3 AND id <> $6
+           AND status <> 'cancelled' AND start_time < $5 AND end_time > $4`,
+        [orgId, target, appointment_date, start_time, end_time, appointmentId]
+      );
+      if (conflict.rowCount && conflict.rowCount > 0) return { conflict: true as const };
+
+      const updated = await client.query(
+        `UPDATE appointments
+         SET clinician_id = $1, appointment_date = $2, start_time = $3, end_time = $4,
+             reason = CASE WHEN $5::boolean THEN $6 ELSE reason END, updated_at = NOW()
+         WHERE id = $7 AND organization_id = $8
+         RETURNING *`,
+        [target, appointment_date, start_time, end_time, reason !== undefined, reason ?? null, appointmentId, orgId]
+      );
+      return { updated: updated.rows[0], before };
+    });
+
+    if ('notFound' in outcome) {
+      res.status(404).json(apiError('APPOINTMENT_NOT_FOUND', 'Appointment not found in this medical center.'));
+      return;
+    }
+    if ('notReschedulable' in outcome) {
+      res.status(409).json(apiError('NOT_RESCHEDULABLE', `An appointment that is "${outcome.notReschedulable}" cannot be rescheduled.`));
+      return;
+    }
+    if ('past' in outcome) {
+      res.status(400).json(apiError('APPOINTMENT_SLOT_PAST', 'Choose a future appointment time.'));
+      return;
+    }
+    if ('conflict' in outcome) {
+      res.status(409).json(apiError('APPOINTMENT_CONFLICT', 'Conflict: The selected clinician already has an appointment booked during this time slot.'));
+      return;
+    }
+
+    logAuditEvent({
+      organizationId: orgId,
+      actorId: req.user!.id,
+      actorEmail: req.user!.email,
+      actorRole: role,
+      action: 'APPOINTMENT_RESCHEDULE',
+      resourceType: 'appointment',
+      resourceId: outcome.updated.id,
+      ipAddress: req.ip,
+      details: {
+        from: { clinicianId: outcome.before.clinician_id, date: outcome.before.appointment_date, time: String(outcome.before.start_time).slice(0, 5) },
+        to: { clinicianId: outcome.updated.clinician_id, date: appointment_date, time: start_time },
+      },
+    });
+
+    res.json({ success: true, data: outcome.updated });
+  } catch (err: any) {
+    if (err.code === '23505') {
+      res.status(409).json(apiError('APPOINTMENT_CONFLICT', 'Unique slot constraint: double-booking prevented by server.'));
+      return;
+    }
+    res.status(500).json(serverError(err));
+  }
+});
+
 // PATCH /api/appointments/:id/check-in (front-desk arrival workflow)
 appointmentRouter.patch('/:id/check-in', (req: Request, res: Response) => transition(req, res, 'checked_in', 'APPOINTMENT_CHECK_IN'));
 

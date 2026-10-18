@@ -8,6 +8,7 @@ export interface AppointmentRow {
   id: string;
   patient_id: string;
   appointment_date: string;
+  clinician_id?: string;
   start_time: string;
   end_time: string;
   status: string;

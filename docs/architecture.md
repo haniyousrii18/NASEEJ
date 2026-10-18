@@ -109,8 +109,8 @@ PostgreSQL Database (Multi-tenant relational schema)
 - Test Suite: unit, integration, authorization, and cross-tenant isolation tests.
 
 ### Deferred P1/P2 Features (Documented Extension Points)
-- **OCR Engine (P2)**: Optical Character Recognition for uploaded PDFs/images (mock contract established; model execution deferred).
-- **AI Clinical Summaries (P2)**: Autonomous diagnosis is strictly prohibited by PRD; summary pipeline is defined with human-review requirement.
+- **AI document analysis (migration 003, optional)**: a provider adapter (`backend/src/services/ai`) reads an uploaded PDF/PNG/JPEG (OCR, type suggestion, candidate facts with page and passage) and stores the result as *unreviewed suggestions* that a clinician accepts, corrects or rejects. It is implemented against the Anthropic Messages API but is **off until `AI_PROVIDER` and `ANTHROPIC_API_KEY` are set**; with no key, uploads simply wait for manual clinician review. See `docs/workspaces.md`. Autonomous diagnosis stays prohibited and no AI output is shown to patients as verified.
+- **Caregiver delegation (migration 003)**: implemented with server-side scope checks (`caregiverRoutes.ts`). The earlier PRD baseline listed it as out of scope; the implemented boundary is documented in `docs/workspaces.md`.
 - **External HIS/HL7 Integration (P2)**: Enterprise hospital interfaces.
 - **Distributed Job Queue (P1)**: Heavy background queues (BullMQ/Redis); prototype processes operations reliably within the backend service.
 

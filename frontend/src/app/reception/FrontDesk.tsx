@@ -4,7 +4,9 @@ import { fill, nameOf, todayIso } from '../format.js';
 import type { AppointmentRow } from '../pages/AppointmentList.js';
 import { Async, Button, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
+import { AppointmentDrawer } from './AppointmentDrawer.js';
 import { useDayBoard } from './useDayBoard.js';
+import { useDoctors } from './useDoctors.js';
 
 /** A wait at or past this many minutes is flagged in words as well as colour. */
 const LONG_WAIT_MIN = 20;
@@ -29,9 +31,10 @@ interface CardProps {
   now: number;
   busy: boolean;
   onChange: (row: AppointmentRow, target: string) => Promise<ApiFailure | null>;
+  onOpen: (id: string) => void;
 }
 
-const AppointmentCard: React.FC<CardProps> = ({ row, now, busy, onChange }) => {
+const AppointmentCard: React.FC<CardProps> = ({ row, now, busy, onChange, onOpen }) => {
   const A = useA();
   const B = A.reception.board;
   const [asking, setAsking] = useState<'cancelled' | 'no_show' | null>(null);
@@ -68,7 +71,11 @@ const AppointmentCard: React.FC<CardProps> = ({ row, now, busy, onChange }) => {
           </span>
         )}
       </div>
-      <div className="na-appt-name">{patient}</div>
+      <div className="na-appt-name">
+        <button type="button" className="na-link" aria-label={fill(A.reception.drawer.open, { name: patient })} onClick={() => onOpen(row.id)}>
+          {patient}
+        </button>
+      </div>
       <div className="na-appt-meta">{doctor}</div>
       {row.reason && <div className="na-appt-meta">{row.reason}</div>}
       {(row.status === 'pending' || row.status === 'confirmed') && row.patient_phone && <div className="na-appt-meta na-ltr">{row.patient_phone}</div>}
@@ -123,9 +130,10 @@ interface LaneProps {
   now: number;
   busy: ReadonlySet<string>;
   onChange: CardProps['onChange'];
+  onOpen: CardProps['onOpen'];
 }
 
-const Lane: React.FC<LaneProps> = ({ id, title, empty, rows, now, busy, onChange }) => (
+const Lane: React.FC<LaneProps> = ({ id, title, empty, rows, now, busy, onChange, onOpen }) => (
   <section className="na-lane" data-lane={id} aria-labelledby={`lane-${id}`}>
     <h2 className="na-lane-h">
       <span className="na-lane-title" id={`lane-${id}`}>
@@ -138,7 +146,7 @@ const Lane: React.FC<LaneProps> = ({ id, title, empty, rows, now, busy, onChange
     ) : (
       <ul className="na-lane-list">
         {rows.map((r) => (
-          <AppointmentCard key={`${r.id}:${r.status}`} row={r} now={now} busy={busy.has(r.id)} onChange={onChange} />
+          <AppointmentCard key={`${r.id}:${r.status}`} row={r} now={now} busy={busy.has(r.id)} onChange={onChange} onOpen={onOpen} />
         ))}
       </ul>
     )}
@@ -151,6 +159,14 @@ export const FrontDesk: React.FC<{ navigate: (r: string) => void }> = ({ navigat
   const B = A.reception.board;
   const { state, reload, change, busy, updatedAt, stale } = useDayBoard(todayIso());
   const now = useNow();
+  const { doctors } = useDoctors();
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [notice, setNotice] = useState('');
+  useEffect(() => {
+    if (!notice) return;
+    const id = window.setTimeout(() => setNotice(''), 6000);
+    return () => window.clearTimeout(id);
+  }, [notice]);
 
   return (
     <>
@@ -174,9 +190,15 @@ export const FrontDesk: React.FC<{ navigate: (r: string) => void }> = ({ navigat
           const done = live.filter((r) => r.status === 'completed').sort((a, b) => byTime(b, a));
           const cancelled = rows.filter((r) => r.status === 'cancelled').length;
           const noShows = rows.filter((r) => r.status === 'no_show').length;
-          const lane = { now, busy, onChange: change };
+          const lane = { now, busy, onChange: change, onOpen: setOpenId };
+          const open = rows.find((r) => r.id === openId);
           return (
             <div className="na-stack">
+              {notice && (
+                <Notice tone="ok" live>
+                  {notice}
+                </Notice>
+              )}
               <div className="na-board-meta">
                 <p className="na-board-summary" aria-label={B.summaryLabel}>
                   <span>
@@ -205,6 +227,7 @@ export const FrontDesk: React.FC<{ navigate: (r: string) => void }> = ({ navigat
                 <Lane id="inside" title={B.inConsultation} empty={B.emptyInside} rows={inside} {...lane} />
                 <Lane id="done" title={B.done} empty={B.emptyDone} rows={done} {...lane} />
               </div>
+              {open && <AppointmentDrawer key={open.id} row={open} doctors={doctors} onClose={() => setOpenId(null)} onChanged={reload} onDone={setNotice} />}
               {(cancelled > 0 || noShows > 0) && (
                 <p className="na-muted">
                   {[cancelled > 0 && fill(B.cancelledCount, { n: cancelled }), noShows > 0 && fill(B.noShowCount, { n: noShows })].filter(Boolean).join(' · ')}

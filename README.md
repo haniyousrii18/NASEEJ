@@ -1,212 +1,193 @@
 <div align="center">
 
-<img src="frontend/public/logo.png" alt="Naseej Logo" width="96" height="96" style="border-radius: 16px;" />
+<img src="frontend/public/logo.png" alt="Naseej Logo" width="96" height="96" />
 
 # Naseej | نَسيج
-### A Multi-Tenant Healthcare SaaS Platform for Connected Patient Information
+### A Multi-Tenant Healthcare Platform for Connected Patient Information
 **منصة الرعاية الصحية السحابية المترابطة والسجلات الطبية المتصلة**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-336791.svg)](https://www.postgresql.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%2B-336791.svg)](https://www.postgresql.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://react.dev/)
-[![Tests](https://img.shields.io/badge/Automated%20Tests-17%20Passed-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-Vitest%20%2B%20Supertest-informational.svg)](#5-automated-tests)
 
-*Academic Graduation Prototype — 100% Synthetic Demo Data*  
-*Primary Language: Arabic (RTL) · Secondary: English (LTR)*
+*Academic graduation prototype. 100% synthetic demo data. Arabic (RTL) first, English (LTR) fully supported.*
 
 </div>
 
 ---
 
-## 1. Executive Overview
+## 1. What Naseej is
 
-**Naseej (نَسيج)** is a multi-tenant healthcare information platform designed to connect patient health records across medical centers, clinics, and care teams while preserving strict institutional privacy boundaries and data sovereignty.
+Naseej gives each patient a portable, organized electronic medical file and gives centers the tools to support it. The patient record is the center of the product; appointments and center operations exist to support it.
 
-### Core Architectural Pillars
-1. **Multi-Tenant Isolation**: Complete database-level scoping (`organization_id`). Manually manipulating tenant headers or resource IDs is strictly rejected.
-2. **Clinical Wall**: Platform administrators oversee center accounts and infrastructure, but are structurally barred from accessing patient clinical notes or consultation records (`FORBIDDEN_PLATFORM_ADMIN_CLINICAL_WALL`).
-3. **Mandatory Human Clinical Approval**: Visit drafts and preliminary laboratory results remain completely invisible to the patient portal until explicitly reviewed and approved by an attending clinician.
-4. **Server-Side Conflict Prevention**: Appointment bookings prevent overlapping clinician slots at the API and database levels.
-5. **Tamper-Resistant Audit Trail**: Every authentication event, approval, status change, and cross-tenant attempt is permanently logged with actor details, timestamps, and network IP.
-6. **Bilingual RTL/LTR Design**: Arabic is the native primary language with seamless RTL layout, accompanied by English (LTR).
+Core ideas:
 
----
+1. **Connecting is not exposing.** A patient can belong to several centers, but a center never sees another center's records without the patient's explicit, scoped, unexpired consent.
+2. **Clinician in the loop.** Visits, prescriptions and lab results are drafts until a clinician approves them. Nothing is shown to the patient before that.
+3. **Traceability.** Every record keeps its source center, author, provenance (clinician-authored, patient-uploaded, patient-reported, imported) and review state.
+4. **No autonomous medicine.** The software never diagnoses, prescribes or changes treatment. AI output is only ever an unreviewed suggestion for a clinician.
+5. **Server-side security.** Tenant scoping, role checks, delegation checks and audit logging are enforced by the API; the UI only hides what the server would refuse.
+6. **Bilingual.** Arabic RTL and English LTR everywhere in the app.
 
-## 2. Technology Stack
+### What is implemented
 
-- **Frontend**: React 18, Vite, TypeScript, Vanilla CSS design tokens adapted from `DESIGN.md` with dark obsidian canvas (`#0e100f`), warm cream typography (`#fffce1`), and Naseej brand turquoise (`#00a896`).
-- **Backend API**: Node.js, Express, TypeScript, pluggable authentication adapter pattern (`IAuthProvider`).
-- **Database**: PostgreSQL 16+ with 3NF relational schema, foreign key constraints, and multi-tenant scoping.
-- **Testing**: Vitest, Supertest for integration and security boundary verification.
-- **Storage**: Protected local file storage located outside web roots (`storage/protected/`).
+| Area | Status |
+|---|---|
+| Public site (landing, features, workflow, demo request) and login | Implemented |
+| Tenant isolation, role walls, audit log (append-only guards) | Implemented, covered by automated tests |
+| **Patient** workspace: approved record, timeline, document library and upload, medications, appointments, questions and symptoms, cross-center consent, caregiver management | Implemented |
+| **Caregiver** workspace: patient-granted, scoped, expiring access (view record / manage appointment requests / message the care team) | Implemented (migration 003) |
+| **Doctor** workspace: day overview, patient record, visits, prescriptions, lab orders and results, document review, patient questions inbox, reception messages | Implemented |
+| **Reception** workspace: day/week/month calendar, booking, check-in, patient registration and administrative search, messages to clinicians | Implemented |
+| **Center manager** workspace: working hours, center calendar with load against capacity, staff and roles, services, reports, coordination oversight, activity log | Implemented (aggregates only, no clinical records) |
+| Platform administrator and care coordinator workspaces | Implemented (unchanged by the five-workspace rebuild) |
+| Longitudinal timeline and cross-center consent | Implemented |
+| AI document reading (OCR, classification, candidate facts with page and passage) | **Code complete, off by default.** Needs a provider key; never run against a real provider yet. See section 4 |
+| Notifications, email, privacy-request workflow, voice dictation, external identity provider | **Not implemented** |
 
----
-
-## 3. Pre-Configured Synthetic Demo Accounts
-
-All accounts use the standardized password: **`Password123!`**
-
-| Persona / Role | Email | Assigned Facility | Responsibilities & Boundaries |
-|---|---|---|---|
-| **Platform Administrator** | `admin@naseej.health` | System-wide | Centers, service health, audit logs; **no access to clinical records** |
-| **Center Manager** | `manager.noor@naseej.health` | Al-Noor Medical Center | Staff directory, doctor schedules, waiting room metrics |
-| **Doctor / Clinician** | `doctor.noor@naseej.health` | Al-Noor Medical Center | Consultations, visit drafts, allergy warnings, Rx approval |
-| **Reception Staff** | `reception.noor@naseej.health` | Al-Noor Medical Center | Patient registration, appointment booking, arrival check-in |
-| **Patient** | `patient@naseej.health` | Multi-Center Affiliated | Approved health record portal, inquiries, symptom logs |
-| **Center Manager (Amal)** | `manager.amal@naseej.health` | Al-Amal Hospital | Manager at second tenant (used to test cross-tenant isolation) |
-| **Doctor (Amal)** | `doctor.amal@naseej.health` | Al-Amal Hospital | Doctor at second tenant (blocked from Al-Noor records) |
+Details per role: [docs/workspaces.md](docs/workspaces.md).
 
 ---
 
-## 4. Quickstart & Local Setup
+## 2. Technology
 
-### Prerequisites
-- **Node.js**: v20 or v24
-- **PostgreSQL**: v16 or higher (running on port 5432)
-- **npm**: v10 or higher
+- **Frontend:** React 18, Vite, TypeScript, plain CSS with design tokens. The visual system is documented in [DESIGN.md](DESIGN.md).
+- **Backend:** Node.js, Express, TypeScript, `pg`. Authentication is email and password with a JWT behind a replaceable `IAuthProvider`.
+- **Database:** PostgreSQL 16+, plain SQL migrations in `database/migrations`.
+- **Tests:** Vitest and Supertest (backend, against a real PostgreSQL), Vitest (frontend).
+- **Files:** protected local storage outside any web root (`storage/protected/`), served only through authorized routes.
+- **Optional AI:** `@anthropic-ai/sdk` behind a provider adapter in `backend/src/services/ai`.
 
-### Step 1: Clone & Configure Environment
-```bash
-# Clone the repository
-git clone https://github.com/your-username/naseej.git
-cd naseej
+Repository layout:
 
-# Copy environment variables
-cp .env.example .env
+```text
+backend/    Express API, services, migration and seed scripts, tests
+frontend/   React app (public site in src/pages, signed-in app in src/app)
+database/   migrations/ (001, 002, 003 ...), rollback/, seeds/
+docs/       architecture, API, test plan, user guide, workspaces, team guide
 ```
-Ensure `.env` matches your local PostgreSQL configuration:
+
+---
+
+## 3. Quick start (short version)
+
+The full step-by-step guide for new team members, including Git rules, is in **[docs/team-guide.md](docs/team-guide.md)**.
+
+Requirements: Node.js 20 or newer, npm 10+, PostgreSQL 16+, Git.
+
+```bash
+git clone https://github.com/haniyousrii18/NASEEJ.git
+cd NASEEJ
+
+npm install                      # installs backend and frontend (npm workspaces)
+cp .env.example .env             # then set DB_PASSWORD (and DB_* if different)
+
+# create the database once (psql):  CREATE DATABASE naseej_dev;
+
+npm --prefix backend run migrate # creates tables (001, 002, 003)
+npm --prefix backend run seed    # synthetic demo data
+
+npm run dev                      # API on :5000 and app on :3000
+```
+
+Open <http://localhost:3000>.
+
+### Demo accounts
+All use the password **`Password123!`** (synthetic, local use only).
+
+| Role | Email | Center |
+|---|---|---|
+| Platform administrator | `admin@naseej.health` | System-wide (no clinical access) |
+| Center manager | `manager.noor@naseej.health` | Al-Noor |
+| Doctor | `doctor.noor@naseej.health` | Al-Noor |
+| Reception | `reception.noor@naseej.health` | Al-Noor |
+| Care coordinator | `coordinator.noor@naseej.health` | Al-Noor |
+| Patient | `patient@naseej.health` | Al-Noor and Al-Amal |
+| Caregiver (view records and appointments, no messaging) | `caregiver.noor@naseej.health` | Delegation from the demo patient |
+| Center manager / doctor (second tenant) | `manager.amal@naseej.health`, `doctor.amal@naseej.health` | Al-Amal (used to test isolation) |
+
+---
+
+## 4. Optional: AI document reading
+
+Off by default. With no key, uploaded files simply wait for a clinician to review them manually, and the UI says so.
+
+To turn it on, set in `.env` (never commit the key):
+
 ```ini
-PORT=5000
-NODE_ENV=development
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_NAME=naseej_dev
-DB_USER=postgres
-DB_PASSWORD=
-JWT_SECRET=naseej_academic_prototype_jwt_secret_key_2026_secure
+AI_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your-key
+AI_MODEL=claude-sonnet-5-5
 ```
 
-### Step 2: Initialize Database & Run Migrations
-Create the database in PostgreSQL if it doesn't already exist:
-```bash
-# In PostgreSQL CLI (psql):
-CREATE DATABASE naseej_dev;
-```
-Then run migrations and apply the synthetic demo seed:
-```bash
-# Run migrations (creates tables, indexes, constraints)
-npm --prefix backend run migrate
+What to know before enabling it:
+- The file is sent to the provider's API. Use **synthetic files only** unless your own data-protection policy allows an external processor.
+- A patient's file is processed only after that patient allowed it for that file.
+- Results are stored as *unreviewed suggestions* (with page, passage and the model's own confidence). A clinician must accept, correct or reject each one. Patients and caregivers never see unreviewed suggestions.
+- This path has been type-checked and reviewed but has **not** been run against a live provider yet.
 
-# Populate coherent synthetic demo data
+More detail: [docs/workspaces.md](docs/workspaces.md#aiocr).
+
+---
+
+## 5. Automated tests
+
+```bash
+npm --prefix backend run test     # API, authorization, tenant isolation, workflows
+npm --prefix frontend run test    # frontend unit tests
+```
+
+The backend tests run against the real database in `.env` and change its state. Before a full run, reset and reseed (this **destroys data** in that database, so use a dev database):
+
+```bash
+npm --prefix backend run migrate -- --reset
 npm --prefix backend run seed
 ```
-The backend tests share this database and change its state: run `npm --prefix backend run migrate -- --reset` and `seed` (destroys data) before each full test run.
 
-### Step 3: Install Dependencies
-```bash
-# Install backend dependencies
-cd backend && npm install && cd ..
+Backend suites: appointment conflicts, auth, authorization, caregiver delegation and operational messages, care coordination, longitudinal record and consent, operations, patient portal, patient registration, clinical wall, tenant isolation. The caregiver, operational-message and AI-status tests were added with migration 003 and still need a first run on a database with 003 applied.
 
-# Install frontend dependencies
-cd frontend && npm install && cd ..
-```
-
-### Step 4: Run the Application
-In separate terminal windows:
-```bash
-# Terminal 1: Start Backend API (runs on http://localhost:5000)
-npm run dev:backend
-
-# Terminal 2: Start Frontend Application (runs on http://localhost:3000)
-npm run dev:frontend
-```
-Open **[http://localhost:3000](http://localhost:3000)** in your browser.
+Scenarios covered include: another center's data is unreachable by changing identifiers or the organization header; platform administrators are blocked from clinical routes; double booking is rejected with `409`; patients never receive drafts; reception cannot read clinical data; a caregiver can do only what the patient granted and loses access the moment it is revoked or expires.
 
 ---
 
-## 5. Automated Testing <a id="testing"></a>
+## 6. Backup and recovery
 
-Naseej includes automated integration test suites executed against the real database schema to verify tenant isolation, role walls, conflict prevention, and draft concealment:
+Targets for the prototype: RPO of 1 hour or less of synthetic data, RTO of 15 minutes or less. Scope: the PostgreSQL database and `storage/protected/`.
 
 ```bash
-# Run all automated tests
-npm --prefix backend run test
+# Backup
+pg_dump -U postgres -h 127.0.0.1 -p 5432 -d naseej_dev -F c -b -v -f ./backups/naseej_backup.dump
+tar -czvf ./backups/naseej_storage.tar.gz storage/protected/
 
-# Frontend unit tests: doctor-workspace selectors and ar/en translation key parity
-npm --prefix frontend run test
-```
-
-### Doctor workspace keyboard shortcuts
-Press `?` in the doctor workspace for the full list: `/` or `Ctrl+K` search a patient, `[` / `]` previous/next section, `G` then `D` back to the waiting room, `F` focus mode (hides the side lists only), `Esc` closes dialogs. Shortcuts never fire while typing in a field, and none of them saves, submits or approves anything.
-
-### Test Results Summary (100% Passing)
-```text
- ✓ tests/appointment-conflict.test.ts  (3 tests)
- ✓ tests/patient-portal.test.ts         (4 tests)
- ✓ tests/tenant-isolation.test.ts       (3 tests)
- ✓ tests/rbac-clinical-wall.test.ts     (3 tests)
- ✓ tests/auth.test.ts                   (4 tests)
-
- Test Files  5 passed (5)
-      Tests  17 passed (17)
-   Duration  1.35s
-```
-
-### Tested Scenarios
-1. **Tenant Isolation**: Users attempting to access another center's records using manipulated headers or known IDs are rejected with `403 Forbidden` / `404 Not Found`.
-2. **Clinical Wall**: Platform administrators attempting to access `/api/visits` or `/api/prescriptions` are rejected with `403 Forbidden` (`FORBIDDEN_PLATFORM_ADMIN_CLINICAL_WALL`).
-3. **Appointment Conflict Prevention**: Double-booking the same clinician during overlapping slots is blocked with `409 Conflict`.
-4. **Draft Concealment**: Patients requesting unapproved visits or unapproved lab results receive 404 / filtered results.
-5. **Role Boundary Enforcement**: Receptionists attempting clinical operations are rejected with `403 Forbidden`.
-
----
-
-## 6. Backup & Disaster Recovery Procedures (PRD Section 8.1)
-
-### Backup Strategy & Objectives
-- **Target RPO (Recovery Point Objective)**: ≤ 1 hour of synthetic data loss.
-- **Target RTO (Recovery Time Objective)**: ≤ 15 minutes to fully restore database and file storage.
-- **Backup Scope**: PostgreSQL relational database dump + protected storage directory (`storage/protected/`).
-
-### Creating a Backup
-```bash
-# 1. Export database dump
-pg_dump -U postgres -h 127.0.0.1 -p 5432 -d naseej_dev -F c -b -v -f "./backups/naseej_backup_$(date +%Y%m%d).dump"
-
-# 2. Archive protected file storage
-tar -czvf "./backups/naseej_storage_$(date +%Y%m%d).tar.gz" storage/protected/
-```
-
-### Tested Restoration Procedure
-```bash
-# 1. Recreate database
-psql -U postgres -c "DROP DATABASE IF EXISTS naseej_restored;"
+# Restore into a fresh database
 psql -U postgres -c "CREATE DATABASE naseej_restored;"
-
-# 2. Restore schema and data
-pg_restore -U postgres -d naseej_restored -v "./backups/naseej_backup_YYYYMMDD.dump"
-
-# 3. Extract files
-tar -xzvf "./backups/naseej_storage_YYYYMMDD.tar.gz" -C ./
+pg_restore -U postgres -d naseej_restored -v ./backups/naseej_backup.dump
+tar -xzvf ./backups/naseej_storage.tar.gz -C ./
 ```
 
----
-
-## 7. Project Documentation Index
-
-- **[Naseej-PRD.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/Naseej-PRD.md)** — Original product requirements document.
-- **[PRODUCT.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/PRODUCT.md)** — Core product truths and principles.
-- **[DESIGN.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/DESIGN.md)** — Healthcare design system & visual tokens.
-- **[docs/architecture.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/docs/architecture.md)** — System architecture, auth provider analysis, and isolation design.
-- **[docs/database-erd.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/docs/database-erd.md)** — Entity Relationship Diagram and PostgreSQL schema specs.
-- **[docs/api-spec.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/docs/api-spec.md)** — REST API endpoint contracts.
-- **[docs/test-plan.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/docs/test-plan.md)** — Test plan & requirement traceability.
-- **[docs/user-guide.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/docs/user-guide.md)** — Step-by-step user guide for all 5 roles.
-- **[docs/traceability-matrix.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/docs/traceability-matrix.md)** — Requirement-to-Test verification matrix.
-- **[docs/academic-deliverables.md](file:///c:/Users/HA%20NI/OneDrive/Desktop/NASEEJ/docs/academic-deliverables.md)** — University capstone deliverables summary and demonstration scenario.
+A backup file is not proof of recovery: restore it and check that records and files open.
 
 ---
 
-## 8. License & Academic Disclaimer
-Developed as a graduation project prototype. All patient names, medical conditions, and facility identifiers are strictly synthetic demo data. Software does not provide autonomous clinical medical diagnosis or treatment prescribing.
+## 7. Documentation index
+
+- [docs/team-guide.md](docs/team-guide.md): install from GitHub and work together with Git (start here).
+- [DESIGN.md](DESIGN.md): the single design system for the public site and the workspaces.
+- [PRODUCT.md](PRODUCT.md): product purpose, users, principles.
+- [Naseej-PRD.md](Naseej-PRD.md): product requirements with an implementation-status section.
+- [Naseej-Accounts-PRD.md](Naseej-Accounts-PRD.md): requirements for the role workspaces, with implementation status per role.
+- [docs/workspaces.md](docs/workspaces.md): what each workspace does, caregiver rules, messaging, AI, applying migration 003.
+- [docs/architecture.md](docs/architecture.md): architecture, isolation design, deferred items.
+- [docs/api-spec.md](docs/api-spec.md): REST endpoints and roles.
+- [docs/database-erd.md](docs/database-erd.md): data model.
+- [docs/test-plan.md](docs/test-plan.md) and [docs/traceability-matrix.md](docs/traceability-matrix.md): test plan and requirement mapping.
+- [docs/user-guide.md](docs/user-guide.md): walkthrough by role.
+- [docs/academic-deliverables.md](docs/academic-deliverables.md): capstone deliverables.
+
+---
+
+## 8. Limits and disclaimer
+
+Naseej is a graduation prototype. It is not certified, not clinically validated and not production-ready. All names, conditions and facilities are synthetic. The software does not diagnose, prescribe or give treatment advice, and AI output never replaces a clinician's judgment.

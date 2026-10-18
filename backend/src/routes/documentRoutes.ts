@@ -6,6 +6,7 @@ import { blockPlatformAdminFromClinical, tenantUnlessPatient } from '../middlewa
 import { logAuditEvent } from '../services/auditService.js';
 import { effectiveConsentsForReader, isPatientLinkedToOrg, scopeCovers } from '../services/accessService.js';
 import { buildTimeline, parseTimelineQuery } from '../services/recordService.js';
+import { aiStatus, startProcessing } from '../services/documentProcessing.js';
 import { fileExists, resolveStoredPath, saveFile, sniffFileType } from '../services/storageService.js';
 import { apiError, isIsoDate, isUuid, serverError } from '../services/validation.js';
 
@@ -194,6 +195,7 @@ documentRouter.post('/', async (req: Request, res: Response): Promise<void> => {
     let orgId: string;
     let sourceType: 'patient_uploaded' | 'clinician_uploaded' | 'imported';
     let visible: boolean;
+    let aiAllowed = false;
 
     if (actor.kind === 'patient') {
       patientId = actor.patientId;
@@ -207,6 +209,7 @@ documentRouter.post('/', async (req: Request, res: Response): Promise<void> => {
         return;
       }
       orgId = organization_id;
+      aiAllowed = req.body.ai_processing_allowed === true; // an explicit, per-file opt-in; the default is no
       sourceType = 'patient_uploaded';
       visible = true; // the patient's own upload is always visible to them; clinicians see it labelled as patient-provided
     } else {
@@ -232,12 +235,19 @@ documentRouter.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const insert = await query(
       `INSERT INTO documents (organization_id, patient_id, file_name, storage_path, mime_type, file_size, uploaded_by,
-                              title, document_date, visit_id, source_type, review_status, visible_to_patient)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'unreviewed', $12)
+                              title, document_date, visit_id, source_type, review_status, visible_to_patient, ai_processing_allowed)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'unreviewed', $12, $13)
        RETURNING id`,
       [orgId, patientId, cleanName, storagePath, type.mime, buffer.length, req.user!.id, title || null, document_date || null,
-       actor.kind === 'doctor' && visit_id ? visit_id : null, sourceType, visible]
+       actor.kind === 'doctor' && visit_id ? visit_id : null, sourceType, visible, aiAllowed]
     );
+
+    // Only a file the patient allowed is sent to the configured provider, and only when one is configured.
+    // Otherwise nothing runs and the file simply waits for clinician review.
+    let processingStarted = false;
+    if (aiAllowed && aiStatus().configured) {
+      processingStarted = (await startProcessing(insert.rows[0].id, { id: req.user!.id, email: req.user!.email, role: 'patient' })).started;
+    }
 
     logAuditEvent({
       organizationId: orgId,
@@ -252,7 +262,7 @@ documentRouter.post('/', async (req: Request, res: Response): Promise<void> => {
     });
 
     const created = await accessibleDocument(actor, insert.rows[0].id);
-    res.status(201).json({ success: true, data: created ? meta(created, actor) : { id: insert.rows[0].id } });
+    res.status(201).json({ success: true, data: { ...(created ? meta(created, actor) : { id: insert.rows[0].id }), aiProcessingAllowed: aiAllowed, aiProcessingStarted: processingStarted } });
   } catch (err: any) {
     console.error('Document upload error:', err);
     res.status(500).json(serverError(err));

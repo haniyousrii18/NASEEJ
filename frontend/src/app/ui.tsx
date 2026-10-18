@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { lockScroll, trapTab } from '../lib/overlay.js';
 import { AppIcon, type IconName } from './AppIcons.js';
 import { useA } from './useA.js';
 import type { ApiFailure, AsyncState } from './api.js';
@@ -208,6 +209,52 @@ export const Dialog: React.FC<{ title: string; onClose: () => void; children: Re
           </button>
         </div>
         {children}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * A side sheet for a task that belongs to the page behind it (open an appointment, book one): it slides in from
+ * the reading-end edge, keeps focus inside, closes on Escape or a click outside, and returns focus to the opener.
+ */
+export const Drawer: React.FC<{ title: string; subtitle?: string; onClose: () => void; children: React.ReactNode }> = ({ title, subtitle, onClose, children }) => {
+  const A = useA();
+  const ref = useRef<HTMLDivElement>(null);
+  const opener = useRef<Element | null>(null);
+  // The latest onClose, so a re-render of the page behind (a poll) never re-runs the focus handling below.
+  const close = useRef(onClose);
+  close.current = onClose;
+
+  useEffect(() => {
+    opener.current = document.activeElement;
+    const unlock = lockScroll();
+    if (!ref.current?.contains(document.activeElement)) ref.current?.focus({ preventScroll: true });
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close.current();
+      else trapTab(e, ref.current);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      unlock();
+      document.removeEventListener('keydown', onKey);
+      (opener.current as HTMLElement | null)?.focus?.({ preventScroll: true });
+    };
+  }, []);
+
+  return (
+    <div className="na-drawer-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="na-drawer" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
+        <div className="na-drawer-h">
+          <div>
+            <h2 className="na-card-title">{title}</h2>
+            {subtitle && <p className="na-muted">{subtitle}</p>}
+          </div>
+          <button type="button" className="na-icon-btn" onClick={onClose} aria-label={A.common.actions.close}>
+            <AppIcon name="close" />
+          </button>
+        </div>
+        <div className="na-drawer-body">{children}</div>
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { query, withTransaction } from '../config/db.js';
+import { query } from '../config/db.js';
 import { authenticate } from '../middleware/auth.js';
 import { requirePatient } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 import { buildTimeline, parseTimelineQuery } from '../services/recordService.js';
+import { buildPatientSummary } from '../services/patientSummary.js';
 import { isPatientLinkedToOrg } from '../services/accessService.js';
-import { getAppointmentAvailability, isActiveDoctorInOrg } from '../services/appointmentService.js';
+import { createPendingAppointment, getAppointmentAvailability, isActiveDoctorInOrg } from '../services/appointmentService.js';
 import { apiError, isIsoDate, isTime, isUuid, serverError, toMinutes } from '../services/validation.js';
 
 export const portalRouter = Router();
@@ -84,48 +85,8 @@ portalRouter.post('/appointments', async (req: Request, res: Response): Promise<
       return;
     }
 
-    const outcome = await withTransaction(async (client) => {
-      // Use the same lock key as staff bookings so patient requests cannot race a staff booking.
-      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`${organization_id}:${clinician_id}:${appointment_date}`]);
-
-      const future = await client.query(
-        `SELECT ($1::date > CURRENT_DATE OR ($1::date = CURRENT_DATE AND $2::time > LOCALTIME)) AS is_future`,
-        [appointment_date, start_time]
-      );
-      if (!future.rows[0]?.is_future) return { reason: 'past' as const };
-
-      const dayOfWeek = new Date(`${appointment_date}T00:00:00Z`).getUTCDay();
-      const schedules = await client.query(
-        `SELECT start_time, end_time, slot_duration_minutes FROM clinician_schedules
-         WHERE organization_id = $1 AND clinician_id = $2 AND day_of_week = $3 AND is_active = true`,
-        [organization_id, clinician_id, dayOfWeek]
-      );
-      const requestedStart = toMinutes(start_time);
-      const requestedEnd = toMinutes(end_time);
-      const fitsSchedule = schedules.rows.some((schedule) => {
-        const from = toMinutes(String(schedule.start_time));
-        const to = toMinutes(String(schedule.end_time));
-        const step = Math.max(5, Number(schedule.slot_duration_minutes) || 30);
-        return requestedStart >= from && requestedEnd <= to && requestedEnd - requestedStart === step && (requestedStart - from) % step === 0;
-      });
-      if (!fitsSchedule) return { reason: 'unavailable' as const };
-
-      const conflict = await client.query(
-        `SELECT id FROM appointments
-         WHERE organization_id = $1 AND clinician_id = $2 AND appointment_date = $3
-           AND status <> 'cancelled' AND start_time < $5 AND end_time > $4
-         LIMIT 1`,
-        [organization_id, clinician_id, appointment_date, start_time, end_time]
-      );
-      if (conflict.rowCount) return { reason: 'conflict' as const };
-
-      const created = await client.query(
-        `INSERT INTO appointments (organization_id, patient_id, clinician_id, appointment_date, start_time, end_time, status, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7)
-         RETURNING id, organization_id, patient_id, clinician_id, appointment_date, start_time, end_time, status, created_at`,
-        [organization_id, patientId, clinician_id, appointment_date, start_time, end_time, patientUserId]
-      );
-      return { created: created.rows[0] as Record<string, unknown> };
+    const outcome = await createPendingAppointment({
+      patientId, createdBy: patientUserId, organization_id, clinician_id, appointment_date, start_time, end_time,
     });
 
     if ('reason' in outcome) {
@@ -162,104 +123,8 @@ portalRouter.post('/appointments', async (req: Request, res: Response): Promise<
 
 // GET /api/portal/summary (Longitudinal summary of APPROVED health information)
 portalRouter.get('/summary', async (req: Request, res: Response): Promise<void> => {
-  const patientId = req.user!.patientProfileId!;
-
   try {
-    // 1. Patient profile & allergies
-    const patientRes = await query(
-      `SELECT id, full_name_ar, full_name_en, date_of_birth, blood_type
-       FROM patient_profiles WHERE id = $1`,
-      [patientId]
-    );
-    const allergiesRes = await query(
-      `SELECT id, allergen_ar, allergen_en, reaction_ar, reaction_en, severity, diagnosed_at
-       FROM patient_allergies WHERE patient_id = $1 ORDER BY severity DESC, diagnosed_at DESC`,
-      [patientId]
-    );
-
-    // 2. Affiliated centers
-    const centersRes = await query(
-      `SELECT o.id, o.name_ar, o.name_en, o.code, l.mrn, l.first_visit_date
-       FROM patient_center_links l
-       JOIN organizations o ON l.organization_id = o.id
-       WHERE l.patient_id = $1 AND l.status = 'active'`,
-      [patientId]
-    );
-
-    // 3. Approved Visits Only
-    const visitsRes = await query(
-      `SELECT v.id, v.organization_id, v.visit_date, v.chief_complaint, v.vital_signs, v.diagnosis, v.treatment_plan, v.status,
-              o.name_ar as center_name_ar, o.name_en as center_name_en,
-              u.full_name_ar as clinician_name_ar, u.full_name_en as clinician_name_en
-       FROM visits v
-       JOIN organizations o ON v.organization_id = o.id
-       JOIN users u ON v.clinician_id = u.id
-       WHERE v.patient_id = $1 AND v.status = 'approved'
-       ORDER BY v.visit_date DESC LIMIT 3`,
-      [patientId]
-    );
-
-    // 4. Approved Prescriptions
-    const rxRes = await query(
-      `SELECT pr.id, pr.organization_id, pr.created_at, pr.notes, pr.approved_at,
-              o.name_ar as center_name_ar, o.name_en as center_name_en,
-              u.full_name_ar as clinician_name_ar, u.full_name_en as clinician_name_en,
-              COALESCE(json_agg(json_build_object(
-                'id', pi.id, 'medication_name', pi.medication_name, 'dosage', pi.dosage,
-                'frequency', pi.frequency, 'duration', pi.duration, 'instructions', pi.instructions
-              ) ORDER BY pi.created_at) FILTER (WHERE pi.id IS NOT NULL), '[]'::json) as items
-       FROM (
-         SELECT * FROM prescriptions
-         WHERE patient_id = $1 AND status = 'approved'
-         ORDER BY created_at DESC LIMIT 3
-       ) pr
-       JOIN organizations o ON pr.organization_id = o.id
-       JOIN users u ON pr.clinician_id = u.id
-       LEFT JOIN prescription_items pi ON pr.id = pi.prescription_id
-       GROUP BY pr.id, pr.organization_id, pr.created_at, pr.notes, pr.approved_at,
-                o.name_ar, o.name_en, u.full_name_ar, u.full_name_en
-       ORDER BY pr.created_at DESC`,
-      [patientId]
-    );
-
-    // 5. Approved Lab Results
-    const labRes = await query(
-      `SELECT lr.id, lr.parameter_name, lr.value, lr.unit, lr.reference_range, lr.is_abnormal, lr.status, lr.reviewed_at,
-              lo.test_name_ar, lo.test_name_en, lo.test_category,
-              o.name_ar as center_name_ar, o.name_en as center_name_en
-       FROM lab_results lr
-       JOIN lab_orders lo ON lr.lab_order_id = lo.id
-       JOIN organizations o ON lr.organization_id = o.id
-       WHERE lo.patient_id = $1 AND lr.status = 'approved'
-       ORDER BY lr.reviewed_at DESC LIMIT 6`,
-      [patientId]
-    );
-
-    // 6. Upcoming Appointments
-    const appointmentsRes = await query(
-      `SELECT a.id, a.organization_id, a.clinician_id, a.appointment_date, a.start_time, a.end_time, a.status, a.created_at,
-              o.name_ar as center_name_ar, o.name_en as center_name_en,
-              u.full_name_ar as clinician_name_ar, u.full_name_en as clinician_name_en
-       FROM appointments a
-       JOIN organizations o ON a.organization_id = o.id
-       JOIN users u ON a.clinician_id = u.id
-       WHERE a.patient_id = $1 AND a.appointment_date >= CURRENT_DATE AND a.status NOT IN ('cancelled', 'completed', 'no_show')
-       ORDER BY a.appointment_date ASC, a.start_time ASC`,
-      [patientId]
-    );
-
-    res.json({
-      success: true,
-      data: {
-        profile: patientRes.rows[0],
-        allergies: allergiesRes.rows,
-        affiliatedCenters: centersRes.rows,
-        visits: visitsRes.rows,
-        prescriptions: rxRes.rows,
-        labResults: labRes.rows,
-        upcomingAppointments: appointmentsRes.rows,
-      },
-    });
+    res.json({ success: true, data: await buildPatientSummary(req.user!.patientProfileId!) });
   } catch (err: any) {
     console.error('Portal summary error:', err);
     res.status(500).json(serverError(err));

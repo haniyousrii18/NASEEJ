@@ -38,8 +38,9 @@
 - `PATCH /api/organizations/:id/members/:memberId` — Center Manager: Update role or status.
 
 ### 2.3 Patient Profiles & Relationships
-- `GET /api/patients` — List patients affiliated with active center (scoped by `organization_id`).
-- `POST /api/patients` — Register new patient profile and assign center MRN.
+- `GET /api/patients?search=` — List patients affiliated with the active center (scoped by `organization_id`); `search` matches names, national ID and MRN literally (`%` and `_` are not wildcards).
+- `POST /api/patients` — Register a patient and assign a center MRN. Validated (national ID, both names, past date of birth, `male`/`female`, phone, optional email). A national ID this center already has is `409 PATIENT_ALREADY_REGISTERED` (details: the existing `patientId` and `mrn`). A national ID that exists at another center is linked here only when the date of birth matches; otherwise `409 IDENTITY_MISMATCH`, which says nothing about the other profile.
+- `PATCH /api/patients/:id` — Reception Staff: change contact details only (`phone`, `email`, `emergency_contact_name`, `emergency_contact_phone`). Names, date of birth, gender, national ID and blood type are shared across centers and are refused with `400 FIELD_NOT_EDITABLE`. The patient must be linked to the active center (otherwise `404`). Audited as `PATIENT_CONTACT_UPDATE` (field names only).
 - `GET /api/patients/:id` — Get patient profile and allergy summary (must have center link).
 - `GET /api/patients/:id/allergies` — List patient allergies.
 - `POST /api/patients/:id/allergies` — Document allergy (Clinician).
@@ -50,6 +51,7 @@
 - `GET /api/appointments` — List appointments for center with status filtering (`date`, `clinician_id`, `status`).
 - `POST /api/appointments` — Book appointment with server-side conflict detection.
 - `GET /api/appointments/summary?from=&to=&clinicianId=` — Staff of the active center: appointments per day and status over a range of at most 62 days (`{ days: [{ date, total, by_status }] }`; `total` excludes cancelled). Counts only, no patient data. A doctor always gets their own schedule.
+- `PATCH /api/appointments/:id` — Reception Staff and Center Managers: reschedule a `pending` or `confirmed` appointment. Body: `appointment_date`, `start_time`, `end_time` (required), optional `clinician_id` (another active doctor of the same center) and `reason`. Checked under the same per-clinician-per-day lock as booking (`409 APPOINTMENT_CONFLICT`); the new time must not be in the past (`400 APPOINTMENT_SLOT_PAST`); other statuses are `409 NOT_RESCHEDULABLE`; doctors get `403`. Audited as `APPOINTMENT_RESCHEDULE` with the old and new doctor, date and time.
 - `PATCH /api/appointments/:id/check-in` — Reception Staff: Record patient arrival.
 - `PATCH /api/appointments/:id/status` — Update appointment status (`pending`, `confirmed`, `checked_in`, `in_consultation`, `completed`, `cancelled`, `no_show`). `no_show` is final, is allowed only from `confirmed`, and only once the appointment time has passed (otherwise `409 NO_SHOW_TOO_EARLY`); reception, center managers and the appointment's own doctor may set it. A no-show is excluded from "upcoming" lists and keeps its time slot taken.
 
@@ -104,3 +106,20 @@ All routes return the standard `{ success, data, meta?, error? }` envelope. Auth
 | `GET /api/audit-logs` | platform_admin, center_manager | Read-only, filterable, paged, clinical keys redacted. |
 
 Security fixes in this release: `GET /api/public/demo-requests` now requires a platform administrator (it was unauthenticated and returned contact details); patient, appointment, lab and audit routes were tightened as described in `architecture.md`.
+
+## 4. Caregivers, Operational Messages and AI Document Review (migration 003)
+
+Same envelope and server-side authorization as above. A caregiver account is an ordinary user with a `caregiver` membership (so it can sign in); every patient-data request is authorized by a *delegation* the patient granted, never by the membership.
+
+| Method & path | Roles | Notes |
+|---|---|---|
+| `GET/POST /api/portal/caregivers`, `POST /api/portal/caregivers/:id/revoke`, `GET /api/portal/caregivers/:id/history` | patient | Invite by email with three independent flags (`can_view_records`, `can_manage_appointments`, `can_send_messages`) and `expires_in_days` (7-365). Revocation is immediate. History lists audited caregiver actions. |
+| `GET /api/caregiver/delegations`, `POST /api/caregiver/delegations/:id/accept`, `/decline`, `/leave` | any signed-in user | Invitations are matched on the account email; only that account can accept. |
+| `GET /api/caregiver/patients/:id/summary`, `/timeline` | caregiver (view records) | `:id` is the **delegation id**. Same approved/released view the patient has: no drafts, no AI suggestions, no file downloads. Each read is audited. |
+| `GET /api/caregiver/patients/:id/appointments`, `/centers`, `/clinicians`, `/availability`; `POST .../appointments` | caregiver (manage appointments; the list also with view records) | Creates a `pending` request recorded as created by the caregiver. |
+| `GET/POST /api/caregiver/patients/:id/messages` | caregiver (send messages) | Stored with `sent_by_caregiver_id`; the caregiver sees only their own messages and the replies to them. |
+| `GET/POST /api/ops-messages`, `GET /api/ops-messages/summary`, `GET /:id`, `POST /:id/replies`, `PATCH /:id/status` | reception, doctor | Operational (non-clinical) messages inside one center; statuses new/read/in_progress/resolved. Managers, patients and administrators are refused. Message text is never written to the audit log. |
+| `GET /api/doctor/patient-messages`, `POST /api/doctor/patient-messages/:id/respond` | doctor | The clinician side of patient and caregiver questions (these were stored before, but no staff route could read them). |
+| `GET /api/documents/ai/status` | patient, doctor | `configured`, provider, model, data-handling mode. |
+| `POST /api/documents` (+ `ai_processing_allowed`), `POST /api/documents/:id/ai-consent` | patient | Per-file, opt-in permission to send the file to the provider; processing starts only if a provider is configured. |
+| `POST /api/documents/:id/process`, `GET /api/documents/:id/processing`, `GET /api/documents/:id/facts`, `GET /api/documents/facts?patientId=`, `POST /api/documents/:id/facts/:factId/review` | doctor (own center); patient reads state and accepted facts only | Job states queued/processing/failed/completed; facts stay `unreviewed` until `accept`, `correct` or `reject`. Reviews are audited (`AI_FACT_*`). |
