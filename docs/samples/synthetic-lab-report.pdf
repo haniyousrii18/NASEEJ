@@ -1,0 +1,90 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1625 >>
+stream
+BT /F2 18 Tf 50 740 Td (Al-Noor Medical Center - Clinical Laboratory) Tj ET
+BT /F1 10 Tf 50 720 Td (SYNTHETIC DEMO DOCUMENT. Not a real patient. For Naseej testing only.) Tj ET
+BT /F2 11 Tf 50 685 Td (Patient: Mohammed Al-Mansoor) Tj ET
+BT /F1 11 Tf 330 685 Td (MRN: N-1001) Tj ET
+BT /F1 11 Tf 50 668 Td (Date of birth: 1990-04-12) Tj ET
+BT /F1 11 Tf 330 668 Td (Collected: 2026-09-30) Tj ET
+BT /F2 13 Tf 50 640 Td (Complete Blood Count and Chemistry) Tj ET
+BT /F2 10 Tf 50 610 Td (Test) Tj ET
+BT /F2 10 Tf 250 610 Td (Result) Tj ET
+BT /F2 10 Tf 350 610 Td (Unit) Tj ET
+BT /F2 10 Tf 430 610 Td (Reference range) Tj ET
+BT /F1 11 Tf 50 590 Td (Hemoglobin) Tj ET
+BT /F1 11 Tf 250 590 Td (11.2) Tj ET
+BT /F1 11 Tf 350 590 Td (g/dL) Tj ET
+BT /F1 11 Tf 430 590 Td (12.0 - 15.5) Tj ET
+BT /F1 11 Tf 50 570 Td (White blood cells) Tj ET
+BT /F1 11 Tf 250 570 Td (6.8) Tj ET
+BT /F1 11 Tf 350 570 Td (x10^3/uL) Tj ET
+BT /F1 11 Tf 430 570 Td (4.0 - 11.0) Tj ET
+BT /F1 11 Tf 50 550 Td (Platelets) Tj ET
+BT /F1 11 Tf 250 550 Td (245) Tj ET
+BT /F1 11 Tf 350 550 Td (x10^3/uL) Tj ET
+BT /F1 11 Tf 430 550 Td (150 - 400) Tj ET
+BT /F1 11 Tf 50 530 Td (Fasting glucose) Tj ET
+BT /F1 11 Tf 250 530 Td (112) Tj ET
+BT /F1 11 Tf 350 530 Td (mg/dL) Tj ET
+BT /F1 11 Tf 430 530 Td (70 - 99) Tj ET
+BT /F1 11 Tf 50 510 Td (HbA1c) Tj ET
+BT /F1 11 Tf 250 510 Td (6.1) Tj ET
+BT /F1 11 Tf 350 510 Td (%) Tj ET
+BT /F1 11 Tf 430 510 Td (below 5.7) Tj ET
+BT /F1 9 Tf 50 470 Td (Results are reported as measured. Interpretation is left to the treating clinician.) Tj ET
+BT /F1 9 Tf 50 40 Td (Page 1 of 2) Tj ET
+0.6 w 50 625 m 562 625 l S
+0.6 w 50 600 m 562 600 l S
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 680 >>
+stream
+BT /F2 16 Tf 50 740 Td (Clinical history summary \(from the referring form\)) Tj ET
+BT /F1 10 Tf 50 720 Td (SYNTHETIC DEMO DOCUMENT. Not a real patient.) Tj ET
+BT /F2 12 Tf 50 680 Td (Known allergies) Tj ET
+BT /F1 11 Tf 50 660 Td (Known allergy: Penicillin \(reaction: skin rash\)) Tj ET
+BT /F2 12 Tf 50 620 Td (Current medications) Tj ET
+BT /F1 11 Tf 50 600 Td (Current medication: Metformin 500 mg twice daily) Tj ET
+BT /F1 11 Tf 50 580 Td (Current medication: Vitamin D 1000 IU once daily) Tj ET
+BT /F2 12 Tf 50 540 Td (Referral note) Tj ET
+BT /F1 11 Tf 50 520 Td (Follow-up recommended with the endocrinology clinic in 3 months.) Tj ET
+BT /F1 9 Tf 50 40 Td (Page 2 of 2) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000257 00000 n 
+0000001934 00000 n 
+0000002070 00000 n 
+0000002801 00000 n 
+0000002871 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R >>
+startxref
+2946
+%%EOF

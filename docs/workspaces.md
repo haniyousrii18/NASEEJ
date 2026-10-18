@@ -37,6 +37,7 @@ The workspaces have their own light/dark choice (`naseej_ws_theme`). `ThemeConte
 - Output is stored in `document_facts` as `unreviewed` suggestions with page, passage, the model's own (uncalibrated) confidence when given, and a one-line reason. Patients and caregivers never see unreviewed suggestions; patients see only facts a clinician accepted or corrected. Processing and reviews are audited.
 - Limits: processing runs in the API process after the response (no job queue); passages are model-reported, not verified against a text layer; Arabic handwriting accuracy is unknown.
 - To activate: set the two variables in `.env`, restart the backend, upload a synthetic PDF with the permission ticked (or press "Read the file automatically" as a doctor) and check `GET /api/documents/ai/status`.
+- A ready synthetic test file is in `docs/samples/synthetic-lab-report.pdf` (two pages: lab results, then allergy and medications). `node docs/samples/make-sample-pdf.mjs` regenerates it. It contains no real patient data.
 
 ## Cross-center consent
 Unchanged and still enforced in `accessService` and `recordService`: a patient-center link grants nothing on its own; other centers' records need an effective (active, unexpired, in-scope) consent and each such read is audited. AI facts are never shared across centers: `document_facts` is read only by the owning center.
