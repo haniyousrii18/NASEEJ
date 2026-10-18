@@ -4,6 +4,7 @@ import { useApiData, useMutation } from '../api.js';
 import { addDays, formatDate, nameOf, todayIso } from '../format.js';
 import { Async, Button, Card, EmptyState, Field, Notice, PageHead, Pill, Stat } from '../ui.js';
 import { useA } from '../useA.js';
+import { ManagerCalendar } from './managerCalendar.js';
 import { AppointmentList, StatusPill, type AppointmentRow } from './AppointmentList.js';
 import { AuditLog } from './AuditLog.js';
 
@@ -124,6 +125,7 @@ export const ManagerSchedule: React.FC = () => {
     <>
       <PageHead title={S.title} subtitle={S.subtitle} />
       <div className="na-stack">
+        <ManagerCalendar doctors={doctors} onPickDay={(d) => { setFrom(d); setTo(d); }} />
         <Card title={S.hours}>
           <form className="na-form" onSubmit={add}>
             <Field label={S.doctor} htmlFor="ms-doc">
@@ -323,7 +325,7 @@ export const ManagerStaff: React.FC = () => {
             </Field>
             <Field label={T.role} htmlFor="st-role">
               <select id="st-role" className="na-select" value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })}>
-                {['doctor', 'reception', 'care_coordinator'].map((r) => (
+                {['doctor', 'reception', 'care_coordinator', 'caregiver'].map((r) => (
                   <option key={r} value={r}>
                     {T.roles[r]}
                   </option>

@@ -1,4 +1,4 @@
-import { query } from '../config/db.js';
+import { query, withTransaction } from '../config/db.js';
 import { toMinutes } from './validation.js';
 
 export interface AppointmentSlot {
@@ -60,4 +60,69 @@ export async function getAppointmentAvailability(orgId: string, clinicianId: str
   }
 
   return { date, clinicianId, working: schedules.rows.length > 0, slots };
+}
+
+export type PendingAppointmentOutcome =
+  | { created: Record<string, unknown> }
+  | { reason: 'past' | 'unavailable' | 'conflict' };
+
+/**
+ * Creates a pending appointment request for a patient. Used by the patient portal and by caregivers who were
+ * explicitly allowed to manage appointments. The same advisory lock as staff bookings keeps requests from racing them.
+ * `createdBy` is the signed-in account that asked (the patient, or the caregiver acting for them).
+ */
+export async function createPendingAppointment(input: {
+  patientId: string;
+  createdBy: string;
+  organization_id: string;
+  clinician_id: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+}): Promise<PendingAppointmentOutcome> {
+  const { patientId, organization_id, clinician_id, appointment_date, start_time, end_time } = input;
+  const patientUserId = input.createdBy;
+  return withTransaction(async (client) => {
+    // Use the same lock key as staff bookings so patient requests cannot race a staff booking.
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`${organization_id}:${clinician_id}:${appointment_date}`]);
+
+    const future = await client.query(
+      `SELECT ($1::date > CURRENT_DATE OR ($1::date = CURRENT_DATE AND $2::time > LOCALTIME)) AS is_future`,
+      [appointment_date, start_time]
+    );
+    if (!future.rows[0]?.is_future) return { reason: 'past' as const };
+
+    const dayOfWeek = new Date(`${appointment_date}T00:00:00Z`).getUTCDay();
+    const schedules = await client.query(
+      `SELECT start_time, end_time, slot_duration_minutes FROM clinician_schedules
+       WHERE organization_id = $1 AND clinician_id = $2 AND day_of_week = $3 AND is_active = true`,
+      [organization_id, clinician_id, dayOfWeek]
+    );
+    const requestedStart = toMinutes(start_time);
+    const requestedEnd = toMinutes(end_time);
+    const fitsSchedule = schedules.rows.some((schedule) => {
+      const from = toMinutes(String(schedule.start_time));
+      const to = toMinutes(String(schedule.end_time));
+      const step = Math.max(5, Number(schedule.slot_duration_minutes) || 30);
+      return requestedStart >= from && requestedEnd <= to && requestedEnd - requestedStart === step && (requestedStart - from) % step === 0;
+    });
+    if (!fitsSchedule) return { reason: 'unavailable' as const };
+
+    const conflict = await client.query(
+      `SELECT id FROM appointments
+       WHERE organization_id = $1 AND clinician_id = $2 AND appointment_date = $3
+         AND status <> 'cancelled' AND start_time < $5 AND end_time > $4
+       LIMIT 1`,
+      [organization_id, clinician_id, appointment_date, start_time, end_time]
+    );
+    if (conflict.rowCount) return { reason: 'conflict' as const };
+
+    const created = await client.query(
+      `INSERT INTO appointments (organization_id, patient_id, clinician_id, appointment_date, start_time, end_time, status, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7)
+       RETURNING id, organization_id, patient_id, clinician_id, appointment_date, start_time, end_time, status, created_at`,
+      [organization_id, patientId, clinician_id, appointment_date, start_time, end_time, patientUserId]
+    );
+    return { created: created.rows[0] as Record<string, unknown> };
+  });
 }

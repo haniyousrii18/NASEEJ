@@ -39,7 +39,14 @@ interface Props {
 export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
   const { user, currentRole, currentOrgId, setCurrentOrgId, logout } = useAuth();
   const { lang, setLang, isRtl } = useLang();
-  const { resolved, setPreference } = useTheme();
+  const { workspace } = useTheme();
+  const wsTheme = workspace.theme;
+  const { enter: enterWorkspace, leave: leaveWorkspace } = workspace;
+  // The workspace has its own light/dark choice, applied only while this shell is mounted.
+  useEffect(() => {
+    enterWorkspace();
+    return leaveWorkspace;
+  }, [enterWorkspace, leaveWorkspace]);
   const A = useA();
 
   const role = appRoleOf(currentRole);
@@ -175,10 +182,10 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
 
   const otherLang = lang === 'ar' ? 'en' : 'ar';
   const otherLangName = lang === 'ar' ? 'English' : 'العربية';
-  const themeLabel = `${A.common.shell.theme}: ${resolved === 'dark' ? '☾' : '☀'}`;
+  const themeLabel = wsTheme === 'dark' ? A.care.theme.toLight : A.care.theme.toDark;
 
   return (
-    <div className="na-app" data-collapsed={collapsed} data-peek={peeking} data-rail={rail} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'}>
+    <div className="na-app" data-collapsed={collapsed} data-peek={peeking} data-rail={rail} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'} data-ws-theme={wsTheme}>
       <a className="na-skip" href="#na-main">
         {A.common.shell.skip}
       </a>
@@ -328,11 +335,12 @@ export const AppShell: React.FC<Props> = ({ setCurrentView }) => {
           <button
             type="button"
             className="na-icon-btn"
-            onClick={() => setPreference(resolved === 'dark' ? 'light' : 'dark')}
-            aria-label={`${A.common.shell.theme}: ${resolved === 'dark' ? (isRtl ? 'التبديل إلى النهاري' : 'Switch to light') : isRtl ? 'التبديل إلى الليلي' : 'Switch to dark'}`}
-            title={themeLabel}
+            onClick={() => workspace.setTheme(wsTheme === 'dark' ? 'light' : 'dark')}
+            aria-label={themeLabel}
+            aria-pressed={wsTheme === 'dark'}
+            title={`${themeLabel} — ${A.care.theme.scope}`}
           >
-            <AppIcon name={resolved === 'dark' ? 'sun' : 'moon'} />
+            <AppIcon name={wsTheme === 'dark' ? 'sun' : 'moon'} />
           </button>
 
           <button

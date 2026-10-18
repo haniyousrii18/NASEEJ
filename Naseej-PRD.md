@@ -5,7 +5,7 @@
 
 **A Multi-Tenant Healthcare SaaS Platform for Connected Patient Information**
 
-Version 1.0 — Initial Implementation Baseline  
+Version 1.1 — Requirements baseline with implementation status  
 Primary language: Arabic, followed by English  
 Project duration: 4–5 months · Approximately 4 active contributors
 
@@ -20,11 +20,36 @@ Project duration: 4–5 months · Approximately 4 active contributors
 | Product name | Naseej \| نَسيج |
 | Product type | Multi-tenant Healthcare SaaS / Health Information Platform |
 | Purpose | Connect patient health information across visits, documents, results, and healthcare centers |
-| Primary users | Platform Administrator, Center Manager, Doctor, Reception Staff, Patient/Caregiver |
+| Primary users | Patient, Authorized Caregiver, Doctor, Reception Staff, Center Manager (the five rebuilt workspaces), plus Platform Administrator and Care Coordinator |
 | Academic demo environment | Local execution on team computers or the presentation machine |
 | Test and demo data | Synthetic data only |
-| Core stack | React + Vite + TypeScript, Node.js + Express, PostgreSQL |
-| Document status | Initial implementation baseline; update requirement status based on actual implementation and testing |
+| Core stack | React + Vite + TypeScript, Node.js + Express (TypeScript), PostgreSQL |
+| Document status | Requirements baseline. Section "Implementation status" below records what exists today; the requirement text itself is unchanged unless a note says so |
+
+## Implementation status
+
+This section was added when the document was reconciled with the code. It says what exists, not what was planned. "Implemented" means the code and routes exist and were reviewed; automated tests exist for most backend rules, but the tests for caregiver delegation, operational messages and AI review (migration 003) were written and have **not yet been run** on a database with 003 applied. Nothing here is a claim of certification or clinical validation.
+
+| Requirement group | Status | Notes |
+|---|---|---|
+| 7.1 Public website (FR-001 to FR-007) | Implemented, except FR-004 | Landing, features, workflow, demo request, login. **FR-004 (a general contact form) is not implemented**; only the demo request exists. The site switches views in the app rather than using the `/ar`, `/en`, `/contact` URLs suggested in 9.2. |
+| 7.2 Authentication and accounts | Partial | Email and password with a JWT behind a replaceable `IAuthProvider`. **No external identity provider** is integrated. A center manager can add staff and caregiver logins; a platform administrator can add managers. |
+| 7.3 Centers and tenant isolation | Implemented | `organization_id` scoping, tenant header validation, suspended-center handling, cross-tenant attempts audited, isolation tests. |
+| 7.4 Patient profile and health record | Implemented | Master profile, per-center links and MRNs, allergies, longitudinal timeline with provenance and review state. |
+| 7.5 Appointments and reception (FR-040 to FR-046) | Implemented | Schedules, server-side conflict prevention, patient requests, reception confirm / decline / reschedule / cancel, check-in, status history, day / week / month calendar. |
+| 7.6 Documents (FR-050 to FR-052, FR-057, FR-058) | Implemented | PDF / PNG / JPEG up to 4 MB, type sniffed from bytes, random stored names, authorized and audited downloads, manual review when AI is off. |
+| 7.6 OCR (FR-053 to FR-056) | Code complete, off by default | Provider adapter (Anthropic) does OCR, a type suggestion and candidate facts with page, passage and the model's own confidence. Needs `AI_PROVIDER` and a key. **Never run against a live provider.** FR-055: the original is one click away from each suggestion, but there is no side-by-side viewer. |
+| 7.7 Clinician workspace and visits | Implemented, except FR-067 | Drafts, approval, author and timestamps, patients never see drafts. FR-062 is partial (results comparison, no change highlighting engine). **FR-067 voice dictation is not implemented.** |
+| 7.8 Prescriptions | Implemented, except FR-073 | Allergies shown before approval, no automatic changes. **FR-073 alerts with sources are not implemented** (there is no alert engine). |
+| 7.9 Laboratory orders and results | Implemented | Draft, review, approval states; patients see approved results only. |
+| 7.10 Patient portal and communication | Implemented, except FR-095 | Approved record, appointment requests and status, questions, symptoms. Questions are now readable and answerable by clinicians (this was missing before). **FR-095 guidance alerts are not implemented.** **FR-096 caregiver access is implemented** (patient-granted, scoped, expiring, three separate permissions). |
+| 7.11 AI and background jobs | Partial | FR-102 (replaceable provider), FR-104, FR-106, FR-107 (manual fallback), FR-113 implemented. FR-103 partial (suggestions grouped by type and linked to sources, no narrative summary). FR-110 to FR-112 partial: job status (queued / processing / failed / completed), atomic claim that prevents duplicate runs, retry only after failure, but it runs inside the API process, **not** in a queue. **FR-100 (independent AI service), FR-101 (local OCR) and FR-105 (rule-based alerts) are not implemented.** |
+| 7.12 Notifications and dashboards | Partial | **FR-120 to FR-123 (in-app and email notifications) are not implemented.** FR-130, FR-131, FR-132, FR-133, FR-134 are implemented as dashboards for managers, doctors and platform administrators. |
+| 7.13 Privacy and audit | Partial | FR-140 to FR-142 and FR-144 implemented (audit log, append-only guards, consent scope and revocation). **FR-143, FR-145, FR-146 (privacy requests and retention policy) are not implemented.** |
+| 8 Non-functional | Partial | Arabic RTL and English LTR throughout the app; loading, empty and error states; backup and restore documented in the README, restore not exercised in this session; performance not measured. |
+| 16 Testing | Partial | Vitest and Supertest suites for authorization, isolation, conflicts, workflows. A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the typechecks, backend tests on a throwaway PostgreSQL, frontend tests and the build on every pull request. **It has not run yet**, so the first run will show whether the 003 tests pass. Making it a required check is a repository setting (see `docs/team-guide.md`). |
+
+Added beyond the original requirements: operational messaging between reception and clinicians, a patient document library, a manager calendar (counts only), and the caregiver workspace. See `docs/workspaces.md`.
 
 ## 1. Executive Summary
 
@@ -88,7 +113,7 @@ Provide each patient with a connected health-information record that authorized 
 ### 4.1 Core Scope
 
 - Public website and demo-request forms.
-- External authentication provider integration.
+- Authentication through a replaceable provider adapter (local email/password with JWT in this prototype; an external provider is not integrated).
 - Center, user, and role management.
 - Patient profiles and core medical records.
 - Appointment schedules, bookings, and check-in.
@@ -137,7 +162,7 @@ If time becomes limited, reduce P2 scope before compromising core patient workfl
 | Doctor / Clinician | Review authorized records, document visits, create prescriptions, and approve clinical information | Limited to authorized patients and valid sharing permissions |
 | Reception Staff | Register patients, manage appointments, check-in, and administrative requests | No unnecessary access to clinical details |
 | Patient | View approved information, request appointments, submit questions and symptoms, manage consent | Restricted to their own authorized information |
-| Authorized Caregiver (optional) | Assist a patient within a delegated scope | Access must be explicitly authorized and limited |
+| Authorized Caregiver | Assist a patient within a delegated scope | Implemented. Access exists only through a delegation the patient granted and the caregiver accepted, with separate permissions to view the approved record, manage appointment requests and message the care team, and it expires or is revoked |
 
 ### General Authorization Rules
 
@@ -343,6 +368,8 @@ The authentication provider has not yet been selected. The team should choose it
 
 No real patient data may be sent to external AI services during the university project. Only synthetic demo data may be used. Job completion does not imply clinical approval.
 
+> **As built:** the AI step is an in-process provider adapter (`backend/src/services/ai`), not the separate `ai-service` described above, and it is off until a key is configured. A patient's file is sent only after the patient allows it for that file. See "Implementation status".
+
 ### 7.12 Notifications and Dashboards
 
 | ID | Requirement | Priority |
@@ -419,6 +446,8 @@ Suggested routes:
 Primary call to action: **Request a Demo**.  
 Secondary call to action: **Contact Us**.
 
+As built, the public pages are views inside the app and the signed-in application uses hash routes such as `#/doctor/home` and `#/caregiver/home`; the URLs above were not adopted.
+
 The sales process is demo-led. After an agreement, the platform administrator creates and configures the center rather than automatically provisioning a production center from a public form.
 
 ### 9.3 Internal Workspaces
@@ -439,15 +468,15 @@ Every screen should support loading, error, success, and empty states, with conf
 | Component | Technology |
 |---|---|
 | Frontend | React + Vite + TypeScript |
-| Backend | Node.js + Express using JavaScript |
+| Backend | Node.js + Express using TypeScript |
 | Database | PostgreSQL |
-| Authentication | External provider, not yet selected |
+| Authentication | Local email/password with JWT behind `IAuthProvider`; external provider not selected |
 | API | Documented REST API |
-| AI service | Independent, replaceable service |
+| AI service | Replaceable provider adapter inside the API (Anthropic, off by default); no separate service yet |
 | File storage | Local storage outside public web directories |
 | Repository | GitHub Monorepo |
 | Execution | Direct local setup on team computers |
-| CI | Automated required tests on pull requests |
+| CI | GitHub Actions workflow added (`.github/workflows/ci.yml`); not yet run, and not yet a required check |
 
 ### 10.2 High-Level Architecture
 
@@ -494,6 +523,8 @@ naseej/
 ```
 
 This structure is a starting point and may be refined. Secrets and real patient files must never be committed to GitHub.
+
+As built there is no `ai-service/` folder; the AI adapter lives in `backend/src/services/ai`. Migrations are `001`, `002` and `003` in `database/migrations`, with rollbacks in `database/migrations/rollback`.
 
 ## 11. Initial Data Model
 
@@ -662,7 +693,7 @@ The system should accept access, correction, and deletion or anonymization reque
 - Open a pull request with description and test evidence.
 - Request another team member's review where possible.
 - Run required CI tests.
-- Block merging if required tests fail or mandatory review is incomplete.
+- Block merging if required tests fail or mandatory review is incomplete. (CI runs on every pull request; the author also runs the tests locally first. The step-by-step team routine is in `docs/team-guide.md`.)
 - Record defects and rerun relevant tests after fixes.
 
 ## 17. Delivery Timeline
@@ -726,9 +757,11 @@ Assign one primary owner to each task even when several contributors collaborate
 6. Merge only when required conditions pass.
 7. Update documentation and requirement traceability.
 
+The practical commands and rules for this workflow are written for the team in `docs/team-guide.md`.
+
 ## 19. Local Setup and Demo Data
 
-The README must include:
+The README and `docs/team-guide.md` must include:
 - Required tool versions.
 - Node.js, PostgreSQL, and dependency installation.
 - Database creation and migration instructions.
@@ -793,8 +826,8 @@ Statuses must reflect actual implementation and testing. A requirement must not 
 
 - Naseej is an academic prototype, not a clinically approved system.
 - Demo and test data are synthetic.
-- The authentication provider has not yet been selected.
-- The final AI provider has not yet been selected.
+- The authentication provider has not been selected; the prototype uses local email and password behind a replaceable adapter.
+- An AI provider adapter (Anthropic) exists but is off by default and has not been run against a live provider; no provider is selected for any real use.
 - The target execution environment is local.
 - Real healthcare use requires appropriate security, legal, operational, and clinical review.
 - Performance and scalability must be measured rather than claimed without testing.
@@ -814,10 +847,18 @@ Potential post-graduation improvements include:
 
 ## 25. Immediate Next Steps
 
-Before implementation begins, finalize three practical artifacts:
+Original plan: before implementation begins, finalize three practical artifacts (the first two now exist as `docs/database-erd.md` and `docs/api-spec.md`):
 
 1. **ERD:** define relationships between centers, users, patients, consents, visits, and clinical records.
 2. **API Contract:** agree on request/response formats and authorization behavior between frontend and backend.
 3. **GitHub Backlog:** split the PRD into epics and issues, each with an owner, priority, and acceptance criteria.
+
+### Next steps from the current state
+
+1. Apply migration 003 on a clean database, run the full backend test suite, and fix anything the new caregiver, messaging and AI tests reveal.
+2. Exercise AI document reading once with a synthetic file and a real key, and record the result.
+3. Decide the open policy questions: guardianship for minors and incapacitated adults, caregiver file downloads, maximum delegation length.
+4. Choose and implement notifications (FR-120 to FR-123) and the privacy-request workflow (FR-143, FR-146), or formally move them out of scope.
+5. Watch the first CI run, fix what it shows, then make the two CI jobs required checks on `main`.
 
 > **Naseej's core principle:** Connecting information does not mean opening it to everyone. Every item must retain its source, context, and access boundaries, and final medical decisions remain the responsibility of the clinician.

@@ -3,6 +3,7 @@ import { LabForm, RecordList, RxForm, VisitEditor, VisitsTab } from './doctorVis
 import { AppIcon } from '../AppIcons.js';
 import { useApiData, useMutation } from '../api.js';
 import { addDays, fill, formatDate, nameOf, pick, todayIso } from '../format.js';
+import { AiOverview, DocumentAiPanel } from '../record/AiPanel.js';
 import { ProvenancePill, ReviewPill } from '../record/badges.js';
 import { RecentRecords } from '../record/RecentRecords.js';
 import { ResultsComparison } from '../record/ResultsComparison.js';
@@ -17,6 +18,7 @@ const nameOfPatient = (lang: 'ar' | 'en', r: { patient_name_ar: string; patient_
 interface Overview {
   today: Array<AppointmentRow & { reason?: string }>;
   waitingCount: number;
+  awaitingReview?: { documents: number; suggestions: number; patientQuestions: number; operationalMessages: number };
   pendingSignOff: { counts: Record<string, number>; total: number; items: Array<{ type: string; id: string; patient_id: string; created_at: string; patient_name_ar: string; patient_name_en: string }> };
 }
 
@@ -116,6 +118,32 @@ export const DoctorHome: React.FC<{ navigate: (r: string) => void }> = ({ naviga
                 </>
               )}
             </Card>
+            {d.awaitingReview && (
+              <Card title={A.care.doctorHome.awaiting}>
+                <ul className="na-list">
+                  {(
+                    [
+                      ['documents', A.care.doctorHome.documents, 'doctor/patients'],
+                      ['suggestions', A.care.doctorHome.suggestions, 'doctor/patients'],
+                      ['patientQuestions', A.care.doctorHome.questions, 'doctor/messages'],
+                      ['operationalMessages', A.care.doctorHome.ops, 'doctor/messages'],
+                    ] as const
+                  ).map(([key, label, route]) => (
+                    <li key={key}>
+                      <div className="na-item-main">
+                        <span className="na-item-title">{label}</span>
+                      </div>
+                      <div className="na-row">
+                        <Pill tone={d.awaitingReview![key] > 0 ? 'warn' : 'neutral'}>{d.awaitingReview![key]}</Pill>
+                        <Button small variant="quiet" onClick={() => navigate(route)}>
+                          {A.care.aiReview.show}
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
             <p className="na-help">{H.followUpNote}</p>
           </div>
         )}
@@ -387,6 +415,7 @@ const Summary: React.FC<{ patient: any; endpoint: string }> = ({ patient, endpoi
       <Sec title={B.complaint}>
         <RecentRecords endpoint={endpoint} types={['symptom_report']} limit={1} emptyText={S.none} />
       </Sec>
+      <AiOverview patientId={patient.id} />
       <Sec title={B.lastDx}>
         <Async state={visits.state} onRetry={visits.reload} isEmpty={(d) => d.length === 0} empty={<p className="na-muted">{S.none}</p>}>
           {(items) => (
@@ -506,6 +535,12 @@ const Documents: React.FC<{ patientId: string }> = ({ patientId }) => {
                     <ReviewPill status={i.reviewStatus} />
                     {i.isExternal && <Pill tone="lilac">{A.common.record.external}</Pill>}
                   </div>
+                  {!i.isExternal && (
+                    <details className="rec-upload">
+                      <summary>{A.care.aiReview.title}</summary>
+                      <DocumentAiPanel documentId={i.source.id} fileName={String(i.data.fileName)} />
+                    </details>
+                  )}
                   {!i.isExternal && i.reviewStatus !== 'reviewed' && (
                     <div className="na-row">
                       <Button small variant="primary" disabled={review.pending} onClick={() => doReview(i.source.id, true)}>

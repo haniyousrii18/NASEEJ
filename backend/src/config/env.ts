@@ -17,4 +17,9 @@ export const ENV = {
   JWT_SECRET: process.env.JWT_SECRET || 'naseej_academic_prototype_jwt_secret_key_2026_secure',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
   STORAGE_DIR: process.env.STORAGE_DIR || path.resolve(process.cwd(), '../storage/protected'),
+  // Optional AI document analysis. Off unless AI_PROVIDER and the matching key are set. Never commit a real key.
+  AI_PROVIDER: (process.env.AI_PROVIDER || '').toLowerCase(),
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
+  AI_MODEL: process.env.AI_MODEL || 'claude-sonnet-5-5',
+  AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '120000', 10),
 };

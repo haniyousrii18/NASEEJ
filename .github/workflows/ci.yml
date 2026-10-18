@@ -1,0 +1,74 @@
+name: CI
+
+# Runs on every pull request and on pushes to main. Uses a throwaway PostgreSQL service and synthetic data only.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (typecheck and tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: naseej_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      PORT: 5000
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: naseej_dev
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_SSL: "false"
+      JWT_SECRET: ci-only-secret-not-used-anywhere-else
+      STORAGE_DIR: ./storage/protected
+      # AI stays off in CI: no provider, no key, no outbound calls.
+      AI_PROVIDER: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Typecheck backend
+        run: npx tsc --noEmit -p backend
+      - name: Apply migrations and synthetic seed
+        run: |
+          npm --prefix backend run migrate
+          npm --prefix backend run seed
+      - name: Backend tests
+        run: npm --prefix backend run test
+
+  frontend:
+    name: Frontend (typecheck, tests and build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Typecheck frontend
+        run: npx tsc --noEmit -p frontend
+      - name: Frontend tests
+        run: npm --prefix frontend run test
+      - name: Build
+        run: npm --prefix frontend run build

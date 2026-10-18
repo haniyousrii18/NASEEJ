@@ -89,4 +89,4 @@ For the final graduation capstone report:
 1. Integration with HL7 FHIR standards for interoperability with external laboratory and hospital information systems.
 2. Client-side end-to-end encrypted messaging between patients and care teams.
 3. Mobile application deployment using Progressive Web App (PWA) standards or React Native.
-4. Human-reviewed OCR document ingestion with confidence scores.
+4. Human-reviewed OCR document ingestion with confidence scores (implemented as an optional provider adapter in migration 003; live processing needs a configured provider key and has not been exercised against a real provider yet. Further work: a local provider, calibrated confidence, verification of passages against a text layer).

@@ -5,10 +5,11 @@ import type { IconName } from './AppIcons.js';
  * The authenticated app's role-aware navigation. This decides what is *shown*; the backend decides what is *allowed*.
  * Every route begins with its role's base segment, e.g. "doctor/patient/<id>/timeline".
  */
-export type AppRole = 'patient' | 'doctor' | 'care_coordinator' | 'reception' | 'center_manager' | 'platform_admin';
+export type AppRole = 'patient' | 'caregiver' | 'doctor' | 'care_coordinator' | 'reception' | 'center_manager' | 'platform_admin';
 
 export const ROLE_BASE: Record<AppRole, string> = {
   patient: 'patient',
+  caregiver: 'caregiver',
   doctor: 'doctor',
   care_coordinator: 'coordinator',
   reception: 'reception',
@@ -47,7 +48,14 @@ export const NAV: Record<AppRole, NavGroup[]> = {
         { route: 'patient/appointments', label: 'patientAppointments', icon: 'calendar' },
         { route: 'patient/messages', label: 'patientMessages', icon: 'message' },
         { route: 'patient/consents', label: 'patientConsents', icon: 'shield' },
+        { route: 'patient/caregivers', label: 'patientCaregivers', icon: 'users' },
       ],
+    },
+  ],
+  caregiver: [
+    {
+      id: 'delegated',
+      items: [{ route: 'caregiver/home', label: 'caregiverHome', icon: 'users', alsoActiveFor: ['caregiver/patient/'] }],
     },
   ],
   doctor: [
@@ -57,6 +65,7 @@ export const NAV: Record<AppRole, NavGroup[]> = {
         { route: 'doctor/home', label: 'doctorHome', icon: 'home' },
         { route: 'doctor/appointments', label: 'doctorAppointments', icon: 'calendar' },
         { route: 'doctor/pending', label: 'doctorPending', icon: 'checks' },
+        { route: 'doctor/messages', label: 'doctorMessages', icon: 'inbox' },
       ],
     },
     { id: 'patients', items: [{ route: 'doctor/patients', label: 'doctorPatients', icon: 'search', alsoActiveFor: ['doctor/patient/'] }] },
@@ -81,6 +90,7 @@ export const NAV: Record<AppRole, NavGroup[]> = {
         { route: 'reception/schedule', label: 'receptionSchedule', icon: 'calendar' },
         { route: 'reception/book', label: 'receptionBook', icon: 'plus' },
         { route: 'reception/patients', label: 'receptionPatients', icon: 'search' },
+        { route: 'reception/messages', label: 'receptionMessages', icon: 'inbox' },
       ],
     },
   ],
@@ -119,11 +129,12 @@ export const NAV: Record<AppRole, NavGroup[]> = {
 
 export const homeRoute = (role: AppRole) => `${ROLE_BASE[role]}/home`;
 
-/** Maps the AuthContext role to an app role. A role with no workspace here (e.g. caregiver) returns null. */
+/** Maps the AuthContext role to an app role. A role with no workspace here returns null. */
 export function appRoleOf(currentRole: string | null | undefined): AppRole | null {
   switch (currentRole) {
     case 'platform_admin':
     case 'patient':
+    case 'caregiver':
     case 'doctor':
     case 'care_coordinator':
     case 'reception':

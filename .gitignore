@@ -16,3 +16,6 @@ coverage/
 # Synthetic and uploaded protected files written by the seed and the API tests
 backend/storage/protected/*
 !backend/storage/protected/.gitkeep
+
+# Vite temp config files
+*.timestamp-*.mjs

@@ -250,8 +250,11 @@ export async function buildTimeline(viewer: Viewer, options: TimelineOptions): P
     params.push(limit);
     const rows = await query(
       `SELECT d.id, d.organization_id, d.created_at, to_char(d.document_date, 'YYYY-MM-DD') AS document_date, d.title, d.file_name, d.mime_type, d.file_size, d.source_type,
-              d.review_status, d.visit_id, o.name_ar org_ar, o.name_en org_en, u.full_name_ar a_ar, u.full_name_en a_en
+              d.review_status, d.visit_id, d.ai_processing_allowed, dp.status AS ai_status,
+              (SELECT COUNT(*)::int FROM document_facts f WHERE f.document_id = d.id AND f.review_status IN ('accepted', 'corrected')) AS facts_reviewed,
+              o.name_ar org_ar, o.name_en org_en, u.full_name_ar a_ar, u.full_name_en a_en
        FROM documents d JOIN organizations o ON o.id = d.organization_id JOIN users u ON u.id = d.uploaded_by
+       LEFT JOIN document_processing dp ON dp.document_id = d.id
        WHERE ${where}${filters} ORDER BY COALESCE(d.document_date::timestamptz, d.created_at) DESC LIMIT $${params.length}`,
       params
     );
@@ -267,7 +270,11 @@ export async function buildTimeline(viewer: Viewer, options: TimelineOptions): P
         reviewStatus: r.review_status,
         ...mark(r.organization_id, 'documents'),
         source: { resource: 'documents', id: r.id },
-        data: { title: r.title || r.file_name, fileName: r.file_name, mimeType: r.mime_type, fileSize: Number(r.file_size), visitId: r.visit_id },
+        data: {
+          title: r.title || r.file_name, fileName: r.file_name, mimeType: r.mime_type, fileSize: Number(r.file_size), visitId: r.visit_id,
+          // AI state only: the processing status and how many suggestions a clinician has confirmed, never the suggestions themselves.
+          aiProcessingAllowed: r.ai_processing_allowed, aiStatus: r.ai_status ?? null, factsReviewed: r.facts_reviewed,
+        },
       });
     }
   }

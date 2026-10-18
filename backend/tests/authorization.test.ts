@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { query } from '../src/config/db.js';
-import { AMAL, DOCTOR_NOOR, NOOR, PATIENT_1, PATIENT_2, as, call, futureDate, pastDate } from './helpers.js';
+import { AMAL, DOCTOR_AMAL, DOCTOR_NOOR, NOOR, PATIENT_1, PATIENT_2, as, call, futureDate, pastDate, quietHour } from './helpers.js';
 
 describe('Role boundaries on patient and appointment data', () => {
   it('refuses a center-linked patient on the staff patient list and appointment list', async () => {
@@ -240,30 +240,32 @@ describe('Appointments: validation, state machine, availability and concurrency'
   it('records a no-show only for a confirmed appointment whose time has passed', async () => {
     const reception = await as.receptionNoor();
     const doctor = await as.doctorNoor();
-    // Each booking gets its own start time, so two random days landing on the same date cannot collide.
+    // Each booking gets its own start time, on a random hour, so repeated runs and random dates rarely collide.
+    const base = quietHour();
+    const at = (i: number): [string, string] => [`${String(base + i).padStart(2, '0')}:00`, `${String(base + i).padStart(2, '0')}:30`];
     const book = async (appointment_date: string, start_time: string, end_time: string) =>
       (await call('post', '/api/appointments', reception, NOOR).send({ patient_id: PATIENT_1, clinician_id: DOCTOR_NOOR, appointment_date, start_time, end_time })).body.data.id as string;
     const patch = (id: string, who: Awaited<typeof reception>, status: string) => call('patch', `/api/appointments/${id}/status`, who, NOOR).send({ status });
 
     // Before the appointment time: refused with its own code, and the status is unchanged.
-    const upcoming = await book(futureDate(), '15:00', '15:30');
+    const upcoming = await book(futureDate(40, 3000), ...at(0));
     const early = await patch(upcoming, reception, 'no_show');
     expect(early.status).toBe(409);
     expect(early.body.error.code).toBe('NO_SHOW_TOO_EARLY');
 
     // After the time has passed: allowed, and final. The doctor can record it for their own appointment too.
-    const missed = await book(pastDate(), '15:30', '16:00');
+    const missed = await book(pastDate(), ...at(1));
     expect((await patch(missed, reception, 'no_show')).status).toBe(200);
     expect((await patch(missed, reception, 'checked_in')).status).toBe(409);
     expect((await patch(missed, reception, 'cancelled')).status).toBe(409);
-    const missedByDoctor = await book(pastDate(), '16:00', '16:30');
+    const missedByDoctor = await book(pastDate(), ...at(2));
     expect((await patch(missedByDoctor, doctor, 'no_show')).status).toBe(200);
 
     // Only a confirmed appointment can become a no-show: not one already checked in, nor an unconfirmed one.
-    const arrived = await book(pastDate(), '16:30', '17:00');
+    const arrived = await book(pastDate(), ...at(3));
     expect((await call('patch', `/api/appointments/${arrived}/check-in`, reception, NOOR)).status).toBe(200);
     expect((await patch(arrived, reception, 'no_show')).status).toBe(409);
-    const unconfirmed = await book(pastDate(), '17:00', '17:30');
+    const unconfirmed = await book(pastDate(), ...at(4));
     expect((await patch(unconfirmed, reception, 'pending')).status).toBe(200);
     expect((await patch(unconfirmed, reception, 'no_show')).status).toBe(409);
   });
@@ -271,13 +273,18 @@ describe('Appointments: validation, state machine, availability and concurrency'
   it('summarises appointments per day without patient data, scoped to the center and the doctor', async () => {
     const reception = await as.receptionNoor();
     const doctor = await as.doctorNoor();
-    const day = futureDate();
-    await call('post', '/api/appointments', reception, NOOR).send({ patient_id: PATIENT_1, clinician_id: DOCTOR_NOOR, appointment_date: day, start_time: '18:00', end_time: '18:30' });
+    const day = futureDate(40, 3000);
+    const base = quietHour();
+    const summary = async () => (await call('get', `/api/appointments/summary?from=${day}&to=${day}`, reception, NOOR)).body.data.days[0] ?? { total: 0, by_status: {} };
+    const empty = await summary();
+    await call('post', '/api/appointments', reception, NOOR).send({ patient_id: PATIENT_1, clinician_id: DOCTOR_NOOR, appointment_date: day, start_time: `${String(base).padStart(2, '0')}:00`, end_time: `${String(base).padStart(2, '0')}:30` });
 
     const res = await call('get', `/api/appointments/summary?from=${day}&to=${day}`, reception, NOOR);
     expect(res.status).toBe(200);
     expect(res.body.data.days).toHaveLength(1);
-    expect(res.body.data.days[0]).toMatchObject({ date: day, by_status: { confirmed: 1 }, total: 1 });
+    expect(res.body.data.days[0].date).toBe(day);
+    expect(res.body.data.days[0].total).toBe(empty.total + 1);
+    expect(res.body.data.days[0].by_status.confirmed).toBe((empty.by_status.confirmed ?? 0) + 1);
     expect(JSON.stringify(res.body)).not.toMatch(/patient|phone|reason/);
 
     // Empty days are omitted; invalid, reversed and over-long ranges are refused.
@@ -295,7 +302,76 @@ describe('Appointments: validation, state machine, availability and concurrency'
     // Another center's staff see none of this center's appointments.
     const amal = await as.managerAmal();
     const foreign = await call('get', `/api/appointments/summary?from=${day}&to=${day}`, amal, AMAL);
-    expect(foreign.body.data.days.find((d: any) => d.date === day)?.by_status.confirmed ?? 0).toBe(0);
+    expect(foreign.body.data.days).toEqual([]);
+  });
+
+  it('reschedules a pending or confirmed appointment to another time or doctor under the same conflict rules', async () => {
+    const reception = await as.receptionNoor();
+    const manager = await as.managerNoor();
+    const doctor = await as.doctorNoor();
+
+    // A second doctor in the center, so a move can change the doctor too.
+    const staff = await call('post', `/api/organizations/${NOOR}/members`, manager).send({
+      email: `second.doctor.${Date.now()}@naseej.health`,
+      full_name_ar: 'طبيب ثان',
+      full_name_en: 'Second Doctor',
+      role: 'doctor',
+      password: 'A-long-enough-pass1',
+    });
+    expect(staff.status).toBe(201);
+    const second = staff.body.data.user_id as string;
+
+    const day = futureDate(40, 3000);
+    const base = quietHour();
+    const hh = (i: number) => String(base + i).padStart(2, '0');
+    const book = async (clinician_id: string, start_time: string, end_time: string, appointment_date = day) =>
+      call('post', '/api/appointments', reception, NOOR).send({ patient_id: PATIENT_1, clinician_id, appointment_date, start_time, end_time });
+    const move = (id: string, who: Awaited<typeof reception>, body: Record<string, unknown>, org = NOOR) => call('patch', `/api/appointments/${id}`, who, org).send(body);
+
+    const booked = async (i: number) => {
+      const res = await book(DOCTOR_NOOR, `${hh(i)}:00`, `${hh(i)}:30`);
+      expect(res.status, JSON.stringify(res.body)).toBe(201);
+      return res.body.data.id as string;
+    };
+    const a = await booked(0);
+    const b = await booked(1);
+
+    // Onto another booking: refused, and nothing moves.
+    const clash = await move(a, reception, { appointment_date: day, start_time: `${hh(1)}:00`, end_time: `${hh(1)}:30` });
+    expect(clash.status).toBe(409);
+    expect(clash.body.error.code).toBe('APPOINTMENT_CONFLICT');
+
+    // To a free time with the same doctor.
+    const later = await move(a, reception, { appointment_date: day, start_time: `${hh(2)}:00`, end_time: `${hh(2)}:30` });
+    expect(later.status).toBe(200);
+    expect(String(later.body.data.start_time).slice(0, 5)).toBe(`${hh(2)}:00`);
+    // Its own old time does not count against it: shifting by a quarter of an hour overlaps only itself.
+    expect((await move(a, manager, { appointment_date: day, start_time: `${hh(2)}:15`, end_time: `${hh(2)}:45` })).status).toBe(200);
+
+    // To another doctor at the same hour; the first doctor's slot is free again afterwards.
+    const swapped = await move(b, reception, { clinician_id: second, appointment_date: day, start_time: `${hh(1)}:00`, end_time: `${hh(1)}:30` });
+    expect(swapped.status).toBe(200);
+    expect(swapped.body.data.clinician_id).toBe(second);
+    expect((await book(DOCTOR_NOOR, `${hh(1)}:00`, `${hh(1)}:30`)).status).toBe(201);
+
+    // Not into the past, not to a doctor of another center, not by a doctor, not across centers.
+    const past = await move(a, reception, { appointment_date: pastDate(), start_time: '09:00', end_time: '09:30' });
+    expect(past.status).toBe(400);
+    expect(past.body.error.code).toBe('APPOINTMENT_SLOT_PAST');
+    const foreignDoctor = await move(a, reception, { clinician_id: DOCTOR_AMAL, appointment_date: day, start_time: '12:00', end_time: '12:30' });
+    expect(foreignDoctor.status).toBe(400);
+    expect(foreignDoctor.body.error.code).toBe('INVALID_CLINICIAN');
+    expect((await move(a, doctor, { appointment_date: day, start_time: '12:00', end_time: '12:30' })).status).toBe(403);
+    expect((await move(a, await as.managerAmal(), { appointment_date: day, start_time: '12:00', end_time: '12:30' }, AMAL)).status).toBe(404);
+
+    // Validation, and only pending or confirmed appointments can move.
+    expect((await move(a, reception, { appointment_date: day, start_time: '12:30', end_time: '12:00' })).status).toBe(400);
+    expect((await move(a, reception, { start_time: '12:00', end_time: '12:30' })).status).toBe(400);
+    expect((await move('not-an-id', reception, { appointment_date: day, start_time: '12:00', end_time: '12:30' })).status).toBe(404);
+    expect((await call('patch', `/api/appointments/${a}/check-in`, reception, NOOR)).status).toBe(200);
+    const arrived = await move(a, reception, { appointment_date: day, start_time: '12:00', end_time: '12:30' });
+    expect(arrived.status).toBe(409);
+    expect(arrived.body.error.code).toBe('NOT_RESCHEDULABLE');
   });
 
   it('shows a doctor only their own appointments and blocks cross-center changes', async () => {
