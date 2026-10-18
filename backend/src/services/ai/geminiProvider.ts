@@ -14,27 +14,27 @@ import { AnalyzeInput, DOCUMENT_TYPES, DocumentAnalysis, DocumentAnalysisProvide
 const DEFAULT_MODEL = 'gemini-2.5-flash';
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-// OpenAPI-style subset accepted by Gemini's responseSchema.
+// OpenAPI-style subset accepted by Gemini's responseSchema (type names in upper case, as the REST docs show).
 const RESPONSE_SCHEMA = {
-  type: 'object',
+  type: 'OBJECT',
   properties: {
-    document_type: { type: 'string', enum: [...DOCUMENT_TYPES] },
-    document_type_confidence: { type: 'number' },
-    page_count: { type: 'integer' },
+    document_type: { type: 'STRING', enum: [...DOCUMENT_TYPES] },
+    document_type_confidence: { type: 'NUMBER' },
+    page_count: { type: 'INTEGER' },
     facts: {
-      type: 'array',
+      type: 'ARRAY',
       items: {
-        type: 'object',
+        type: 'OBJECT',
         properties: {
-          kind: { type: 'string', enum: [...FACT_KINDS] },
-          label: { type: 'string' },
-          value: { type: 'string' },
-          unit: { type: 'string' },
-          date: { type: 'string' },
-          page: { type: 'integer' },
-          passage: { type: 'string' },
-          confidence: { type: 'number' },
-          why: { type: 'string' },
+          kind: { type: 'STRING', enum: [...FACT_KINDS] },
+          label: { type: 'STRING' },
+          value: { type: 'STRING' },
+          unit: { type: 'STRING' },
+          date: { type: 'STRING' },
+          page: { type: 'INTEGER' },
+          passage: { type: 'STRING' },
+          confidence: { type: 'NUMBER' },
+          why: { type: 'STRING' },
         },
         required: ['kind', 'label', 'page', 'passage'],
       },
@@ -42,6 +42,33 @@ const RESPONSE_SCHEMA = {
   },
   required: ['document_type', 'facts'],
 };
+
+/**
+ * Google reports a wrong API key as HTTP 400 (reason API_KEY_INVALID), not 401, so the status alone cannot tell a bad
+ * key from a bad request. Only machine codes are read from the error body; its free text is never kept or logged.
+ */
+async function failureFor(res: Response): Promise<ProviderError> {
+  let status = '';
+  let reason = '';
+  try {
+    const body: any = await res.json();
+    status = typeof body?.error?.status === 'string' ? body.error.status : '';
+    const info = (body?.error?.details ?? []).find((d: any) => typeof d?.reason === 'string');
+    reason = info?.reason ?? '';
+  } catch {
+    /* no readable body */
+  }
+  const safe = (v: string) => (/^[A-Z0-9_]{1,60}$/.test(v) ? v : '');
+  const detail = safe(reason) || safe(status) || undefined;
+
+  if (res.status === 401 || res.status === 403 || reason === 'API_KEY_INVALID' || reason === 'API_KEY_NOT_FOUND') {
+    return new ProviderError('AUTH', 'The AI provider rejected the credentials.', detail);
+  }
+  if (res.status === 429) return new ProviderError('RATE_LIMIT', 'The AI provider is rate limiting requests.', detail);
+  if (res.status === 404 || status === 'NOT_FOUND') return new ProviderError('MODEL_NOT_FOUND', 'The AI provider does not know this model.', detail);
+  if (res.status === 400) return new ProviderError('BAD_REQUEST', 'The AI provider rejected the request.', detail);
+  return new ProviderError('PROVIDER_ERROR', 'The AI provider request failed.', detail);
+}
 
 export class GeminiProvider implements DocumentAnalysisProvider {
   readonly name = 'gemini';
@@ -81,12 +108,7 @@ export class GeminiProvider implements DocumentAnalysisProvider {
       throw new ProviderError('PROVIDER_ERROR', 'The AI provider request failed.');
     }
 
-    if (!res.ok) {
-      if (res.status === 401 || res.status === 403) throw new ProviderError('AUTH', 'The AI provider rejected the credentials.');
-      if (res.status === 429) throw new ProviderError('RATE_LIMIT', 'The AI provider is rate limiting requests.');
-      if (res.status === 400 || res.status === 404) throw new ProviderError('UNREADABLE', 'The AI provider could not use this file or model.');
-      throw new ProviderError('PROVIDER_ERROR', 'The AI provider request failed.');
-    }
+    if (!res.ok) throw await failureFor(res);
 
     let json: any;
     try {

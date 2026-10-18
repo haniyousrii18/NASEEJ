@@ -69,7 +69,8 @@ describe('Gemini provider', () => {
     [401, 'AUTH'],
     [403, 'AUTH'],
     [429, 'RATE_LIMIT'],
-    [400, 'UNREADABLE'],
+    [400, 'BAD_REQUEST'],
+    [404, 'MODEL_NOT_FOUND'],
     [500, 'PROVIDER_ERROR'],
   ])('turns HTTP %i into the %s failure code', async (status, code) => {
     configure();
@@ -78,6 +79,23 @@ describe('Gemini provider', () => {
     expect(err).toBeInstanceOf(ProviderError);
     expect(err.code).toBe(code);
     expect(err.message).not.toContain('details that must not leak');
+  });
+
+  it('recognises the wrong-key answer (HTTP 400, API_KEY_INVALID) as an AUTH failure and keeps only the machine code', async () => {
+    configure();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply(400, { error: { code: 400, message: 'API key not valid. secret text', status: 'INVALID_ARGUMENT', details: [{ reason: 'API_KEY_INVALID' }] } })));
+    const err = await new GeminiProvider().analyze({ buffer: sample, mimeType: 'application/pdf' }).catch((e) => e);
+    expect(err.code).toBe('AUTH');
+    expect(err.detail).toBe('API_KEY_INVALID');
+    expect(err.message).not.toContain('secret text');
+  });
+
+  it('never keeps free text as the failure detail', async () => {
+    configure();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply(400, { error: { status: 'contains the patient name', details: [{ reason: 'Free text with spaces' }] } })));
+    const err = await new GeminiProvider().analyze({ buffer: sample, mimeType: 'application/pdf' }).catch((e) => e);
+    expect(err.code).toBe('BAD_REQUEST');
+    expect(err.detail).toBeUndefined();
   });
 
   it('refuses malformed or empty output instead of inventing a result', async () => {

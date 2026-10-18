@@ -87,7 +87,8 @@ export class AnthropicProvider implements DocumentAnalysisProvider {
       const status = err?.status;
       if (status === 401 || status === 403) throw new ProviderError('AUTH', 'The AI provider rejected the credentials.');
       if (status === 429) throw new ProviderError('RATE_LIMIT', 'The AI provider is rate limiting requests.');
-      if (status === 400) throw new ProviderError('UNREADABLE', 'The AI provider could not read this file.');
+      if (status === 404) throw new ProviderError('MODEL_NOT_FOUND', 'The AI provider does not know this model.');
+      if (status === 400) throw new ProviderError('BAD_REQUEST', 'The AI provider rejected the request.');
       if (err?.name === 'APIConnectionTimeoutError') throw new ProviderError('TIMEOUT', 'The AI provider timed out.');
       throw new ProviderError('PROVIDER_ERROR', 'The AI provider request failed.');
     }

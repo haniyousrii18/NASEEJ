@@ -2907,3 +2907,9 @@ th[data-today] .na-sched-daybtn {
   --rec-muted: var(--color-body-gray);
   --rec-ink: var(--color-ink);
 }
+
+.ai-hint {
+  display: block;
+  margin-block-start: 4px;
+  font-weight: 400;
+}
