@@ -45,10 +45,20 @@ export interface AnalyzeInput {
   mimeType: 'application/pdf' | 'image/png' | 'image/jpeg';
 }
 
-export type ProviderErrorCode = 'NOT_CONFIGURED' | 'AUTH' | 'RATE_LIMIT' | 'UNREADABLE' | 'INVALID_OUTPUT' | 'PROVIDER_ERROR' | 'TIMEOUT';
+export type ProviderErrorCode =
+  | 'NOT_CONFIGURED'
+  | 'AUTH'
+  | 'RATE_LIMIT'
+  | 'UNREADABLE'
+  | 'MODEL_NOT_FOUND'
+  | 'BAD_REQUEST'
+  | 'INVALID_OUTPUT'
+  | 'PROVIDER_ERROR'
+  | 'TIMEOUT';
 
 export class ProviderError extends Error {
-  constructor(public code: ProviderErrorCode, message: string) {
+  /** `detail` is only ever a provider's machine code (e.g. API_KEY_INVALID), never free text that could echo a document. */
+  constructor(public code: ProviderErrorCode, message: string, public detail?: string) {
     super(message);
   }
 }

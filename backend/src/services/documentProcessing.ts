@@ -73,8 +73,9 @@ export async function startProcessing(documentId: string, actor: { id: string; e
       audit('AI_DOCUMENT_PROCESS_COMPLETE', { status: 'completed', count: analysis.facts.length });
     } catch (err) {
       const code = err instanceof ProviderError ? err.code : 'PROVIDER_ERROR';
+      const detail = err instanceof ProviderError ? err.detail : undefined;
       // Only the code is stored and logged: error text from a provider can echo document content.
-      console.error(`[AI] document ${documentId} failed: ${code}`);
+      console.error(`[AI] document ${documentId} failed: ${code}${detail ? ` (${detail})` : ''}`);
       await query(`UPDATE document_processing SET status = 'failed', error_code = $2, finished_at = NOW(), updated_at = NOW() WHERE document_id = $1`, [documentId, code]).catch(() => undefined);
       audit('AI_DOCUMENT_PROCESS_FAILED', { status: 'failed', code });
     }

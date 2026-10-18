@@ -19,3 +19,4 @@ backend/storage/protected/*
 
 # Vite temp config files
 *.timestamp-*.mjs
+dev-dist/

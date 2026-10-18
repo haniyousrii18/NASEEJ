@@ -125,7 +125,7 @@ GEMINI_API_KEY=your-key
 # AI_PROVIDER=anthropic
 # ANTHROPIC_API_KEY=your-key
 
-# Optional: override the default model (gemini-2.5-flash / claude-sonnet-5-5)
+# Optional: pin a model. Empty = Gemini uses the gemini-flash-latest alias (and discovers the newest Flash model if needed), Anthropic uses claude-sonnet-5-5
 # AI_MODEL=
 ```
 

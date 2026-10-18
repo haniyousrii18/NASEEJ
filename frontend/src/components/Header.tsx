@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 import { ThemeToggle } from './ThemeToggle.js';
-import { DownloadIcon, GlobeIcon } from './LineIcon.js';
+import { DownloadIcon, GlobeIcon, UserIcon } from './LineIcon.js';
 import { useInstall } from '../pwa/InstallContext.js';
 import { lockScroll, trapTab, useMediaQuery } from '../lib/overlay.js';
 
@@ -123,37 +123,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           </span>
         </button>
 
-        {/* On Login page on mobile, show language and theme switchers directly in the top navbar */}
-        {currentView === 'login' && (
-          <div className="site-login-direct-tools">
-            <ThemeToggle compact />
-            <button
-              type="button"
-              className="site-util site-util--direct"
-              onClick={() => setLang(otherLang)}
-              lang={otherLang}
-              aria-label={otherLangName}
-              title={otherLangName}
-            >
-              <GlobeIcon />
-              <span className="site-util-code" aria-hidden="true">{otherLang === 'en' ? 'EN' : 'ع'}</span>
-            </button>
-          </div>
-        )}
-
-        {currentView !== 'login' && (
-          <button
-            type="button"
-            className="site-menu-btn"
-            aria-expanded={open}
-            aria-controls="site-menu"
-            aria-label={open ? t.landing.closeMenu : t.landing.menu}
-            ref={menuBtnRef}
-            onClick={() => setOpen((o) => !o)}
-          >
-            <MenuIcon open={open} />
-          </button>
-        )}
 
         {/* Blurred Backdrop for Mobile Sidebar Drawer */}
         <div
@@ -199,23 +168,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           </nav>
 
           <div className="site-end">
-            <div className="site-tools">
-              {/* Install button hidden per user request */}
-              <ThemeToggle />
-              <button
-                type="button"
-                className="site-util"
-                onClick={() => setLang(otherLang)}
-                lang={otherLang}
-                aria-label={otherLangName}
-                title={otherLangName}
-              >
-                <GlobeIcon />
-                <span className="site-util-code" aria-hidden="true">{otherLang === 'en' ? 'EN' : 'ع'}</span>
-                <span className="site-util-label">{otherLangName}</span>
-              </button>
-            </div>
-
             <div className="site-auth">
               {user && user.memberships && user.memberships.length > 1 && (
                 <select value={currentOrgId || ''} onChange={(e) => setCurrentOrgId(e.target.value)} className="form-select site-org-select" aria-label={t.nav.workspaces}>
@@ -245,13 +197,41 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
                   <button type="button" onClick={() => go('demo')} className="site-link" aria-current={currentView === 'demo' ? 'page' : undefined}>
                     {t.nav.demo}
                   </button>
-                  <button type="button" onClick={() => go('login')} className="btn-pill btn-pill-charcoal site-cta">
-                    {t.nav.login}
-                  </button>
                 </>
               )}
             </div>
           </div>
+        </div>
+
+        {/* Icon-only utilities, always in the bar at every width: install, theme, language, sign in. */}
+        <div className="site-actions" role="group" aria-label={t.landing.menu}>
+          {installApp.available && (
+            <button type="button" className="site-act" onClick={() => void installApp.install()} aria-label={t.nav.install} title={t.nav.install}>
+              <DownloadIcon />
+            </button>
+          )}
+          <ThemeToggle compact />
+          <button type="button" className="site-act" onClick={() => setLang(otherLang)} lang={otherLang} aria-label={otherLangName} title={otherLangName}>
+            <GlobeIcon />
+          </button>
+          {!user && currentView !== 'login' && (
+            <button type="button" className="site-act site-act--primary" onClick={() => go('login')} aria-label={t.nav.login} title={t.nav.login}>
+              <UserIcon />
+            </button>
+          )}
+          {currentView !== 'login' && (
+            <button
+              type="button"
+              className="site-menu-btn"
+              aria-expanded={open}
+              aria-controls="site-menu"
+              aria-label={open ? t.landing.closeMenu : t.landing.menu}
+              ref={menuBtnRef}
+              onClick={() => setOpen((o) => !o)}
+            >
+              <MenuIcon open={open} />
+            </button>
+          )}
         </div>
       </div>
     </header>

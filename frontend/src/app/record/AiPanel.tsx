@@ -227,6 +227,7 @@ export const DocumentAiPanel: React.FC<{ documentId: string; fileName: string; o
               {job?.status === 'failed' && (
                 <Notice tone="danger" live>
                   {fill(R.failed, { code: job.errorCode ?? 'ERROR' })}
+                  {R.errorHints[job.errorCode] ? <span className="ai-hint"> {R.errorHints[job.errorCode]}</span> : null}
                 </Notice>
               )}
               {job?.status === 'completed' && (
