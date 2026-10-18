@@ -7,10 +7,10 @@ import { UNAUTHORIZED_EVENT } from './api.js';
 import { NAV, ROLE_BASE, appRoleOf, belongsToRole, currentItem, homeRoute, isActive } from './nav.js';
 import { resolvePage } from './routes.js';
 import { NotificationBell } from './notifications/NotificationBell.js';
-import { NotificationsProvider } from './notifications/NotificationsContext.js';
+import { NotificationsProvider, useUnreadCount } from './notifications/NotificationsContext.js';
 import { useA } from './useA.js';
 import { useAppRoute } from './useAppRoute.js';
-import { formatDate } from './format.js';
+import { fill, formatDate } from './format.js';
 import { EmptyState } from './ui.js';
 import { AppBackdrop } from './AppBackdrop.js';
 import { lockScroll, trapTab, useMediaQuery } from '../lib/overlay.js';
@@ -50,6 +50,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
     return leaveWorkspace;
   }, [enterWorkspace, leaveWorkspace]);
   const A = useA();
+  const unreadCount = useUnreadCount();
 
   const role = appRoleOf(currentRole);
   const [collapsed, setCollapsed] = useState(readCollapsed);
@@ -295,6 +296,11 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                         >
                           <AppIcon name={item.icon} className="na-icon" />
                           <span className="na-nav-label">{A.nav.items[item.label]}</span>
+                          {item.label === 'notifications' && unreadCount > 0 && (
+                            <span className="na-nav-badge" role="status" aria-label={fill(A.notifications.unreadLabel, { n: unreadCount })}>
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                          )}
                         </button>
                       </li>
                     ))}

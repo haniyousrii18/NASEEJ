@@ -310,6 +310,6 @@ Additive and reversible (`database/migrations/rollback/004_down.sql`). One table
 - `event_type`, `category`, `params` (JSONB, allow-listed non-sensitive values only: dates, times, record kind)
 - `related_type`, `related_id` (the record concerned), `destination_kind` (a key of the client's typed map, never a URL), `destination_id` (the related record, or the delegation for a caregiver's patient-related item)
 - `dedupe_key` with a unique index on `(recipient_user_id, recipient_role, dedupe_key)`
-- `created_at`, `read_at` (seen), `handled_at` (set by the server when the record shows the task is done), `dismissed_at`, `expires_at`
+- `created_at`, `read_at` (seen), `handled_at` (set by the server when the record shows the task is done), `dismissed_at`, `expires_at` (set to creation + 90 days; expired items are no longer shown)
 
 Indexes serve the inbox, the unread count and lookup by related record. No clinical text, names or message bodies are stored.

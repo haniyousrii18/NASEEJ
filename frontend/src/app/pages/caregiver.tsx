@@ -341,7 +341,6 @@ const CgMessages: React.FC<{ id: string }> = ({ id }) => {
   return (
     <div className="na-grid na-grid--2">
       <Card title={C.messageTitle}>
-        <Notice tone="danger" icon="alert">{C.messageHint}</Notice>
         <form className="na-form na-form--stack" onSubmit={submit} noValidate>
           <Field label={C.center} htmlFor="cm-center">
             <select id="cm-center" className="na-select" value={org} onChange={(e) => setForm({ ...form, organization_id: e.target.value })}>

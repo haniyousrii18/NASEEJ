@@ -51,14 +51,14 @@ export const NAV: Record<AppRole, NavGroup[]> = {
         { route: 'patient/caregivers', label: 'patientCaregivers', icon: 'users' },
       ],
     },
-    { id: 'account', items: [{ route: 'patient/settings', label: 'settings', icon: 'settings' }] },
+    { id: 'account', items: [{ route: 'patient/notifications', label: 'notifications', icon: 'bell' }, { route: 'patient/settings', label: 'settings', icon: 'settings' }] },
   ],
   caregiver: [
     {
       id: 'delegated',
       items: [{ route: 'caregiver/home', label: 'caregiverHome', icon: 'users', alsoActiveFor: ['caregiver/patient/'] }],
     },
-    { id: 'account', items: [{ route: 'caregiver/settings', label: 'settings', icon: 'settings' }] },
+    { id: 'account', items: [{ route: 'caregiver/notifications', label: 'notifications', icon: 'bell' }, { route: 'caregiver/settings', label: 'settings', icon: 'settings' }] },
   ],
   doctor: [
     {
@@ -71,7 +71,7 @@ export const NAV: Record<AppRole, NavGroup[]> = {
       ],
     },
     { id: 'patients', items: [{ route: 'doctor/patients', label: 'doctorPatients', icon: 'search', alsoActiveFor: ['doctor/patient/'] }] },
-    { id: 'account', items: [{ route: 'doctor/settings', label: 'settings', icon: 'settings' }] },
+    { id: 'account', items: [{ route: 'doctor/notifications', label: 'notifications', icon: 'bell' }, { route: 'doctor/settings', label: 'settings', icon: 'settings' }] },
   ],
   care_coordinator: [
     {
@@ -84,7 +84,7 @@ export const NAV: Record<AppRole, NavGroup[]> = {
         { route: 'coordinator/log', label: 'coordLog', icon: 'clock' },
       ],
     },
-    { id: 'account', items: [{ route: 'coordinator/settings', label: 'settings', icon: 'settings' }] },
+    { id: 'account', items: [{ route: 'coordinator/notifications', label: 'notifications', icon: 'bell' }, { route: 'coordinator/settings', label: 'settings', icon: 'settings' }] },
   ],
   reception: [
     {
@@ -97,7 +97,7 @@ export const NAV: Record<AppRole, NavGroup[]> = {
         { route: 'reception/messages', label: 'receptionMessages', icon: 'inbox' },
       ],
     },
-    { id: 'account', items: [{ route: 'reception/settings', label: 'settings', icon: 'settings' }] },
+    { id: 'account', items: [{ route: 'reception/notifications', label: 'notifications', icon: 'bell' }, { route: 'reception/settings', label: 'settings', icon: 'settings' }] },
   ],
   center_manager: [
     {
@@ -117,7 +117,7 @@ export const NAV: Record<AppRole, NavGroup[]> = {
       ],
     },
     { id: 'oversight', items: [{ route: 'manager/activity', label: 'managerActivity', icon: 'scroll' }] },
-    { id: 'account', items: [{ route: 'manager/settings', label: 'settings', icon: 'settings' }] },
+    { id: 'account', items: [{ route: 'manager/notifications', label: 'notifications', icon: 'bell' }, { route: 'manager/settings', label: 'settings', icon: 'settings' }] },
   ],
   platform_admin: [
     {
@@ -130,7 +130,7 @@ export const NAV: Record<AppRole, NavGroup[]> = {
       ],
     },
     { id: 'oversight', items: [{ route: 'admin/audit', label: 'adminAudit', icon: 'scroll' }] },
-    { id: 'account', items: [{ route: 'admin/settings', label: 'settings', icon: 'settings' }] },
+    { id: 'account', items: [{ route: 'admin/notifications', label: 'notifications', icon: 'bell' }, { route: 'admin/settings', label: 'settings', icon: 'settings' }] },
   ],
 };
 

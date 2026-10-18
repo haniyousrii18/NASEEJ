@@ -56,7 +56,6 @@ const ar = {
     conflict: 'لم يعد هذا الوقت متاحًا. اختر وقتًا آخر.',
     appointmentsEmpty: 'لا مواعيد مسجَّلة',
     messageTitle: 'رسالة إلى الفريق الطبي',
-    messageHint: 'يصل نصّ الرسالة إلى طبيب المركز بوصفه مرسلًا من مرافق. للحالات العاجلة لا تستخدم هذه الصفحة؛ اتصل بالمركز أو بالإسعاف.',
     subject: 'الموضوع',
     body: 'الرسالة',
     sendMessage: 'إرسال',
@@ -202,8 +201,8 @@ const ar = {
   },
   ops: {
     title: 'رسائل التشغيل',
-    subtitleReception: 'تنسيق إداري مع الأطباء حول المواعيد والوصول والأوراق. ليست قناة للحالات الطبية أو العاجلة.',
-    subtitleDoctor: 'رسائل الاستقبال حول مواعيدك وجدولك. ليست قناة للحالات الطبية أو العاجلة.',
+    subtitleReception: 'تنسيق إداري مع الأطباء حول المواعيد والوصول والأوراق.',
+    subtitleDoctor: 'رسائل الاستقبال حول مواعيدك وجدولك.',
     inbox: 'الوارد',
     sent: 'المُرسَل',
     all: 'الكل',
@@ -247,7 +246,6 @@ const ar = {
     respond: 'إرسال الرد وإنهاء',
     needResponse: 'اكتب الرد أولًا.',
     saved: 'تم الحفظ.',
-    emergency: 'هذه الصفحة ليست للحالات العاجلة.',
     empty: 'لا أسئلة',
   },
   calendar: {
@@ -331,7 +329,6 @@ const en: typeof ar = {
     conflict: 'That time is no longer available. Choose another.',
     appointmentsEmpty: 'No appointments recorded',
     messageTitle: 'Message the care team',
-    messageHint: 'The message reaches the center’s clinicians marked as sent by a caregiver. For urgent problems do not use this page; call the center or emergency services.',
     subject: 'Subject',
     body: 'Message',
     sendMessage: 'Send',
@@ -477,8 +474,8 @@ const en: typeof ar = {
   },
   ops: {
     title: 'Operational messages',
-    subtitleReception: 'Administrative coordination with clinicians about appointments, arrivals and paperwork. Not a channel for medical or urgent matters.',
-    subtitleDoctor: 'Messages from reception about your appointments and schedule. Not a channel for medical or urgent matters.',
+    subtitleReception: 'Administrative coordination with clinicians about appointments, arrivals and paperwork.',
+    subtitleDoctor: 'Messages from reception about your appointments and schedule.',
     inbox: 'Inbox',
     sent: 'Sent',
     all: 'All',
@@ -522,7 +519,6 @@ const en: typeof ar = {
     respond: 'Send reply and resolve',
     needResponse: 'Write the reply first.',
     saved: 'Saved.',
-    emergency: 'This page is not for urgent matters.',
     empty: 'No questions',
   },
   calendar: {

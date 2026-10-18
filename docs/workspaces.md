@@ -15,7 +15,7 @@ Prototype status: academic, synthetic data only. Nothing here is certified, prod
 The platform administrator (`admin/home, centers, accounts, requests, audit`) and care coordinator (`coordinator/home, cases, tasks, referrals, log`) workspaces exist as before. **Every role, including those two, also has `<role>/settings` and `<role>/notifications`** (see below). The landing and public pages changed only in their top bar (see DESIGN.md).
 
 ## Shell, settings and notifications
-- **Sidebar:** the role's groups, then a pinned foot with Settings above Sign out. The collapse toggle moved into the top bar; the public-site link was removed.
+- **Sidebar:** the role's groups, then a pinned foot with Notifications (unread badge) and Settings above Sign out. The collapse toggle moved into the top bar; the public-site link was removed.
 - **Settings (`<role>/settings`):** tabs depend on the role. The selected tab is kept in the address (`?tab=security`).
 
 | Role | Tabs |

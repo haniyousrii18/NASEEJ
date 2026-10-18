@@ -87,3 +87,8 @@ export function useNotifications(): Ctx {
   if (!ctx) throw new Error('useNotifications must be used inside NotificationsProvider');
   return ctx;
 }
+
+/** The unread count for chrome outside the provider's children (the sidebar). 0 when there is no provider. */
+export function useUnreadCount(): number {
+  return useContext(NotificationsContext)?.unread ?? 0;
+}

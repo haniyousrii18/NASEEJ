@@ -134,9 +134,10 @@ Same envelope. Every route is authenticated and acts on the signed-in user only;
 | `PATCH /api/account/profile` `{ fullNameAr?, fullNameEn?, phone? }` | staff, administrators | Names 2 to 120 characters, phone validated. A patient sending a name gets 403 `FIELD_MANAGED_ELSEWHERE`. Audit `ACCOUNT_PROFILE_UPDATED` lists field names only. |
 | `PATCH /api/account/patient-contact` `{ phone?, email?, emergencyContactName?, emergencyContactPhone? }` | patient | Contact details only; identity and clinical fields are not editable here. Audit `ACCOUNT_PATIENT_CONTACT_UPDATED`. |
 | `POST /api/account/password` `{ currentPassword, newPassword }` | any signed-in user | Needs the current password (403 `CURRENT_PASSWORD_INCORRECT`); 8 to 72 bytes with a letter and a number. Audit `ACCOUNT_PASSWORD_CHANGED` / `_CHANGE_FAILED`, never the password. Also creates an `account.password_changed` notification. |
-| `GET /api/notifications?role=&category=&status=all\|unread&limit=&offset=` | any signed-in user | Own notifications only, newest first; `limit` 1 to 50. `meta`: `unreadCount`, `total`. Each item has `state` (`current`, `handled`, `unavailable`) and the `actions` the server allows now. |
+| `GET /api/notifications?role=&category=&status=all\|unread\|archived&limit=&offset=` | any signed-in user | Own notifications only, newest first; `limit` 1 to 50. `meta`: `unreadCount`, `total`. Each item has `state` (`current`, `handled`, `unavailable`) and the `actions` the server allows now. |
+| `GET /api/notifications/summary?role=` | any signed-in user | Totals, unread, archived and per-category counts for the inbox header and filters (archived excluded from totals). |
 | `GET /api/notifications/unread-count?role=&category=` | any signed-in user | |
-| `POST /api/notifications/:id/read`, `/dismiss`, `/refresh` | owner | "Read" never completes a task; `refresh` re-evaluates the underlying record and records `handled`. Another user's id returns 404. |
+| `POST /api/notifications/:id/read`, `/dismiss` (archive), `/restore`, `/refresh` | owner | "Read" never completes a task; `refresh` re-evaluates the underlying record and records `handled`. Another user's id returns 404. |
 | `POST /api/notifications/read-all` `{ role?, category? }` | owner | |
 
 Visibility is re-checked on every read: the person must still hold the role, staff must still belong to the center, and a caregiver's patient-related items need an active, unexpired delegation. Event list and recipient rules: `docs/notifications.md`.

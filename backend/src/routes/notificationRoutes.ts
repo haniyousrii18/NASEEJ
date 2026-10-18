@@ -128,14 +128,14 @@ notificationRouter.get('/', async (req: Request, res: Response): Promise<void> =
     return;
   }
   const status = req.query.status ?? 'all';
-  if (status !== 'all' && status !== 'unread') {
-    res.status(400).json(apiError('VALIDATION_ERROR', 'status must be all or unread.'));
+  if (status !== 'all' && status !== 'unread' && status !== 'archived') {
+    res.status(400).json(apiError('VALIDATION_ERROR', 'status must be all, unread or archived.'));
     return;
   }
   const limit = clampInt(req.query.limit, 20, 1, 50);
   const offset = clampInt(req.query.offset, 0, 0, 100000);
   try {
-    const where = `${f.sql} AND n.dismissed_at IS NULL${status === 'unread' ? ' AND n.read_at IS NULL' : ''}`;
+    const where = `${f.sql} AND ${status === 'archived' ? 'n.dismissed_at IS NOT NULL' : 'n.dismissed_at IS NULL'}${status === 'unread' ? ' AND n.read_at IS NULL' : ''}`;
     const rows = await query(`SELECT n.* FROM notifications n WHERE ${where} ORDER BY n.created_at DESC, n.id LIMIT ${limit} OFFSET ${offset}`, f.params);
     const unread = await query(`SELECT COUNT(*)::int AS c FROM notifications n WHERE ${f.sql} AND n.dismissed_at IS NULL AND n.read_at IS NULL`, f.params);
     const total = await query(`SELECT COUNT(*)::int AS c FROM notifications n WHERE ${where}`, f.params);
@@ -144,6 +144,36 @@ notificationRouter.get('/', async (req: Request, res: Response): Promise<void> =
       success: true,
       data: rows.rows.map((r) => dto(r, describe(r, state.appointments, state.messages, state.documents))),
       meta: { unreadCount: unread.rows[0].c, total: total.rows[0].c, limit, offset },
+    });
+  } catch (err) {
+    res.status(500).json(serverError(err));
+  }
+});
+
+// GET /api/notifications/summary?role=: counts for the inbox header and its category filters (archived items excluded).
+notificationRouter.get('/summary', async (req: Request, res: Response): Promise<void> => {
+  const f = filters(req);
+  if ('error' in f) {
+    res.status(400).json(apiError('VALIDATION_ERROR', f.error));
+    return;
+  }
+  try {
+    const rows = await query(
+      `SELECT n.category, COUNT(*)::int AS total, COUNT(*) FILTER (WHERE n.read_at IS NULL)::int AS unread
+       FROM notifications n WHERE ${f.sql} AND n.dismissed_at IS NULL GROUP BY n.category`,
+      f.params
+    );
+    const archived = await query(`SELECT COUNT(*)::int AS c FROM notifications n WHERE ${f.sql} AND n.dismissed_at IS NOT NULL`, f.params);
+    const byCategory: Record<string, { total: number; unread: number }> = {};
+    for (const r of rows.rows) byCategory[r.category] = { total: r.total, unread: r.unread };
+    res.json({
+      success: true,
+      data: {
+        total: rows.rows.reduce((a, r) => a + r.total, 0),
+        unread: rows.rows.reduce((a, r) => a + r.unread, 0),
+        archived: archived.rows[0].c,
+        byCategory,
+      },
     });
   } catch (err) {
     res.status(500).json(serverError(err));
@@ -213,6 +243,9 @@ notificationRouter.post('/:id/read', (req, res) => mutate(req, res, 'read_at = C
 
 // POST /api/notifications/:id/dismiss
 notificationRouter.post('/:id/dismiss', (req, res) => mutate(req, res, 'dismissed_at = COALESCE(n.dismissed_at, NOW()), read_at = COALESCE(n.read_at, NOW())'));
+
+// POST /api/notifications/:id/restore: brings an archived notification back to the inbox.
+notificationRouter.post('/:id/restore', (req, res) => mutate(req, res, 'dismissed_at = NULL'));
 
 // POST /api/notifications/:id/refresh: re-evaluates the underlying state (after a quick action, for example) and
 // records "handled" when the record shows the task is done. The client cannot say a task is done; the server checks.

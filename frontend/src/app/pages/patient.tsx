@@ -606,9 +606,6 @@ export const PatientMessages: React.FC = () => {
     <>
       <PageHead title={M.title} subtitle={M.subtitle} />
       <div className="na-stack">
-        <Notice tone="danger" icon="alert">
-          {M.emergency}
-        </Notice>
         <div className="na-grid na-grid--2">
           <Card title={M.ask}>
             <form className="na-form na-form--stack" onSubmit={submitQuestion} noValidate>

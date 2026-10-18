@@ -58,6 +58,9 @@ export const EVENTS = {
 
 export type EventType = keyof typeof EVENTS;
 
+/** Retention: a notification stops being shown (and is eligible for removal) this many days after it was created. */
+export const RETENTION_DAYS = 90;
+
 /** The only parameter keys a notification may carry, and only short scalar values. */
 const PARAM_KEYS = ['date', 'time', 'oldDate', 'oldTime', 'recordKind'] as const;
 const RECORD_KINDS = ['visit', 'prescription', 'lab_result'];
@@ -105,10 +108,10 @@ export async function notify(input: NotifyInput): Promise<void> {
       const destinationId = destinationKind === 'caregiver_patient' ? r.delegationId! : destinationKind === 'appointment' ? input.related?.id ?? null : input.related?.id ?? null;
       await query(
         `INSERT INTO notifications (recipient_user_id, recipient_role, organization_id, event_type, category, params,
-                                    related_type, related_id, destination_kind, destination_id, dedupe_key)
-         VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11)
+                                    related_type, related_id, destination_kind, destination_id, dedupe_key, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, NOW() + ($12 || ' days')::interval)
          ON CONFLICT (recipient_user_id, recipient_role, dedupe_key) DO NOTHING`,
-        [r.userId, r.role, input.organizationId ?? null, input.event, def.category, params, input.related?.type ?? null, input.related?.id ?? null, destinationKind, destinationId, input.dedupe]
+        [r.userId, r.role, input.organizationId ?? null, input.event, def.category, params, input.related?.type ?? null, input.related?.id ?? null, destinationKind, destinationId, input.dedupe, String(RETENTION_DAYS)]
       );
     }
   } catch (err) {

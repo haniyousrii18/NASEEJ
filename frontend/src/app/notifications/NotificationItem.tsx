@@ -8,6 +8,8 @@ import { destinationRoute, eventKey, type ActionId, type NotificationDto } from 
 
 interface Props {
   n: NotificationDto;
+  /** Shown in the archive: the secondary button restores instead of archiving. */
+  archived?: boolean;
   role: AppRole;
   navigate: (route: string) => void;
   onChanged: (n: NotificationDto, wasRead: boolean) => void;
@@ -21,7 +23,7 @@ interface Props {
  * buttons: each stops its click from reaching the body, does only its own job, and a consequential one asks first.
  * "Read" is shown apart from "handled": reading never completes the task the notification is about.
  */
-export const NotificationItem: React.FC<Props> = ({ n, role, navigate, onChanged, onRemoved, onNavigated }) => {
+export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate, onChanged, onRemoved, onNavigated }) => {
   const A = useA();
   const T = A.notifications;
   const request = useRequest();
@@ -94,7 +96,7 @@ export const NotificationItem: React.FC<Props> = ({ n, role, navigate, onChanged
     if (busy) return;
     setBusy(true);
     try {
-      const res = await request(`/api/notifications/${n.id}/dismiss`, { method: 'POST' });
+      const res = await request(`/api/notifications/${n.id}/${archived ? 'restore' : 'dismiss'}`, { method: 'POST' });
       if (res.ok) onRemoved(n.id, !n.read);
     } finally {
       setBusy(false);
@@ -147,7 +149,7 @@ export const NotificationItem: React.FC<Props> = ({ n, role, navigate, onChanged
                 </Button>
               ))}
               <Button small variant="quiet" disabled={busy} onClick={dismiss}>
-                {T.actions.dismiss}
+                {archived ? T.actions.restore : T.actions.dismiss}
               </Button>
             </>
           )}
