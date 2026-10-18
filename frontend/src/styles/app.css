@@ -596,20 +596,21 @@
     box-shadow: none;
     overflow-y: auto;
     overscroll-behavior: contain;
-    transform: translateX(-100%);
+    /* Closed: fade with a slight drop. Never park a fixed panel outside the viewport; Android Chrome counts it
+       toward the page width and leaves a blank band with sideways scrolling. */
+    transform: translateY(-8px);
+    opacity: 0;
     transition: transform var(--motion-duration-moderate, 0.36s) var(--motion-ease-out, ease),
+                opacity var(--motion-duration-moderate, 0.36s) var(--motion-ease-out, ease),
                 box-shadow var(--motion-duration-moderate, 0.36s) var(--motion-ease-out, ease),
                 visibility 0s linear var(--motion-duration-moderate, 0.36s);
     visibility: hidden;
     pointer-events: none;
   }
 
-  [dir='rtl'] .na-side {
-    transform: translateX(100%);
-  }
-
   .na-app[data-drawer='open'] .na-side {
     transform: translateX(0);
+    opacity: 1;
     visibility: visible;
     pointer-events: auto;
     box-shadow: 16px 0 44px var(--na-side-shadow);
@@ -737,6 +738,18 @@
 
 .na-row--between {
   justify-content: space-between;
+}
+
+/* Long unbroken text (file names, IDs, emails) wraps inside its row instead of widening the page. */
+.na-row > *,
+.doc-row > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.na-row strong,
+.na-list-item strong {
+  overflow-wrap: anywhere;
 }
 
 .na-grid {
