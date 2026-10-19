@@ -144,7 +144,7 @@ prescriptionRouter.post('/', async (req: Request, res: Response): Promise<void> 
 // POST /api/prescriptions/:id/approve (Clinician approves prescription)
 prescriptionRouter.post('/:id/approve', async (req: Request, res: Response): Promise<void> => {
   const orgId = req.tenantId!;
-  const rxId = req.params.id;
+  const rxId = String(req.params.id);
   const clinicianId = req.user!.id;
 
   if (req.currentMembership?.role !== 'doctor') {

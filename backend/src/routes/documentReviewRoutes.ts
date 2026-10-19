@@ -101,7 +101,7 @@ documentReviewRouter.get('/:id/processing', async (req: Request, res: Response):
   const actor = actorOf(req);
   if (!actor) return void refuse(res);
   try {
-    const doc = await ownDocument(actor, req.params.id);
+    const doc = await ownDocument(actor, String(req.params.id));
     if (!doc) return void res.status(404).json(apiError('DOCUMENT_NOT_FOUND', 'Document not found.'));
     const job = await query(
       `SELECT status, provider, model, suggested_type, suggested_type_confidence, page_count, error_code, attempts, started_at, finished_at,
@@ -141,7 +141,7 @@ documentReviewRouter.post('/:id/process', async (req: Request, res: Response): P
   const actor = actorOf(req);
   if (!actor || actor.kind !== 'doctor') return void refuse(res);
   try {
-    const doc = await ownDocument(actor, req.params.id);
+    const doc = await ownDocument(actor, String(req.params.id));
     if (!doc) return void res.status(404).json(apiError('DOCUMENT_NOT_FOUND', 'Document not found.'));
     if (doc.source_type === 'patient_uploaded' && !doc.ai_processing_allowed) {
       return void res.status(409).json(apiError('AI_NOT_ALLOWED', 'The patient has not allowed this file to be sent for AI processing.'));
@@ -173,7 +173,7 @@ documentReviewRouter.post('/:id/ai-consent', async (req: Request, res: Response)
     return void res.status(400).json(apiError('VALIDATION_ERROR', 'allowed must be true or false.'));
   }
   try {
-    const doc = await ownDocument(actor, req.params.id);
+    const doc = await ownDocument(actor, String(req.params.id));
     if (!doc || doc.source_type !== 'patient_uploaded') return void res.status(404).json(apiError('DOCUMENT_NOT_FOUND', 'Document not found.'));
     const allowed: boolean = req.body.allowed;
     const done = await query(`SELECT 1 FROM document_processing WHERE document_id = $1 AND status IN ('processing', 'completed')`, [doc.id]);
@@ -201,7 +201,7 @@ documentReviewRouter.get('/:id/facts', async (req: Request, res: Response): Prom
   const actor = actorOf(req);
   if (!actor) return void refuse(res);
   try {
-    const doc = await ownDocument(actor, req.params.id);
+    const doc = await ownDocument(actor, String(req.params.id));
     if (!doc) return void res.status(404).json(apiError('DOCUMENT_NOT_FOUND', 'Document not found.'));
     // A patient sees only what a clinician has accepted or corrected; suggestions stay clinician-only.
     const filter = actor.kind === 'patient' ? `AND f.review_status IN ('accepted', 'corrected')` : '';
@@ -234,7 +234,7 @@ documentReviewRouter.post('/:id/facts/:factId/review', async (req: Request, res:
     }
   }
   try {
-    const doc = await ownDocument(actor, req.params.id);
+    const doc = await ownDocument(actor, String(req.params.id));
     if (!doc) return void res.status(404).json(apiError('DOCUMENT_NOT_FOUND', 'Document not found.'));
     const status = action === 'accept' ? 'accepted' : action === 'reject' ? 'rejected' : 'corrected';
     const update =

@@ -8,6 +8,9 @@ const BASE = '/';
 
 export default defineConfig({
   base: BASE,
+  // react lives in frontend/node_modules while hoisted libraries (framer-motion) sit at the repo root. Resolving
+  // react once from this project keeps them on the same copy; without it vite 8 swaps in an empty optional-peer stub.
+  resolve: { dedupe: ['react', 'react-dom'] },
   plugins: [
     react(),
     VitePWA({

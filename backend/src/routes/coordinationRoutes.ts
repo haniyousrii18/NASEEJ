@@ -291,7 +291,7 @@ coordinationRouter.post('/cases', async (req: Request, res: Response): Promise<v
 // GET /api/coordination/cases/:id (case, its tasks, referrals and follow-up log)
 coordinationRouter.get('/cases/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    const c = await loadCase(req, req.params.id);
+    const c = await loadCase(req, String(req.params.id));
     if (!c) {
       res.status(404).json(apiError('CASE_NOT_FOUND', 'Case not found.'));
       return;
@@ -340,7 +340,7 @@ coordinationRouter.patch('/cases/:id', async (req: Request, res: Response): Prom
   }
 
   try {
-    const existing = await loadCase(req, req.params.id);
+    const existing = await loadCase(req, String(req.params.id));
     if (!existing) return staleOrMissing(res, null, 'Case');
     if (existing.status === 'closed') {
       res.status(409).json(apiError('CASE_CLOSED', 'This case is already closed.'));
@@ -512,7 +512,7 @@ coordinationRouter.patch('/tasks/:id', async (req: Request, res: Response): Prom
   const { status, due_date, version } = req.body || {};
   const note = req.body?.completion_note == null ? null : trimmed(req.body.completion_note, 1000);
 
-  if (!isUuid(req.params.id) || !Number.isInteger(version)) {
+  if (!isUuid(String(req.params.id)) || !Number.isInteger(version)) {
     res.status(400).json(apiError('VALIDATION_ERROR', 'A task id and the version you loaded are required.'));
     return;
   }
@@ -537,7 +537,7 @@ coordinationRouter.patch('/tasks/:id', async (req: Request, res: Response): Prom
     const found = await query(
       `SELECT t.id, t.status, t.version, t.owner_id, t.case_id, c.coordinator_id FROM care_tasks t JOIN care_cases c ON c.id = t.case_id
        WHERE t.id = $1 AND t.organization_id = $2`,
-      [req.params.id, orgId]
+      [String(req.params.id), orgId]
     );
     const task = found.rows[0];
     const allowed = task && (isManager(req) || task.owner_id === req.user!.id || task.coordinator_id === req.user!.id);
@@ -683,7 +683,7 @@ coordinationRouter.post('/referrals', async (req: Request, res: Response): Promi
 coordinationRouter.patch('/referrals/:id', async (req: Request, res: Response): Promise<void> => {
   const orgId = req.tenantId!;
   const { action, version } = req.body || {};
-  if (!isUuid(req.params.id) || !['send', 'cancel', 'confirm_receipt'].includes(action) || !Number.isInteger(version)) {
+  if (!isUuid(String(req.params.id)) || !['send', 'cancel', 'confirm_receipt'].includes(action) || !Number.isInteger(version)) {
     res.status(400).json(apiError('VALIDATION_ERROR', "A referral id, an action ('send', 'cancel', 'confirm_receipt') and the version you loaded are required."));
     return;
   }
@@ -692,7 +692,7 @@ coordinationRouter.patch('/referrals/:id', async (req: Request, res: Response): 
     const found = await query(
       `SELECT r.id, r.status, r.version, r.organization_id, r.to_organization_id, r.case_id, c.patient_id, c.coordinator_id
        FROM care_referrals r JOIN care_cases c ON c.id = r.case_id WHERE r.id = $1`,
-      [req.params.id]
+      [String(req.params.id)]
     );
     const ref = found.rows[0];
     const isOrigin = ref && ref.organization_id === orgId;
