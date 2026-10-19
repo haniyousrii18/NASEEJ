@@ -106,7 +106,7 @@ documentRouter.get('/:id', async (req: Request, res: Response): Promise<void> =>
   const actor = actorOf(req);
   if (!actor) return refuse(res);
   try {
-    const doc = await accessibleDocument(actor, req.params.id);
+    const doc = await accessibleDocument(actor, String(req.params.id));
     if (!doc) {
       res.status(404).json(apiError('DOCUMENT_NOT_FOUND', 'Document not found.'));
       return;
@@ -122,7 +122,7 @@ documentRouter.get('/:id/download', async (req: Request, res: Response): Promise
   const actor = actorOf(req);
   if (!actor) return refuse(res);
   try {
-    const doc = await accessibleDocument(actor, req.params.id);
+    const doc = await accessibleDocument(actor, String(req.params.id));
     if (!doc) {
       res.status(404).json(apiError('DOCUMENT_NOT_FOUND', 'Document not found.'));
       return;
@@ -286,7 +286,7 @@ documentRouter.post('/:id/review', async (req: Request, res: Response): Promise<
               visible_to_patient = CASE WHEN $2 THEN TRUE ELSE visible_to_patient END, updated_at = NOW()
        WHERE id = $3 AND organization_id = $4
        RETURNING id`,
-      [req.user!.id, release, isUuid(req.params.id) ? req.params.id : '00000000-0000-0000-0000-000000000000', actor.orgId]
+      [req.user!.id, release, isUuid(String(req.params.id)) ? String(req.params.id) : '00000000-0000-0000-0000-000000000000', actor.orgId]
     );
     if (update.rowCount === 0) {
       res.status(404).json(apiError('DOCUMENT_NOT_FOUND', 'Document not found.'));
@@ -300,14 +300,14 @@ documentRouter.post('/:id/review', async (req: Request, res: Response): Promise<
       actorRole: 'doctor',
       action: release ? 'DOCUMENT_REVIEW_RELEASE' : 'DOCUMENT_REVIEW',
       resourceType: 'document',
-      resourceId: req.params.id,
+      resourceId: String(req.params.id),
       ipAddress: req.ip,
-      details: { documentId: req.params.id },
+      details: { documentId: String(req.params.id) },
     });
 
-    await onDocumentReviewed(req.params.id, actor.orgId, req.user!.id);
-    const doc = await accessibleDocument(actor, req.params.id);
-    res.json({ success: true, data: doc ? meta(doc, actor) : { id: req.params.id } });
+    await onDocumentReviewed(String(req.params.id), actor.orgId, req.user!.id);
+    const doc = await accessibleDocument(actor, String(req.params.id));
+    res.json({ success: true, data: doc ? meta(doc, actor) : { id: String(req.params.id) } });
   } catch (err: any) {
     res.status(500).json(serverError(err));
   }
