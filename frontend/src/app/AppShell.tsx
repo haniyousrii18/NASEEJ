@@ -68,7 +68,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   const canHover = useMediaQuery('(hover: hover) and (pointer: fine)');
   const [hoverPeek, setHoverPeek] = useState(false);
   const [focusPeek, setFocusPeek] = useState(false);
-  const peekTimer = useRef<number>();
+  const peekTimer = useRef<number | undefined>(undefined);
   const schedulePeek = (on: boolean) => {
     window.clearTimeout(peekTimer.current);
     peekTimer.current = window.setTimeout(() => setHoverPeek(on), on ? PEEK_OPEN_DELAY : PEEK_CLOSE_DELAY);
