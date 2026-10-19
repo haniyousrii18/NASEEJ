@@ -127,7 +127,7 @@ labRouter.post('/orders', async (req: Request, res: Response): Promise<void> => 
 // POST /api/labs/orders/:id/results (Enter lab result values)
 labRouter.post('/orders/:id/results', async (req: Request, res: Response): Promise<void> => {
   const orgId = req.tenantId!;
-  const orderId = req.params.id;
+  const orderId = String(req.params.id);
   const { parameter_name, value, unit, reference_range, is_abnormal } = req.body || {};
 
   // Entering results is clinical work. Previously any member of the center (or a linked patient) could post here.
@@ -175,7 +175,7 @@ labRouter.post('/orders/:id/results', async (req: Request, res: Response): Promi
 // POST /api/labs/results/:id/approve (Clinician reviews and approves result)
 labRouter.post('/results/:id/approve', async (req: Request, res: Response): Promise<void> => {
   const orgId = req.tenantId!;
-  const resultId = req.params.id;
+  const resultId = String(req.params.id);
   const clinicianId = req.user!.id;
 
   if (req.currentMembership?.role !== 'doctor') {

@@ -243,7 +243,7 @@ organizationRouter.post('/:id/members', authenticate, async (req: Request, res: 
     });
 
     logAuditEvent({
-      organizationId: id,
+      organizationId: String(id),
       actorId: req.user!.id,
       actorEmail: req.user!.email,
       actorRole: isManager ? 'center_manager' : 'platform_admin',

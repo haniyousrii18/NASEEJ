@@ -47,7 +47,7 @@ export async function activeDelegationFor(userId: string, delegationId: string, 
 
 /** Express guard: resolves the delegation or answers 404, and records refused attempts that look like probing. */
 export async function requireDelegation(req: Request, res: Response, needs: CaregiverCapability[]): Promise<ActiveDelegation | null> {
-  const delegation = await activeDelegationFor(req.user!.id, req.params.id, needs);
+  const delegation = await activeDelegationFor(req.user!.id, String(req.params.id), needs);
   if (!delegation) {
     logAuditEvent({
       actorId: req.user!.id,
@@ -55,7 +55,7 @@ export async function requireDelegation(req: Request, res: Response, needs: Care
       actorRole: 'caregiver',
       action: 'SECURITY_CAREGIVER_ACCESS_REFUSED',
       resourceType: 'caregiver_delegation',
-      resourceId: isUuid(req.params.id) ? req.params.id : null,
+      resourceId: isUuid(String(req.params.id)) ? String(req.params.id) : null,
       ipAddress: req.ip,
       details: { path: req.originalUrl, method: req.method, reason: 'No active delegation grants this capability.' },
     });
