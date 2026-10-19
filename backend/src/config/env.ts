@@ -31,4 +31,6 @@ export const ENV = {
   // Empty means each provider uses its own default model.
   AI_MODEL: process.env.AI_MODEL || '',
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '120000', 10),
+  // Patient-only portal: on unless PATIENT_ONLY_MODE=false (the API tests turn it off to log in as staff).
+  PATIENT_ONLY_MODE: process.env.PATIENT_ONLY_MODE !== 'false',
 };

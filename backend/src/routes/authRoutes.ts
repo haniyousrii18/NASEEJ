@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/db.js';
+import { ENV } from '../config/env.js';
 import { authProvider } from '../auth/authProvider.js';
 import { authenticate } from '../middleware/auth.js';
 import { logAuditEvent } from '../services/auditService.js';
@@ -74,7 +75,7 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
 
     // PATIENT-ONLY MODE: non-patient accounts are blocked at the API level.
     // To restore full access, revert commit on branch feat/patient-only-login.
-    if (!patientRes.rowCount || patientRes.rowCount === 0) {
+    if (ENV.PATIENT_ONLY_MODE && !patientRes.rowCount) {
       res.status(403).json({
         success: false,
         error: {

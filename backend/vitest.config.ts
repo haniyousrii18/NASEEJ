@@ -7,5 +7,7 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 20000,
     hookTimeout: 30000,
+    // The suite logs in as reception, clinicians and admins, which patient-only mode would reject.
+    env: { PATIENT_ONLY_MODE: 'false' },
   },
 });
