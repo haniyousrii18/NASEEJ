@@ -1,9 +1,16 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env from root directory if present, or backend directory
-dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
-dotenv.config();
+// Try .env in cwd (= project root when called via `npm --prefix backend run`)
+// Then try ../.env  (= project root when called directly from backend/)
+const r1 = dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+const r2 = dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
+dotenv.config(); // fallback
+
+// Temporary debug — remove after confirming connection works
+console.log('[env] cwd:', process.cwd());
+console.log('[env] r1 loaded:', !r1.error, '| r2 loaded:', !r2.error);
+console.log('[env] DB_PASSWORD length:', (process.env.DB_PASSWORD || '').length, '| DB_USER:', process.env.DB_USER);
 
 export const ENV = {
   PORT: parseInt(process.env.PORT || '5000', 10),
@@ -24,4 +31,6 @@ export const ENV = {
   // Empty means each provider uses its own default model.
   AI_MODEL: process.env.AI_MODEL || '',
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '120000', 10),
+  // Patient-only portal: on unless PATIENT_ONLY_MODE=false (the API tests turn it off to log in as staff).
+  PATIENT_ONLY_MODE: process.env.PATIENT_ONLY_MODE !== 'false',
 };

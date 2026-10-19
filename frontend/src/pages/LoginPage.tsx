@@ -21,39 +21,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
   const [demoOpen, setDemoOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // PATIENT-ONLY MODE: only the patient demo account is shown.
+  // To restore all accounts, revert commit on branch feat/patient-only-login.
   const demoPersonas = [
-    {
-      roleKey: 'platform_admin',
-      name: isRtl ? 'سارة العتيبي (مدير المنصة)' : 'Sarah Al-Otaibi (Platform Admin)',
-      email: 'admin@naseej.health',
-      desc: isRtl ? 'إشراف المنشآت والتدقيق الأمني' : 'Center & system management',
-      badge: 'Admin',
-      badgeClass: 'badge-draft',
-    },
-    {
-      roleKey: 'center_manager',
-      name: isRtl ? 'د. خالد الغامدي (مدير المركز)' : 'Dr. Khalid Al-Ghamdi (Center Manager)',
-      email: 'manager.noor@naseej.health',
-      desc: isRtl ? 'إدارة الكادر وجداول الأطباء' : 'Staff directory & schedules',
-      badge: 'Manager',
-      badgeClass: 'badge-lilac',
-    },
-    {
-      roleKey: 'doctor',
-      name: isRtl ? 'د. فيصل الشمري (طبيب استشاري)' : 'Dr. Faisal Al-Shammari (Cardiologist)',
-      email: 'doctor.noor@naseej.health',
-      desc: isRtl ? 'توثيق الزيارات، والوصفات، والتحاليل' : 'Visits drafting & Rx approval',
-      badge: 'Doctor',
-      badgeClass: 'badge-approved',
-    },
-    {
-      roleKey: 'reception',
-      name: isRtl ? 'نورة القحطاني (موظفة استقبال)' : 'Noura Al-Qahtani (Receptionist)',
-      email: 'reception.noor@naseej.health',
-      desc: isRtl ? 'حجز المواعيد وتسجيل الحضور' : 'Booking & Arrival Check-in',
-      badge: 'Reception',
-      badgeClass: 'badge-info',
-    },
     {
       roleKey: 'patient',
       name: isRtl ? 'محمد المنصور (المريض)' : 'Mohammed Al-Mansoor (Patient)',
@@ -82,22 +52,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
         throw new Error(data.error?.message || 'Authentication failed.');
       }
 
-      login(data.data.token, data.data.user);
-
-      // Route to appropriate view based on persona
-      if (data.data.user.systemRole === 'platform_admin') {
-        setCurrentView('admin');
-      } else if (data.data.user.patientProfileId) {
-        setCurrentView('portal');
-      } else if (data.data.user.memberships?.length > 0) {
-        const role = data.data.user.memberships[0].role;
-        if (role === 'doctor') setCurrentView('doctor');
-        else if (role === 'center_manager') setCurrentView('manager');
-        else if (role === 'reception') setCurrentView('reception');
-        else setCurrentView('workspace');
-      } else {
-        setCurrentView('home');
+      // PATIENT-ONLY MODE: only patients may access the app through this login page.
+      // Non-patient accounts (admin, doctor, manager, reception) are blocked at the UI level.
+      // To restore full access, revert commit on branch feat/patient-only-login.
+      if (!data.data.user.patientProfileId) {
+        throw new Error(
+          isRtl
+            ? 'هذه البوابة مخصصة للمرضى فقط في الوقت الحالي.'
+            : 'This portal is currently available to patients only.'
+        );
       }
+
+      login(data.data.token, data.data.user);
+      setCurrentView('portal');
     } catch (err: any) {
       // fetch rejects with a TypeError when the server cannot be reached, and a gateway error body is not JSON.
       setErrorMsg(err instanceof TypeError || err instanceof SyntaxError ? A.networkError : err.message || 'Login error');

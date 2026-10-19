@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/db.js';
+import { ENV } from '../config/env.js';
 import { authProvider } from '../auth/authProvider.js';
 import { authenticate } from '../middleware/auth.js';
 import { logAuditEvent } from '../services/auditService.js';
@@ -71,6 +72,19 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
       'SELECT id FROM patient_profiles WHERE user_id = $1',
       [user.id]
     );
+
+    // PATIENT-ONLY MODE: non-patient accounts are blocked at the API level.
+    // To restore full access, revert commit on branch feat/patient-only-login.
+    if (ENV.PATIENT_ONLY_MODE && !patientRes.rowCount) {
+      res.status(403).json({
+        success: false,
+        error: {
+          code: 'PATIENT_ONLY_MODE',
+          message: 'This portal is currently available to patients only.',
+        },
+      });
+      return;
+    }
 
     const token = authProvider.generateToken({
       userId: user.id,
