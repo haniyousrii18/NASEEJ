@@ -72,6 +72,19 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
       [user.id]
     );
 
+    // PATIENT-ONLY MODE: non-patient accounts are blocked at the API level.
+    // To restore full access, revert commit on branch feat/patient-only-login.
+    if (!patientRes.rowCount || patientRes.rowCount === 0) {
+      res.status(403).json({
+        success: false,
+        error: {
+          code: 'PATIENT_ONLY_MODE',
+          message: 'This portal is currently available to patients only.',
+        },
+      });
+      return;
+    }
+
     const token = authProvider.generateToken({
       userId: user.id,
       email: user.email,
