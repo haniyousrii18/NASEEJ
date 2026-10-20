@@ -88,6 +88,7 @@ One scale for the whole patient app; change a token, not a screen.
 - **Field** (`app/ui.tsx`): label always visible, "required" in words, one-line help, specific error beside the control wired with aria-invalid and aria-describedby.
 - **Filters** (`app/health/filters.tsx`): optional search, a Filters button with a count, a grouped panel (chips, date range, selects) that applies live, and the active filters as removable chips with Clear all, always visible.
 - **Chips, segmented choices and tabs** share one family; a selected chip shows a drawn check, never colour alone.
+- **Forms open in a centered modal** (`Drawer` in `app/ui.tsx`, `md` 560px, `lg` 760px for the longest, such as sharing; 12px margins on phones; no side sheets). The header and the action bar stay fixed and only the fields scroll, with soft edge shadows, and only when they do not fit. Modals are portalled into `.na-app` because the page wrapper keeps a transform that would otherwise anchor `position: fixed` to the page.
 - **Containers:** a card carries one task; a card inside a card is flattened; elevation is a hairline for cards and a soft lift for menus, dialogs and sheets. Side-sheet forms keep their actions in a sticky footer.
 - **Sidebar:** plain surface, 48px items, accent-tinted active item with a start marker, account group below a hairline; the role label is not repeated.
 

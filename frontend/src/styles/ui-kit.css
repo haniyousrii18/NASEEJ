@@ -868,3 +868,105 @@
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------ forms live in a centered modal
+   Header and action bar stay fixed; only the fields scroll, and only when there are too many to fit. */
+.na-app .na-drawer-scrim {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  padding-block: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-bottom));
+  justify-content: stretch;
+  background: var(--color-overlay);
+}
+
+.na-app .na-drawer {
+  display: flex;
+  flex-direction: column;
+  inline-size: min(560px, 100%);
+  block-size: auto;
+  max-block-size: min(calc(100dvh - 32px), 820px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--na-r-card);
+  box-shadow: var(--na-elev-pop);
+  overflow: hidden;
+  animation: naRise var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+.na-app .na-drawer--lg {
+  inline-size: min(760px, 100%);
+}
+
+.na-app .na-drawer-h {
+  flex: none;
+  align-items: center;
+  padding: 18px 20px 14px;
+  border-block-end: 1px solid var(--color-border-subtle);
+}
+
+.na-app .na-drawer-h .na-card-title {
+  font-size: 18px;
+}
+
+/* the body is the only scrolling part; soft shadows show that there is more above or below */
+.na-app .na-drawer-body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  padding: 20px 20px 0;
+  overflow-y: auto;
+  background:
+    linear-gradient(var(--color-bg-elevated) 30%, transparent) top / 100% 28px no-repeat local,
+    linear-gradient(transparent, var(--color-bg-elevated) 70%) bottom / 100% 28px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, color-mix(in srgb, var(--color-ink) 16%, transparent), transparent) top / 100% 10px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, color-mix(in srgb, var(--color-ink) 16%, transparent), transparent) bottom / 100% 10px no-repeat scroll,
+    var(--color-bg-elevated);
+}
+
+.na-app .na-drawer-body > :last-child {
+  margin-block-end: 20px;
+}
+
+/* actions stay at the foot of the modal while the fields scroll */
+.na-app .na-drawer-body .na-form-actions {
+  position: sticky;
+  inset-block-end: 0;
+  margin-block-end: 0;
+  margin-inline: -20px;
+  padding: 14px 20px max(16px, env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-elevated);
+}
+
+.na-app .na-drawer-body > .na-form-actions:last-child,
+.na-app .na-drawer-body form > .na-form-actions:last-child {
+  margin-block-end: 0;
+}
+
+/* confirmation dialogs are centered on phones too, never a full-width sheet */
+@media (max-width: 640px) {
+  .na-app .na-dialog-scrim {
+    align-items: center;
+    padding: 12px;
+  }
+
+  .na-app .na-dialog {
+    inline-size: 100%;
+    max-block-size: calc(100dvh - 24px);
+    border-radius: var(--na-r-card);
+    border-inline: 1px solid var(--color-border-subtle);
+  }
+
+  .na-app .na-drawer-scrim {
+    padding: 12px;
+  }
+
+  .na-app .na-drawer {
+    max-block-size: calc(100dvh - 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-app .na-drawer {
+    animation: none;
+  }
+}

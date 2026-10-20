@@ -69,7 +69,7 @@ const Created: React.FC<{ token: string; expiresAt: string; shareId: string; onD
     }
   };
   return (
-    <Card title={S.created}>
+    <>
       <div className="hp-qrbox">
         <QrImage value={url} label={S.scan} />
         <div className="na-stack">
@@ -105,7 +105,7 @@ const Created: React.FC<{ token: string; expiresAt: string; shareId: string; onD
           </div>
         </div>
       </div>
-    </Card>
+    </>
   );
 };
 
@@ -173,7 +173,7 @@ const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate
   }
 
   return (
-    <Card title={S.newTitle}>
+    <>
       <Async
         state={preps.state}
         onRetry={preps.reload}
@@ -284,7 +284,7 @@ const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate
         )}
       </Async>
       {confirming && <ConfirmDialog title={S.createTitle} body={fill(S.createBody, { docs: chosenDocs.length, duration: S.durations[durationLabel], date: formatDate(A.lang, endsAt, true) })} confirmLabel={S.createConfirm} onConfirm={() => void create()} onClose={() => setConfirming(false)} />}
-    </Card>
+    </>
   );
 };
 
@@ -351,7 +351,7 @@ export const PatientSharing: React.FC<{ navigate: (r: string) => void }> = ({ na
   const { run, pending } = useMutation();
   const { toast, show, hide } = useToast();
   const preset = hashParam('prep');
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(!!preset);
 
   const revoke = async (s: Share) => {
     setRevoking(null);
@@ -364,7 +364,7 @@ export const PatientSharing: React.FC<{ navigate: (r: string) => void }> = ({ na
   const active = list.filter((s) => s.state === 'active');
   const past = list.filter((s) => s.state !== 'active');
 
-  const showForm = creating || !!preset;
+  const showForm = creating;
   const nothingYet = shares.state.status === 'ready' && list.length === 0;
 
   return (
@@ -381,7 +381,11 @@ export const PatientSharing: React.FC<{ navigate: (r: string) => void }> = ({ na
         }
       />
       <div className="hp-stack">
-        {showForm && <NewShare presetPrep={preset} maxHours={shares.state.status === 'ready' ? Number(shares.state.meta?.maxHours) || 168 : 168} navigate={navigate} onCreated={() => setVersion((v) => v + 1)} onClose={() => setCreating(false)} />}
+        {showForm && (
+          <Drawer title={S.newTitle} size="lg" onClose={() => setCreating(false)}>
+            <NewShare presetPrep={preset} maxHours={shares.state.status === 'ready' ? Number(shares.state.meta?.maxHours) || 168 : 168} navigate={navigate} onCreated={() => setVersion((v) => v + 1)} onClose={() => setCreating(false)} />
+          </Drawer>
+        )}
         <Async state={shares.state} onRetry={shares.reload}>
           {() =>
             nothingYet && !showForm ? (

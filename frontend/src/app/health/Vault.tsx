@@ -110,7 +110,7 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
   };
 
   return (
-    <Card title={V.add}>
+    <>
       <form className="na-form na-form--stack" onSubmit={submit} noValidate>
         <Field label={V.file} htmlFor="vd-file" help={V.fileHelp} required error={fileError}>
           <div className="na-row">
@@ -177,7 +177,7 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
           </Button>
         </div>
       </form>
-    </Card>
+    </>
   );
 };
 
@@ -590,15 +590,17 @@ export const PatientVault: React.FC = () => {
       />
       <div className="na-stack">
         {adding && !trash && (
-          <Upload
-            ai={ai}
-            onCancel={() => setAdding(false)}
-            onUploaded={() => {
-              setAdding(false);
-              changed();
-              show({ text: V.uploaded });
-            }}
-          />
+          <Drawer title={V.add} onClose={() => setAdding(false)}>
+            <Upload
+              ai={ai}
+              onCancel={() => setAdding(false)}
+              onUploaded={() => {
+                setAdding(false);
+                changed();
+                show({ text: V.uploaded });
+              }}
+            />
+          </Drawer>
         )}
         <Card title={trash ? V.trash : undefined}>
           {!trash && (
