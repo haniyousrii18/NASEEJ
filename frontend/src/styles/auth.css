@@ -282,6 +282,7 @@
 
 .auth-input {
   width: 100%;
+  font-family: inherit;
   min-height: 50px;
   padding-block: 0;
   padding-inline: 44px 14px;

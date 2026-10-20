@@ -2,7 +2,7 @@
 // and the clinician's read-only view. Arabic is the source; the English tree is typed against it.
 
 const ar = {
-  shell: { today: 'اليوم', symptoms: 'الأعراض', documents: 'مستنداتي', assistant: 'المساعد', more: 'المزيد' },
+  shell: { today: 'لوحة التحكم', symptoms: 'الأعراض', documents: 'مستنداتي', assistant: 'المساعد', more: 'المزيد' },
   common: {
     save: 'حفظ',
     saving: 'جارٍ الحفظ…',
@@ -368,7 +368,7 @@ const ar = {
     sources: 'المصادر',
     notFound: 'لم أجد هذا في سجلك',
     open: 'فتح {where}',
-    where: { home: 'اليوم', profile: 'ملفي الصحي', timeline: 'الأعراض والخط الزمني', documents: 'مستنداتي', visits: 'الزيارات', prepare: 'تجهيز الزيارة', sharing: 'المشاركة', settings: 'الإعدادات' },
+    where: { home: 'لوحة التحكم', profile: 'ملفي الصحي', timeline: 'الأعراض والخط الزمني', documents: 'مستنداتي', visits: 'الزيارات', prepare: 'تجهيز الزيارة', sharing: 'المشاركة', settings: 'الإعدادات' },
     urgent: 'رسالة مهمة',
     errors: {
       AI_TIMEOUT: 'استغرق المساعد وقتًا طويلاً. أعد المحاولة.',
@@ -543,7 +543,7 @@ const ar = {
 };
 
 const en: typeof ar = {
-  shell: { today: 'Today', symptoms: 'Symptoms', documents: 'Documents', assistant: 'Assistant', more: 'More' },
+  shell: { today: 'Dashboard', symptoms: 'Symptoms', documents: 'Documents', assistant: 'Assistant', more: 'More' },
   common: {
     save: 'Save',
     saving: 'Saving…',
@@ -909,7 +909,7 @@ const en: typeof ar = {
     sources: 'Sources',
     notFound: 'Not found in your record',
     open: 'Open {where}',
-    where: { home: 'Today', profile: 'My health profile', timeline: 'Symptoms & timeline', documents: 'My documents', visits: 'Visits', prepare: 'Visit preparation', sharing: 'Sharing', settings: 'Settings' },
+    where: { home: 'Dashboard', profile: 'My health profile', timeline: 'Symptoms & timeline', documents: 'My documents', visits: 'Visits', prepare: 'Visit preparation', sharing: 'Sharing', settings: 'Settings' },
     urgent: 'Important message',
     errors: {
       AI_TIMEOUT: 'The assistant took too long. Please try again.',
