@@ -43,7 +43,10 @@ export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate,
   const route = destinationRoute(n, role);
 
   const markRead = async (): Promise<NotificationDto> => {
-    if (n.read) return n;
+    if (n.read) {
+      onChanged(n, true);
+      return n;
+    }
     const res = await request<NotificationDto>(`/api/notifications/${n.id}/read`, { method: 'POST' });
     if (res.ok) {
       onChanged(res.data, false);

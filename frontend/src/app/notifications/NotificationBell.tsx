@@ -41,6 +41,7 @@ export const NotificationBell: React.FC<{ role: AppRole; navigate: (route: strin
   }, [open]);
 
   const label = unread > 0 ? `${T.bell}, ${fill(T.unreadLabel, { n: unread })}` : T.bell;
+  const visibleItems = items.filter((n) => !n.read);
 
   return (
     <div className="na-nt-wrap" ref={wrap}>
@@ -71,11 +72,11 @@ export const NotificationBell: React.FC<{ role: AppRole; navigate: (route: strin
             <Loading />
           ) : error ? (
             <EmptyState title={T.loadError} />
-          ) : items.length === 0 ? (
+          ) : visibleItems.length === 0 ? (
             <p className="na-muted na-nt-empty">{T.empty}</p>
           ) : (
             <ul className="na-nt-list">
-              {items.map((n) => (
+              {visibleItems.map((n) => (
                 <NotificationItem key={n.id} n={n} role={role} navigate={navigate} onChanged={apply} onRemoved={remove} onNavigated={() => close(false)} />
               ))}
             </ul>

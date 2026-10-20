@@ -38,7 +38,7 @@ export const NotificationsProvider: React.FC<{ role: AppRole; children: React.Re
     if (inflight.current) return; // no duplicate requests
     inflight.current = true;
     try {
-      const res = await request<NotificationDto[]>(`/api/notifications?role=${role}&limit=${PANEL_SIZE}`);
+      const res = await request<NotificationDto[]>(`/api/notifications?role=${role}&limit=${PANEL_SIZE}&status=unread`);
       if (res.ok) {
         setItems(res.data);
         setUnread(res.meta?.unreadCount ?? 0);
@@ -66,7 +66,11 @@ export const NotificationsProvider: React.FC<{ role: AppRole; children: React.Re
   }, [refresh]);
 
   const apply = useCallback((n: NotificationDto, wasRead?: boolean) => {
-    setItems((list) => list.map((x) => (x.id === n.id ? n : x)));
+    if (n.read) {
+      setItems((list) => list.filter((x) => x.id !== n.id));
+    } else {
+      setItems((list) => list.map((x) => (x.id === n.id ? n : x)));
+    }
     if (wasRead === false && n.read) setUnread((c) => Math.max(0, c - 1));
   }, []);
   const remove = useCallback((id: string, wasUnread: boolean) => {
@@ -75,7 +79,7 @@ export const NotificationsProvider: React.FC<{ role: AppRole; children: React.Re
   }, []);
   const clearUnread = useCallback(() => {
     setUnread(0);
-    setItems((list) => list.map((x) => ({ ...x, read: true })));
+    setItems([]);
   }, []);
 
   const value = useMemo(() => ({ unread, items, loading, error, refresh, apply, remove, clearUnread }), [unread, items, loading, error, refresh, apply, remove, clearUnread]);
