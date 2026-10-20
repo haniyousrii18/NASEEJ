@@ -76,6 +76,7 @@
 .na-app .na-select,
 .na-app .na-textarea {
   min-height: var(--na-h-control);
+  font-family: inherit;
   padding-inline: 14px;
   border: 1px solid var(--na-control-border);
   border-radius: var(--na-r-control);
@@ -222,6 +223,7 @@
 /* ------------------------------------------------------------------ buttons */
 .na-app .na-btn {
   min-height: var(--na-h-control);
+  font-family: inherit;
   padding-inline: 22px;
   font-size: 15px;
   font-weight: 600;
@@ -344,6 +346,7 @@
 
 .na-app .hp-seg-opt {
   min-height: var(--na-h-control);
+  font-family: inherit;
   border: 1px solid var(--na-control-border);
   border-radius: var(--na-r-control);
   background: var(--na-control-bg);
@@ -425,6 +428,7 @@
 .na-app .hp-filters-btn {
   flex: none;
   min-height: var(--na-h-control);
+  font-family: inherit;
   border: 1px solid var(--na-control-border);
   background: var(--color-bg-elevated);
   color: var(--color-ink);
@@ -596,6 +600,7 @@
 
 .na-app .na-menu-item {
   min-height: var(--na-h-control);
+  font-family: inherit;
   padding-inline: 12px;
   border-radius: 12px;
   font-size: 15px;
@@ -648,6 +653,7 @@
 
 .na-app .na-nav-link {
   min-height: var(--na-h-control);
+  font-family: inherit;
   gap: 14px;
   padding-inline: 14px;
   border-radius: var(--na-r-control);
