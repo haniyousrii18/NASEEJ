@@ -47,7 +47,7 @@ export const UserText: React.FC<Props> = ({ text, lang, className, hint }) => {
       )}
       {entry?.state === 'ok' && (
         <span className="na-ut-tr" dir={uiDir} lang={ui}>
-          <span className="na-ut-tag" title={U.machine}>
+          <span className="na-ut-tag" title={entry.source === 'glossary' ? U.glossary : U.machine}>
             {U.translation}
           </span>{' '}
           {entry.text}

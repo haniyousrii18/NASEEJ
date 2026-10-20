@@ -1,4 +1,5 @@
 import type { Language } from '../../i18n/translations.js';
+import { glossaryTranslate } from './glossary/engine.js';
 
 /**
  * Translation of typed text, shared by every screen. One Translator batches the strings that are on screen into a few
@@ -7,7 +8,7 @@ import type { Language } from '../../i18n/translations.js';
  */
 export type Reason = 'consent' | 'not_configured' | 'uncertain' | 'failed' | 'busy' | 'not_allowed';
 export type Item = { status: 'ok'; text: string } | { status: 'unavailable'; reason: Reason };
-export type Entry = { state: 'loading' } | { state: 'ok'; text: string } | { state: 'unavailable'; reason: Reason };
+export type Entry = { state: 'loading' } | { state: 'ok'; text: string; source?: 'glossary' } | { state: 'unavailable'; reason: Reason };
 
 /** Resolves one batch. Returning null or throwing counts as a failed request. */
 export type Fetcher = (texts: string[], target: Language) => Promise<Item[] | null>;
@@ -26,7 +27,7 @@ export class Translator {
   private version = 0;
 
   /** Set by the signed-in app: asks the server for the person's permission to translate, then clears the "off" state. */
-  constructor(private fetcher: Fetcher, public enable?: () => Promise<boolean>) {}
+  constructor(private fetcher: Fetcher, public enable?: () => Promise<boolean>, private opts: { glossary?: boolean } = {}) {}
 
   /** Runs `enable`, and on success forgets the "off" answers so every visible text asks again. */
   async turnOn(): Promise<boolean> {
@@ -59,6 +60,13 @@ export class Translator {
   request(text: string, target: Language) {
     const k = this.key(text, target);
     if (this.peek(text, target) || this.queue.has(k)) return;
+    // The built-in glossary answers first: instant, offline, and needs no permission. The server (AI) is only for wording it does not cover.
+    const local = this.opts.glossary === false ? null : glossaryTranslate(text, target);
+    if (local) {
+      this.entries.set(k, { entry: { state: 'ok', text: local, source: 'glossary' }, at: Date.now() });
+      this.emit();
+      return;
+    }
     if (this.off) {
       this.entries.set(k, { entry: { state: 'unavailable', reason: this.off }, at: Date.now() });
       this.emit();

@@ -22,7 +22,7 @@ const EN_SYMPTOM = 'Chest pain for two days';
 
 /** A translator that has already answered, so server-side rendering shows the settled state. */
 async function settled(map: Record<string, Item>) {
-  const t = new Translator(async (texts) => texts.map((x) => map[x] ?? { status: 'unavailable', reason: 'failed' }));
+  const t = new Translator(async (texts) => texts.map((x) => map[x] ?? { status: 'unavailable', reason: 'failed' }), undefined, { glossary: false });
   return t;
 }
 async function warm(t: Translator, pairs: Array<[string, 'ar' | 'en']>) {
@@ -140,7 +140,7 @@ describe('typed text on screen', () => {
   });
 
   it('shows a loading note, not a blank, while the translation is on its way', () => {
-    const html = render('en', new Translator(async () => new Promise(() => undefined)), React.createElement(UserText, { text: AR_SYMPTOM }));
+    const html = render('en', new Translator(async () => new Promise(() => undefined), undefined, { glossary: false }), React.createElement(UserText, { text: AR_SYMPTOM }));
     expect(html).toContain(AR_SYMPTOM);
     expect(html).toContain('data-state="loading"');
   });
@@ -151,6 +151,26 @@ describe('typed text on screen', () => {
     const html = render('en', t, React.createElement(UserText, { text: AR_SYMPTOM, hint: true }));
     expect(html).not.toContain('na-ut-orig');
     expect(html).toContain('Chest pain for two days');
+  });
+
+  it('translates common medical wording with the built-in glossary, with no server and no permission', async () => {
+    const t = new Translator(async () => null); // the server is never reached
+    await warm(t, [['زيارة متابعة القلب', 'en'], ['Severe headache', 'ar']]);
+    const en = render('en', t, React.createElement(UserText, { text: 'زيارة متابعة القلب' }));
+    expect(en).toContain('زيارة متابعة القلب');
+    expect(en).toContain('Heart follow-up visit');
+    expect(en).toContain(appT.en.common.userText.translation);
+    const ar = render('ar', t, React.createElement(UserText, { text: 'Severe headache' }));
+    expect(ar).toContain('Severe headache');
+    expect(ar).toContain('صداع شديد');
+  });
+
+  it('falls back to the original with a note when neither the glossary nor the server can translate', async () => {
+    const t = new Translator(async () => null);
+    await warm(t, [['أشعر بدوار غريب', 'en']]);
+    const html = render('en', t, React.createElement(UserText, { text: 'أشعر بدوار غريب' }));
+    expect(html).toContain('أشعر بدوار غريب');
+    expect(html).toContain('data-state="unavailable"');
   });
 
   it('renders nothing for empty text', () => {

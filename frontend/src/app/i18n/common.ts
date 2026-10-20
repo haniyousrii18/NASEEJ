@@ -27,9 +27,10 @@ const ar = {
     showOriginal: 'عرض النص الأصلي',
     translating: 'جارٍ الترجمة…',
     turnOn: 'تفعيل الترجمة',
+    glossary: 'ترجمة من القاموس الطبي المدمج في نسيج. النص الأصلي هو المرجع.',
     unavailable: 'تعذّرت الترجمة. يُعرض النص الأصلي كما كُتب.',
     reasons: {
-      consent: 'الترجمة متوقفة. تُرسل الترجمة نصّك إلى خدمة الذكاء الاصطناعي، لذا تحتاج إلى موافقتك. يُعرض النص الأصلي كما كُتب.',
+      consent: 'هذه الصياغة غير موجودة في القاموس المدمج، وترجمة الذكاء الاصطناعي متوقفة لأنها ترسل نصّك إلى خدمة خارجية وتحتاج موافقتك. يُعرض النص الأصلي كما كُتب.',
       not_configured: 'الترجمة غير متاحة على هذا الخادم. يُعرض النص الأصلي كما كُتب.',
       uncertain: 'لم نتمكن من ترجمة هذا النص بدقة، لذلك يُعرض النص الأصلي فقط.',
       failed: 'تعذّرت الترجمة الآن. يُعرض النص الأصلي كما كُتب.',
@@ -193,9 +194,10 @@ const en: typeof ar = {
     showOriginal: 'Show original',
     translating: 'Translating…',
     turnOn: 'Turn on translation',
+    glossary: 'Translated with the medical glossary built into Naseej. The original is the record.',
     unavailable: 'Translation unavailable. Showing the original as written.',
     reasons: {
-      consent: 'Translation is off. It sends your text to the AI service, so it needs your permission. Showing the original as written.',
+      consent: 'This wording is not in the built-in glossary, and AI translation is off because it sends your text to an external service and needs your permission. Showing the original as written.',
       not_configured: 'Translation is not available on this server. Showing the original as written.',
       uncertain: 'This text could not be translated reliably, so only the original is shown.',
       failed: 'Translation failed just now. Showing the original as written.',
