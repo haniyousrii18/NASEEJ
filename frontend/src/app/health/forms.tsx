@@ -5,6 +5,7 @@ import { fill, todayIso } from '../format.js';
 import { Button, Field, Notice, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { MicButton, SEVERITY_VALUE, SeverityPicker, UrgentNotice, extractCheckTokens, severityWord, useSafetyCheck, useSpeech } from './kit.js';
+import { DatePicker } from '../DatePicker.js';
 
 export type EntryKind = 'condition' | 'medication' | 'allergy' | 'procedure' | 'measurement' | 'visit';
 export const ENTRY_KINDS: EntryKind[] = ['condition', 'medication', 'allergy', 'procedure', 'measurement', 'visit'];
@@ -143,17 +144,17 @@ export const EntryForm: React.FC<{ kind: EntryKind; initial?: Partial<Entry> & {
       {hasDates(kind) ? (
         <>
           <Field label={F.startDate} htmlFor="en-start">
-            <input id="en-start" type="date" className="na-input" max={todayIso()} value={v.start_date} onChange={set('start_date')} />
+            <DatePicker id="en-start" max={todayIso()} value={v.start_date} onChange={set('start_date')} />
           </Field>
           {v.status === 'past' && (
             <Field label={F.endDate} htmlFor="en-end">
-              <input id="en-end" type="date" className="na-input" min={v.start_date || undefined} value={v.end_date} onChange={set('end_date')} />
+              <DatePicker id="en-end" min={v.start_date || undefined} value={v.end_date} onChange={set('end_date')} />
             </Field>
           )}
         </>
       ) : kind !== 'allergy' ? (
         <Field label={F.eventDate} htmlFor="en-date" required error={errors.date}>
-          <input id="en-date" type="date" className="na-input" max={kind === 'visit' ? undefined : todayIso()} value={v.event_date} onChange={set('event_date')} />
+          <DatePicker id="en-date" max={kind === 'visit' ? undefined : todayIso()} value={v.event_date} onChange={set('event_date')} />
         </Field>
       ) : null}
 
@@ -289,7 +290,7 @@ export const SymptomForm: React.FC<{
       <SeverityPicker value={v.severity} onChange={(n) => { setErrors((x) => ({ ...x, severity: undefined })); setV((s) => ({ ...s, severity: n })); }} labels={S.sev} name="sy-sev" legend={S.severity} required error={errors.severity} />
 
       <Field label={S.start} htmlFor="sy-start">
-        <input id="sy-start" type="date" className="na-input" max={todayIso()} value={v.onset} onChange={(e) => setV((s) => ({ ...s, onset: e.target.value }))} />
+        <DatePicker id="sy-start" max={todayIso()} value={v.onset} onChange={(e) => setV((s) => ({ ...s, onset: e.target.value }))} />
       </Field>
       <Field label={S.duration} htmlFor="sy-dur" help={S.durationHelp}>
         <input id="sy-dur" className="na-input" dir="auto" maxLength={100} value={v.duration} onChange={(e) => setV((s) => ({ ...s, duration: e.target.value }))} />

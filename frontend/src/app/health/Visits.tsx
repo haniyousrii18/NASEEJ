@@ -6,6 +6,7 @@ import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill,
 import { useA } from '../useA.js';
 import { EntryForm, type Entry } from './forms.js';
 import { ConfirmDialog, Toast, useToast } from './kit.js';
+import { DatePicker } from '../DatePicker.js';
 
 export interface Prep {
   id: string;
@@ -62,7 +63,7 @@ export const StartPrep: React.FC<{ presetDate?: string; onCreated: (id: string) 
       </label>
       {!noDate && (
         <Field label={V.date} htmlFor="pv-date">
-          <input id="pv-date" type="date" className="na-input" value={date} min={undefined} onChange={(e) => setDate(e.target.value)} />
+          <DatePicker id="pv-date" value={date} min={undefined} onChange={(e) => setDate(e.target.value)} />
         </Field>
       )}
       <Field label={V.reason} htmlFor="pv-reason" help={V.reasonHelp}>

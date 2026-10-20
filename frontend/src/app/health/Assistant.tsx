@@ -6,6 +6,7 @@ import { Button, Drawer, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { SymptomForm, SYMPTOM_FREQ, type SymptomValue } from './forms.js';
 import { MicButton, OriginPill, SeverityPicker, Toast, UrgentNotice, routeForRef, useOnline, useSafetyCheck, useSpeech, useToast, type Origin } from './kit.js';
+import { DatePicker } from '../DatePicker.js';
 
 interface Citation {
   ref: string;
@@ -305,7 +306,7 @@ const Guided: React.FC<{ onReview: (v: SymptomValue, voiced: boolean) => void; o
           </div>
           {whenOther && (
             <Field label={G.pickDate} htmlFor="gd-date">
-              <input id="gd-date" type="date" className="na-input" max={todayIso()} autoFocus onChange={(e) => e.target.value && next({ onsetDate: e.target.value })} />
+              <DatePicker id="gd-date" max={todayIso()} value="" autoFocus onChange={(e) => e.target.value && next({ onsetDate: e.target.value })} />
             </Field>
           )}
         </div>

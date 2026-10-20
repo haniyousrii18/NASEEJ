@@ -6,6 +6,7 @@ import { Button, EmptyState, ErrorState, Field, Loading, Notice, Pill, Select } 
 import { FilterBar } from '../health/filters.js';
 import { useA } from '../useA.js';
 import { ReviewPill } from './badges.js';
+import { DatePicker } from '../DatePicker.js';
 
 export interface TimelineItem {
   id: string;
@@ -154,10 +155,10 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
           <legend>{A.health.common.dateRange}</legend>
           <div className="hp-pair">
             <Field label={A.common.filters.from} htmlFor="tl-from">
-              <input id="tl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+              <DatePicker id="tl-from" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
             </Field>
             <Field label={A.common.filters.to} htmlFor="tl-to">
-              <input id="tl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+              <DatePicker id="tl-to" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
             </Field>
           </div>
         </fieldset>

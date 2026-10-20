@@ -7,6 +7,7 @@ import { useA } from '../useA.js';
 import { ENTRY_KINDS, type EntryKind } from './forms.js';
 import { FilterBar } from './filters.js';
 import { ConfirmDialog, MAX_BYTES, OriginPill, Toast, shrinkImage, toBase64, useToast } from './kit.js';
+import { DatePicker } from '../DatePicker.js';
 
 export interface VaultDoc {
   id: string;
@@ -143,7 +144,7 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
           </Select>
         </Field>
         <Field label={V.date} htmlFor="vd-date">
-          <input id="vd-date" type="date" className="na-input" max={todayIso()} value={v.date} onChange={(e) => setV((s) => ({ ...s, date: e.target.value }))} />
+          <DatePicker id="vd-date" max={todayIso()} value={v.date} onChange={(e) => setV((s) => ({ ...s, date: e.target.value }))} />
         </Field>
         <Field label={V.provider} htmlFor="vd-provider">
           <input id="vd-provider" className="na-input" dir="auto" maxLength={200} value={v.provider} onChange={(e) => setV((s) => ({ ...s, provider: e.target.value }))} />
@@ -211,7 +212,7 @@ const EditDoc: React.FC<{ doc: VaultDoc; onDone: () => void; onSaved: () => void
         </Select>
       </Field>
       <Field label={V.date} htmlFor="de-date">
-        <input id="de-date" type="date" className="na-input" max={todayIso()} value={v.date} onChange={(e) => setV((s) => ({ ...s, date: e.target.value }))} />
+        <DatePicker id="de-date" max={todayIso()} value={v.date} onChange={(e) => setV((s) => ({ ...s, date: e.target.value }))} />
       </Field>
       <Field label={V.provider} htmlFor="de-provider">
         <input id="de-provider" className="na-input" dir="auto" maxLength={200} value={v.provider} onChange={(e) => setV((s) => ({ ...s, provider: e.target.value }))} />
@@ -325,7 +326,7 @@ const FactRow: React.FC<{ docId: string; fact: Fact; onDone: (msg: string) => vo
             </>
           )}
           <Field label={A.health.profile.fields.eventDate} htmlFor={`sd-${fact.id}`}>
-            <input id={`sd-${fact.id}`} type="date" className="na-input" max={todayIso()} value={v.date} onChange={(e) => setV((s) => ({ ...s, date: e.target.value }))} />
+            <DatePicker id={`sd-${fact.id}`} max={todayIso()} value={v.date} onChange={(e) => setV((s) => ({ ...s, date: e.target.value }))} />
           </Field>
           {error && (
             <Notice tone="danger" icon="alert" live>
@@ -634,10 +635,10 @@ export const PatientVault: React.FC = () => {
                 <legend>{A.health.common.dateRange}</legend>
                 <div className="hp-pair">
                   <Field label={V.from} htmlFor="vl-from">
-                    <input id="vl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+                    <DatePicker id="vl-from" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
                   </Field>
                   <Field label={V.to} htmlFor="vl-to">
-                    <input id="vl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+                    <DatePicker id="vl-to" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
                   </Field>
                 </div>
               </fieldset>

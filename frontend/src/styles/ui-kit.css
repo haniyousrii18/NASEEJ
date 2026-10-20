@@ -163,11 +163,6 @@
   background: var(--color-bg-elevated);
 }
 
-.na-app input[type='date'].na-input {
-  min-inline-size: 0;
-  text-align: start;
-}
-
 /* checkbox and radio rows */
 .na-app .cg-check {
   align-items: flex-start;
@@ -967,6 +962,261 @@
 
 @media (prefers-reduced-motion: reduce) {
   .na-app .na-drawer {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ calendar (app/DatePicker.tsx) */
+.na-app .dp-trigger {
+  justify-content: space-between;
+  gap: 10px;
+  min-inline-size: 0;
+}
+
+.na-app .dp-trigger-icon {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.na-app .dp-trigger[data-open='true'] .dp-trigger-icon {
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.na-app .dp-pop {
+  position: fixed;
+  z-index: 400;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 20px;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--na-elev-pop);
+  outline: none;
+  animation: naPop var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease) both;
+}
+
+.na-app .dp-sheet {
+  inset: auto 0 0 0;
+  inline-size: auto;
+  max-block-size: 90dvh;
+  overflow-y: auto;
+  border-radius: 24px 24px 0 0;
+  border-inline: 0;
+  border-block-end: 0;
+  padding-block-end: env(safe-area-inset-bottom);
+  animation: naRise var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+.na-app .dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 16px 6px;
+}
+
+.na-app .dp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.na-app .dp-title[aria-expanded='true'] .dp-chev--down {
+  transform: rotate(180deg);
+}
+
+.na-app .dp-nav {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-body-gray);
+  cursor: pointer;
+}
+
+[dir='rtl'] .na-app .dp-chev--prev,
+[dir='rtl'] .na-app .dp-chev--next {
+  transform: scaleX(-1);
+}
+
+.na-app .dp-nav:hover,
+.na-app .dp-title:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-ink);
+}
+
+.na-app .dp-nav:focus-visible,
+.na-app .dp-title:focus-visible,
+.na-app .dp-day:focus-visible,
+.na-app .dp-month:focus-visible,
+.na-app .dp-link:focus-visible {
+  outline: none;
+  box-shadow: var(--na-ring);
+}
+
+.na-app .dp-grid {
+  inline-size: calc(100% - 24px);
+  margin: 0 12px 10px;
+  border-collapse: separate;
+  border-spacing: 0 2px;
+  table-layout: fixed;
+}
+
+.na-app .dp-wd {
+  padding: 8px 0 6px;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.na-app .dp-grid td {
+  padding: 0;
+  text-align: center;
+}
+
+.na-app .dp-day {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 100%;
+  max-inline-size: 46px;
+  block-size: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.na-app .dp-day[data-outside='true'] {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.na-app .dp-day:hover:not([data-out='true']) {
+  background: var(--color-bg-subtle);
+}
+
+.na-app .dp-day[data-today='true'] {
+  background: var(--color-bg-subtle);
+}
+
+.na-app .dp-day[data-selected='true'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.na-app .dp-day[data-selected='true']:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-accent), var(--na-ring);
+}
+
+/* days outside min / max cannot be chosen: muted and struck through, still readable */
+.na-app .dp-day[data-out='true'] {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.na-app .dp-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 16px 16px;
+}
+
+.na-app .dp-month {
+  min-block-size: 52px;
+  border: 1px solid var(--na-control-border);
+  border-radius: var(--na-r-control);
+  background: var(--na-control-bg);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.na-app .dp-month:hover:not([data-out='true']) {
+  border-color: var(--na-control-border-hover);
+  background: var(--color-bg-subtle);
+}
+
+.na-app .dp-month[data-selected='true'] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg-elevated));
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.na-app .dp-month[data-out='true'] {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.na-app .dp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  border-block-start: 1px solid var(--color-border-subtle);
+}
+
+.na-app .dp-link {
+  min-block-size: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-accent-text, var(--color-accent));
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.na-app .dp-link--muted {
+  color: var(--color-text-muted);
+}
+
+.na-app .dp-link:hover:not(:disabled) {
+  background: var(--color-bg-subtle);
+}
+
+.na-app .dp-link:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-app .dp-pop,
+  .na-app .dp-sheet {
     animation: none;
   }
 }
