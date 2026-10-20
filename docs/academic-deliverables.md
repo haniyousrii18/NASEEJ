@@ -15,7 +15,6 @@
 | 7 | Test plan and automated tests | `docs/test-plan.md`, `backend/tests/`, `frontend/tests/` |
 | 8 | User guide and demo script | `docs/user-guide.md`, section 4 below |
 | 9 | Design system | `DESIGN.md` |
-| 10 | Graduation proposal (Arabic) | `docs/` (proposal files) |
 
 ## 3. Report outline
 1. Introduction and motivation (scattered personal health information; history recalled from memory in short consultations).
