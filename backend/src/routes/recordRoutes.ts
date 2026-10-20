@@ -6,6 +6,7 @@ import { logAuditEvent } from '../services/auditService.js';
 import { buildRecordItems, searchItems } from '../services/health/context.js';
 import { ENTRY_KINDS, parseEntry, parseSymptom, type EntryKind } from '../services/health/input.js';
 import { apiError, clampInt, isUuid, serverError } from '../services/validation.js';
+import { apiLimiter } from '../services/apiLimit.js';
 
 /**
  * The patient's own record: health entries (conditions, medications, allergies, procedures, measurements, visits) and
@@ -13,7 +14,7 @@ import { apiError, clampInt, isUuid, serverError } from '../services/validation.
  * so another patient's row is reported as "not found". Deleting is a soft delete with an undo.
  */
 export const recordRouter = Router();
-recordRouter.use(authenticate, requirePatient);
+recordRouter.use(apiLimiter, authenticate, requirePatient);
 
 const pid = (req: Request) => req.user!.patientProfileId!;
 

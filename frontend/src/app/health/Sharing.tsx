@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate } from '../format.js';
 import type { PortalSummary } from '../pages/patient.js';
-import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
+import { Async, Button, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { ConfirmDialog, Toast, useToast } from './kit.js';
 import { toSnapshot } from './PrepEditor.js';

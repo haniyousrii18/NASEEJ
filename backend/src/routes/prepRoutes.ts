@@ -5,13 +5,14 @@ import { requirePatient } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 import { buildDraft, parsePrepContent, verifyRefs } from '../services/health/prep.js';
 import { apiError, clampInt, isIsoDate, isUuid, serverError } from '../services/validation.js';
+import { apiLimiter } from '../services/apiLimit.js';
 
 /**
  * Visit preparation drafts. The draft is built from the patient's record by code (see services/health/prep.ts), edited by
  * the patient, and must be approved before a share can be made from it. Editing an approved draft reopens it.
  */
 export const prepRouter = Router();
-prepRouter.use(authenticate, requirePatient);
+prepRouter.use(apiLimiter, authenticate, requirePatient);
 
 const pid = (req: Request) => req.user!.patientProfileId!;
 const audit = (req: Request, action: string, id?: string, details?: Record<string, unknown>) =>

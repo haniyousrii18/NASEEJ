@@ -10,6 +10,7 @@ import { deviceClass, generateToken, hashIp, hashToken, isTokenShape, parseLifet
 import { rateLimit, SlidingWindow } from '../services/rateLimit.js';
 import { fileExists, resolveStoredPath } from '../services/storageService.js';
 import { apiError, clampInt, isUuid, serverError } from '../services/validation.js';
+import { apiLimiter } from '../services/apiLimit.js';
 
 /**
  * Temporary, revocable, read-only sharing.
@@ -19,7 +20,7 @@ import { apiError, clampInt, isUuid, serverError } from '../services/validation.
  * A share holds a frozen copy of exactly what the patient approved. The token is shown once and only its SHA-256 is stored.
  */
 export const patientShareRouter = Router();
-patientShareRouter.use(authenticate, requirePatient);
+patientShareRouter.use(apiLimiter, authenticate, requirePatient);
 
 const pid = (req: Request) => req.user!.patientProfileId!;
 const audit = (req: Request, action: string, id?: string, details?: Record<string, unknown>) =>
@@ -170,6 +171,7 @@ publicShareRouter.use((_req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   next();
 });
+publicShareRouter.use(apiLimiter);
 publicShareRouter.use(rateLimit({ windowMs: 60_000, max: 60, code: 'RATE_LIMITED', message: 'Too many requests. Please wait a minute and try again.' }));
 
 // Unknown tokens are counted per address: guessing a 256-bit token is hopeless, but a client that keeps failing is stopped early.

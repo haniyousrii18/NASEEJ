@@ -7,6 +7,7 @@ import { aiStatus, startProcessing } from '../services/documentProcessing.js';
 import { fileExists, saveFile, sniffFileType } from '../services/storageService.js';
 import { parseEntry, type EntryKind } from '../services/health/input.js';
 import { apiError, clampInt, escapeLike, isIsoDate, isUuid, serverError } from '../services/validation.js';
+import { apiLimiter } from '../services/apiLimit.js';
 
 /**
  * The patient's document vault. A vault document has no medical center: no clinician can see it, and it reaches
@@ -15,7 +16,7 @@ import { apiError, clampInt, escapeLike, isIsoDate, isUuid, serverError } from '
  * AI reading is opt-in per document, and what it reads comes back as SUGGESTIONS the patient confirms or dismisses.
  */
 export const vaultRouter = Router();
-vaultRouter.use(authenticate, requirePatient);
+vaultRouter.use(apiLimiter, authenticate, requirePatient);
 
 const MAX_BYTES = 4 * 1024 * 1024;
 export const DOC_TYPES = ['lab_report', 'imaging_report', 'prescription', 'discharge_summary', 'clinical_note', 'referral', 'vaccination_record', 'administrative', 'other'] as const;

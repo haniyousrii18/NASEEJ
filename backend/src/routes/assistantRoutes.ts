@@ -10,13 +10,14 @@ import { parsePrepContent, verifyRefs } from '../services/health/prep.js';
 import { URGENT_MESSAGE, isUrgentText } from '../services/health/safety.js';
 import { rateLimit } from '../services/rateLimit.js';
 import { apiError, isUuid, serverError } from '../services/validation.js';
+import { apiLimiter } from '../services/apiLimit.js';
 
 /**
  * Patient assistant API. The model sits behind this file: no key, prompt, safety rule or permission lives in the browser.
  * Every route is for the signed-in patient only; the record that grounds a reply is read here by the patient's own profile id.
  */
 export const assistantRouter = Router();
-assistantRouter.use(authenticate, requirePatient);
+assistantRouter.use(apiLimiter, authenticate, requirePatient);
 
 const pid = (req: Request) => req.user!.patientProfileId!;
 const burst = rateLimit({ windowMs: 10_000, max: 6, key: (req) => `assistant:${req.user!.id}`, code: 'RATE_LIMITED', message: 'Slow down a little and try again in a few seconds.' });
