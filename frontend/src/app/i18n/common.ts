@@ -26,9 +26,10 @@ const ar = {
     original: 'النص الأصلي',
     showOriginal: 'عرض النص الأصلي',
     translating: 'جارٍ الترجمة…',
+    turnOn: 'تفعيل الترجمة',
     unavailable: 'تعذّرت الترجمة. يُعرض النص الأصلي كما كُتب.',
     reasons: {
-      consent: 'الترجمة متوقفة. فعّل المساعد من الإعدادات لترجمة نصوصك. يُعرض النص الأصلي كما كُتب.',
+      consent: 'الترجمة متوقفة. تُرسل الترجمة نصّك إلى خدمة الذكاء الاصطناعي، لذا تحتاج إلى موافقتك. يُعرض النص الأصلي كما كُتب.',
       not_configured: 'الترجمة غير متاحة على هذا الخادم. يُعرض النص الأصلي كما كُتب.',
       uncertain: 'لم نتمكن من ترجمة هذا النص بدقة، لذلك يُعرض النص الأصلي فقط.',
       failed: 'تعذّرت الترجمة الآن. يُعرض النص الأصلي كما كُتب.',
@@ -191,9 +192,10 @@ const en: typeof ar = {
     original: 'Original',
     showOriginal: 'Show original',
     translating: 'Translating…',
+    turnOn: 'Turn on translation',
     unavailable: 'Translation unavailable. Showing the original as written.',
     reasons: {
-      consent: 'Translation is off. Turn on the assistant in Settings to translate your text. Showing the original as written.',
+      consent: 'Translation is off. It sends your text to the AI service, so it needs your permission. Showing the original as written.',
       not_configured: 'Translation is not available on this server. Showing the original as written.',
       uncertain: 'This text could not be translated reliably, so only the original is shown.',
       failed: 'Translation failed just now. Showing the original as written.',

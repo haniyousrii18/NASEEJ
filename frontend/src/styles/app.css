@@ -3514,3 +3514,14 @@ th[data-today] .na-sched-daybtn {
   color: var(--color-text-secondary);
   cursor: help;
 }
+
+.na-ut-action {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}

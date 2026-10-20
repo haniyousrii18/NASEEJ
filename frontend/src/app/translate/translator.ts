@@ -25,7 +25,16 @@ export class Translator {
   private off: Reason | null = null;
   private version = 0;
 
-  constructor(private fetcher: Fetcher) {}
+  /** Set by the signed-in app: asks the server for the person's permission to translate, then clears the "off" state. */
+  constructor(private fetcher: Fetcher, public enable?: () => Promise<boolean>) {}
+
+  /** Runs `enable`, and on success forgets the "off" answers so every visible text asks again. */
+  async turnOn(): Promise<boolean> {
+    if (!this.enable) return false;
+    const ok = await this.enable().catch(() => false);
+    if (ok) this.reset();
+    return ok;
+  }
 
   private key = (text: string, target: Language) => `${target}\n${text}`;
 

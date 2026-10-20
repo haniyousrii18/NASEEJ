@@ -2,7 +2,7 @@ import React from 'react';
 import type { Language } from '../../i18n/translations.js';
 import { useLang } from '../../context/LangContext.js';
 import { appT } from '../i18n/index.js';
-import { useTranslation } from './TranslationContext.js';
+import { useTranslation, useTranslator } from './TranslationContext.js';
 import { dirOf, needsTranslation } from './script.js';
 
 interface Props {
@@ -26,6 +26,7 @@ export const UserText: React.FC<Props> = ({ text, lang, className, hint }) => {
   const value = text ?? '';
   const wanted = value.length > 0 && needsTranslation(value, ui);
   const entry = useTranslation(value, ui, wanted);
+  const translator = useTranslator();
   if (!value) return null;
   if (!wanted) {
     if (hint) return null;
@@ -60,6 +61,14 @@ export const UserText: React.FC<Props> = ({ text, lang, className, hint }) => {
       {entry?.state === 'unavailable' && (
         <span className="na-ut-note" dir={uiDir} lang={ui}>
           {(U.reasons as Record<string, string>)[entry.reason] ?? U.unavailable}
+          {entry.reason === 'consent' && translator?.enable && (
+            <>
+              {' '}
+              <button type="button" className="na-ut-action" onClick={() => void translator.turnOn()}>
+                {U.turnOn}
+              </button>
+            </>
+          )}
         </span>
       )}
     </span>
