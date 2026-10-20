@@ -80,7 +80,7 @@ npm install
 cp .env.example .env             # set DB_PASSWORD (and DB_* if different)
 # once, in psql:  CREATE DATABASE naseej_dev;
 npm --prefix backend run migrate # tables (001-005)
-npm --prefix backend run seed    # synthetic demo data
+npm --prefix backend run seed    # small synthetic demo (empties every table first)
 npm run dev                      # API on :5000, app on :3000
 ```
 
@@ -112,12 +112,13 @@ npm --prefix backend run test       # all, against the database in .env
 npm --prefix frontend run test
 ```
 
-The backend API tests change the database and are meant for a **fresh** one (CI starts each run on a new database). For a local dev database reset first (this **destroys data**):
+The backend API tests change the database and are meant for a **fresh** one (CI starts each run on a new database). `seed` empties every table and loads the same small demo each time (this **destroys data**; it refuses to run with `NODE_ENV=production` unless `SEED_FORCE=true`), so a local dev database is ready for a new run with:
 
 ```bash
-npm --prefix backend run migrate -- --reset
 npm --prefix backend run seed
 ```
+
+The demo is one patient with two or three examples per page: 2 conditions, 2 medications, 2 allergies, 3 symptoms, 3 documents (two AI readings waiting for confirmation), 2 visit summaries (one approved and shared, one draft), 1 active share and 2 notifications. Three staff accounts and one center exist only so the API tests can prove that staff cannot use the patient API; they cannot sign in to the app.
 
 Set `AI_PROVIDER=` (empty) when testing so no real provider is called. Coverage: ownership and IDOR checks, entries/symptoms/vault, suggestions needing confirmation, visit summary, share create/open/expire/revoke and document grants, assistant safety answers, audit content, plus unit tests of safety rules, validation, tokens, rate limiting and reply shaping. Details: [docs/test-plan.md](docs/test-plan.md).
 

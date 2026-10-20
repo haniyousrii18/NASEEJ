@@ -9,7 +9,7 @@
 | `backend/tests/auth.test.ts`, `patient-portal.test.ts` | PostgreSQL | login/me; approved-only portal summary; retired endpoints return 404 |
 | `frontend/tests/i18n.test.ts` | nothing | Arabic and English trees have identical keys; landing copy makes no certification claim |
 
-Run: `npm --prefix backend run test:unit`, `npm --prefix backend run test`, `npm --prefix frontend run test`. The API suites change the database: use a **fresh** database (CI does) and an empty `AI_PROVIDER` so no real provider is called. CI also checks migrations (empty-database migrate, re-migrate is a no-op, rollback and re-apply).
+Run: `npm --prefix backend run test:unit`, `npm --prefix backend run test`, `npm --prefix frontend run test`. The API suites change the database: use a **fresh** database (CI does) or run `npm --prefix backend run seed` first (it empties every table), and an empty `AI_PROVIDER` so no real provider is called. CI also checks migrations (empty-database migrate, re-migrate is a no-op, rollback and re-apply).
 
 ## Manual (before a demo)
 1. Sign in as the demo patient; Today shows four actions; every nav item loads in Arabic and English with no horizontal scroll at 375 px.

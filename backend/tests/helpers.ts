@@ -1,17 +1,10 @@
 import request from 'supertest';
 import { app } from '../src/app.js';
 
+/** The one seeded center and the staff accounts exist only to prove staff cannot use the patient API. */
 export const NOOR = '11111111-1111-1111-1111-111111111111';
-export const AMAL = '22222222-2222-2222-2222-222222222222';
-export const PATIENT_1 = '10000000-0000-0000-0000-000000000001'; // registered at Al-Noor and Al-Amal
-export const PATIENT_2 = '10000000-0000-0000-0000-000000000002'; // registered at Al-Noor only
+export const PATIENT_1 = '10000000-0000-0000-0000-000000000001'; // Mohammed Al-Mansoor, the demo patient
 export const DOCTOR_NOOR = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-export const DOCTOR_AMAL = '99999999-9999-9999-9999-999999999999';
-export const DRAFT_VISIT_NOOR = '40000000-0000-0000-0000-000000000002';
-export const APPROVED_VISIT_NOOR = '40000000-0000-0000-0000-000000000001';
-export const APPROVED_VISIT_AMAL = '40000000-0000-0000-0000-0000000000a1';
-export const SEEDED_CONSENT = '70000000-0000-0000-0000-000000000001';
-export const SEEDED_CASE = '90000000-0000-0000-0000-000000000001';
 export const PASSWORD = 'Password123!';
 
 const tokens = new Map<string, string>();
@@ -29,14 +22,9 @@ export async function tokenFor(email: string, password = PASSWORD): Promise<stri
 
 export const as = {
   admin: () => tokenFor('admin@naseej.health'),
-  managerNoor: () => tokenFor('manager.noor@naseej.health'),
-  managerAmal: () => tokenFor('manager.amal@naseej.health'),
   doctorNoor: () => tokenFor('doctor.noor@naseej.health'),
-  doctorAmal: () => tokenFor('doctor.amal@naseej.health'),
   receptionNoor: () => tokenFor('reception.noor@naseej.health'),
-  coordinatorNoor: () => tokenFor('coordinator.noor@naseej.health'),
   patient: () => tokenFor('patient@naseej.health'),
-  caregiverNoor: () => tokenFor('caregiver.noor@naseej.health'),
 };
 
 type Method = 'get' | 'post' | 'patch' | 'put' | 'delete';
@@ -48,24 +36,6 @@ export function call(method: Method, path: string, token: string, orgId?: string
   return r;
 }
 
-/** A future date that varies per run, so repeated runs on one database do not collide on booked slots. */
-export function futureDate(offsetDays = 40, spreadDays = 300): string {
-  const d = new Date(Date.now() + (offsetDays + Math.floor(Math.random() * spreadDays)) * 86400000);
-  return d.toISOString().slice(0, 10);
-}
-
-/** A random hour of the day (0-16), so tests booking on a random date rarely meet a slot taken by an earlier run. */
-export const quietHour = () => Math.floor(Math.random() * 17);
-
-/** A calendar day safely in the past, randomised so repeated runs do not collide on the same slot. */
-export function pastDate(offsetDays = 30, spreadDays = 3000): string {
-  const d = new Date(Date.now() - (offsetDays + Math.floor(Math.random() * spreadDays)) * 86400000);
-  return d.toISOString().slice(0, 10);
-}
-
 /** Smallest valid PDF-looking buffer (the server checks magic bytes, not content). */
 export const tinyPdfBase64 = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n').toString('base64');
 export const tinyPngBase64 = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(32)]).toString('base64');
-
-/** The seeded active delegation (seed 003): patient 1 -> caregiver.noor, view records + manage appointments, no messaging. */
-export const SEEDED_DELEGATION = 'c0000000-0000-0000-0000-000000000001';
