@@ -32,7 +32,7 @@ const CloseIcon: React.FC = () => (
  */
 export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
   const { lang, setLang, t, isRtl } = useLang();
-  const { user, logout, currentOrgId, setCurrentOrgId, currentRole } = useAuth();
+  const { user, logout, currentRole } = useAuth();
   const installApp = useInstall();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -163,16 +163,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
 
           <div className="site-end">
             <div className="site-auth">
-              {user && user.memberships && user.memberships.length > 1 && (
-                <select value={currentOrgId || ''} onChange={(e) => setCurrentOrgId(e.target.value)} className="form-select site-org-select" aria-label={t.nav.workspaces}>
-                  {user.memberships.map((m) => (
-                    <option key={m.organization_id} value={m.organization_id}>
-                      {isRtl ? m.organization_name_ar : m.organization_name_en} ({m.role})
-                    </option>
-                  ))}
-                </select>
-              )}
-
               {user ? (
                 <>
                   <button type="button" onClick={goWorkspace} className="site-account">

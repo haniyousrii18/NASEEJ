@@ -3,7 +3,7 @@ import { useRequest } from '../api.js';
 import type { ApiFailure } from '../api.js';
 import { fill } from '../format.js';
 import type { AppRole } from '../nav.js';
-import { Button, EmptyState, ErrorState, Loading, PageHead } from '../ui.js';
+import { Button, EmptyState, ErrorState, Loading, PageHead, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { NotificationItem } from './NotificationItem.js';
 import { SearchField } from '../health/filters.js';
@@ -132,7 +132,7 @@ export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: stri
           ))}
         </div>
         <div className="na-nt-toolbar-end">
-          <select className="na-select na-nt-type" aria-label={T.filters.category} value={category} onChange={(e) => setCategory(e.target.value)}>
+          <Select className="na-select na-nt-type" aria-label={T.filters.category} value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="">{T.allTypes}</option>
             {CATEGORIES.filter((c) => !summary || (summary.byCategory[c]?.total ?? 0) > 0 || category === c).map((c) => (
               <option key={c} value={c}>
@@ -140,7 +140,7 @@ export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: stri
                 {summary ? ` (${summary.byCategory[c]?.total ?? 0})` : ''}
               </option>
             ))}
-          </select>
+          </Select>
           <SearchField id="nt-q" label={T.search} value={query} onChange={setQuery} />
         </div>
       </div>

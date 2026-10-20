@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { useDownload, useRequest, type ApiFailure } from '../api.js';
 import { fill, formatBytes, formatDate, nameOf } from '../format.js';
-import { Button, EmptyState, ErrorState, Field, Loading, Notice, Pill } from '../ui.js';
+import { Button, EmptyState, ErrorState, Field, Loading, Notice, Pill, Select } from '../ui.js';
 import { FilterBar } from '../health/filters.js';
 import { useA } from '../useA.js';
 import { ReviewPill } from './badges.js';
@@ -163,14 +163,14 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
         </fieldset>
         {centers.current.size > 1 && (
           <Field label={A.common.filters.center} htmlFor="tl-center">
-            <select id="tl-center" className="na-select" value={org} onChange={(e) => setOrg(e.target.value)}>
+            <Select id="tl-center" className="na-select" value={org} onChange={(e) => setOrg(e.target.value)}>
               <option value="">{A.common.filters.allCenters}</option>
               {[...centers.current.values()].map((c) => (
                 <option key={c.id} value={c.id}>
                   {nameOf(A.lang, c)}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         )}
       </FilterBar>

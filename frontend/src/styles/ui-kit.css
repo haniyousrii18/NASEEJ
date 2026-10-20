@@ -729,3 +729,142 @@
   outline: none;
   box-shadow: none;
 }
+
+/* ------------------------------------------------------------------ dropdown (app/Select.tsx) */
+.na-app .sel-trigger {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  text-align: start;
+  cursor: pointer;
+}
+
+.na-app .sel-trigger[data-open='true'] {
+  border-color: var(--color-accent);
+  box-shadow: var(--na-ring);
+}
+
+.na-app .sel-value {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.na-app .sel-value[data-empty='true'] {
+  color: var(--color-text-muted);
+}
+
+.na-app .sel-catch {
+  position: fixed;
+  inset: 0;
+  z-index: 390;
+}
+
+.na-app .sel-pop {
+  position: fixed;
+  z-index: 400;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  margin: 0;
+  padding: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 20px;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--na-elev-pop);
+  outline: none;
+  animation: naPop var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease) both;
+}
+
+.na-app .sel-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-block-size: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--na-control-border);
+  border-radius: var(--na-r-control);
+  background: var(--na-control-bg);
+  color: var(--color-ink);
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-fast, 120ms) ease, background-color var(--t-fast, 120ms) ease;
+}
+
+.na-app .sel-opt-label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.na-app .sel-opt[data-active='true'] {
+  border-color: var(--na-control-border-hover);
+  background: var(--color-bg-subtle);
+}
+
+.na-app .sel-pop:focus-visible .sel-opt[data-active='true'] {
+  box-shadow: var(--na-ring);
+}
+
+.na-app .sel-opt[data-selected='true'] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg-elevated));
+}
+
+.na-app .sel-opt[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.na-app .sel-radio {
+  position: relative;
+  flex: none;
+  inline-size: 24px;
+  block-size: 24px;
+  border: 2px solid var(--na-control-border);
+  border-radius: 999px;
+}
+
+.na-app .sel-opt[data-selected='true'] .sel-radio {
+  border-color: var(--color-accent);
+}
+
+.na-app .sel-opt[data-selected='true'] .sel-radio::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+/* phones: the list is a bottom sheet over a scrim, with room for the safe area */
+.na-app .sel-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 390;
+  background: var(--color-overlay, rgba(26, 18, 12, 0.4));
+}
+
+.na-app .sel-sheet {
+  inset: auto 0 0 0;
+  inline-size: auto;
+  max-block-size: min(72dvh, 560px);
+  padding: 12px 12px max(16px, env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
+  border-inline: 0;
+  border-block-end: 0;
+  animation: naRise var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-app .sel-pop,
+  .na-app .sel-opt {
+    animation: none;
+    transition: none;
+  }
+}

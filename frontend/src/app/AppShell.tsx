@@ -47,7 +47,7 @@ interface Props {
  * Visibility of an item is a convenience. Every endpoint behind a page checks authorization on the server.
  */
 const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
-  const { user, currentRole, currentOrgId, setCurrentOrgId, logout } = useAuth();
+  const { user, currentRole, currentOrgId, logout } = useAuth();
   const { lang, setLang, isRtl } = useLang();
   const { workspace } = useTheme();
   const wsTheme = workspace.theme;
@@ -181,7 +181,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   };
 
   const memberships = user?.memberships ?? [];
-  const showCenterSwitch = role !== 'patient' && role !== 'platform_admin' && memberships.length > 1;
   const displayName = (isRtl ? user?.fullNameAr : user?.fullNameEn) || user?.fullNameEn || '';
   const roleLabel = role ? A.common.roles[role] : '';
   // A hash that only changes its query ("?appointment=...") keeps the same route, but the page still has to see it.
@@ -360,21 +359,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
           </div>
 
           <div className="na-top-spacer" />
-
-          {showCenterSwitch && (
-            <select
-              className="na-select-mini"
-              value={currentOrgId || ''}
-              onChange={(e) => setCurrentOrgId(e.target.value)}
-              aria-label={A.common.shell.center}
-            >
-              {memberships.map((m) => (
-                <option key={m.id} value={m.organization_id}>
-                  {isRtl ? m.organization_name_ar : m.organization_name_en}
-                </option>
-              ))}
-            </select>
-          )}
 
           {role && <NotificationBell role={role} navigate={navigate} />}
 

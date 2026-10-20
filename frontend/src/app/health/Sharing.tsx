@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate } from '../format.js';
 import type { PortalSummary } from '../pages/patient.js';
-import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
+import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { ConfirmDialog, Toast, useToast } from './kit.js';
 import { toSnapshot } from './PrepEditor.js';
@@ -222,13 +222,13 @@ const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate
               <legend>{S.step3}</legend>
               <div className="na-form na-form--stack">
                 <Field label={S.duration} htmlFor="sh-dur">
-                  <select id="sh-dur" className="na-select" value={hours} onChange={(e) => setHours(Number(e.target.value))}>
+                  <Select id="sh-dur" className="na-select" value={hours} onChange={(e) => setHours(Number(e.target.value))}>
                     {allowed.map((d) => (
                       <option key={d.key} value={d.hours}>
                         {S.durations[d.key]}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </Field>
                 <label className="cg-check">
                   <input type="checkbox" checked={identity} onChange={(e) => setIdentity(e.target.checked)} />

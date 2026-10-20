@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { useApiData, useDownload, useMutation } from '../api.js';
 import { fill, formatBytes, formatDate, todayIso } from '../format.js';
-import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
+import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { ENTRY_KINDS, type EntryKind } from './forms.js';
 import { FilterBar } from './filters.js';
@@ -133,14 +133,14 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
           <input id="vd-title" className="na-input" dir="auto" maxLength={255} value={v.title} onChange={(e) => setV((s) => ({ ...s, title: e.target.value }))} />
         </Field>
         <Field label={V.type} htmlFor="vd-type">
-          <select id="vd-type" className="na-select" value={v.type} onChange={(e) => setV((s) => ({ ...s, type: e.target.value }))}>
+          <Select id="vd-type" className="na-select" value={v.type} onChange={(e) => setV((s) => ({ ...s, type: e.target.value }))}>
             <option value="">{V.typeAny}</option>
             {DOC_TYPES.map((t) => (
               <option key={t} value={t}>
                 {V.types[t]}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={V.date} htmlFor="vd-date">
           <input id="vd-date" type="date" className="na-input" max={todayIso()} value={v.date} onChange={(e) => setV((s) => ({ ...s, date: e.target.value }))} />
@@ -201,14 +201,14 @@ const EditDoc: React.FC<{ doc: VaultDoc; onDone: () => void; onSaved: () => void
         <input id="de-title" className="na-input" dir="auto" maxLength={255} value={v.title} onChange={(e) => setV((s) => ({ ...s, title: e.target.value }))} />
       </Field>
       <Field label={V.type} htmlFor="de-type">
-        <select id="de-type" className="na-select" value={v.type} onChange={(e) => setV((s) => ({ ...s, type: e.target.value }))}>
+        <Select id="de-type" className="na-select" value={v.type} onChange={(e) => setV((s) => ({ ...s, type: e.target.value }))}>
           <option value="">{V.typeAny}</option>
           {DOC_TYPES.map((t) => (
             <option key={t} value={t}>
               {V.types[t]}
             </option>
           ))}
-        </select>
+        </Select>
       </Field>
       <Field label={V.date} htmlFor="de-date">
         <input id="de-date" type="date" className="na-input" max={todayIso()} value={v.date} onChange={(e) => setV((s) => ({ ...s, date: e.target.value }))} />
@@ -303,13 +303,13 @@ const FactRow: React.FC<{ docId: string; fact: Fact; onDone: (msg: string) => vo
       ) : (
         <form className="na-form na-form--stack" onSubmit={confirm}>
           <Field label={V.sugAsKind} htmlFor={`sk-${fact.id}`}>
-            <select id={`sk-${fact.id}`} className="na-select" value={kind} onChange={(e) => setKind(e.target.value as EntryKind)}>
+            <Select id={`sk-${fact.id}`} className="na-select" value={kind} onChange={(e) => setKind(e.target.value as EntryKind)}>
               {ENTRY_KINDS.filter((k) => k !== 'visit').map((k) => (
                 <option key={k} value={k}>
                   {V.kinds[k]}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={A.health.profile.fields.title[kind]} htmlFor={`st-${fact.id}`}>
             <input id={`st-${fact.id}`} className="na-input" dir="auto" value={v.title} onChange={(e) => setV((s) => ({ ...s, title: e.target.value }))} />
@@ -619,14 +619,14 @@ export const PatientVault: React.FC = () => {
               ]}
             >
               <Field label={V.type} htmlFor="vl-type">
-                <select id="vl-type" className="na-select" value={type} onChange={(e) => setType(e.target.value)}>
+                <Select id="vl-type" className="na-select" value={type} onChange={(e) => setType(e.target.value)}>
                   <option value="">{V.allTypes}</option>
                   {DOC_TYPES.map((t) => (
                     <option key={t} value={t}>
                       {V.types[t]}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
               <fieldset className="hp-fieldset">
                 <legend>{A.health.common.dateRange}</legend>

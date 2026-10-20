@@ -2,6 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { lockScroll, trapTab } from '../lib/overlay.js';
 import { AppIcon, type IconName } from './AppIcons.js';
 import { useA } from './useA.js';
+import { Select } from './Select.js';
+
+export { Select };
 import type { ApiFailure, AsyncState } from './api.js';
 
 /** Presentational building blocks of the authenticated app. All styling comes from `na-` classes in app.css. */
@@ -99,7 +102,7 @@ export const Field: React.FC<{ label: string; htmlFor: string; help?: string; er
   const errId = error ? `${htmlFor}-err` : undefined;
   const describedBy = [errId, helpId].filter(Boolean).join(' ') || undefined;
   const control =
-    React.isValidElement(children) && typeof children.type === 'string' && ['input', 'select', 'textarea'].includes(children.type)
+    React.isValidElement(children) && (children.type === Select || (typeof children.type === 'string' && ['input', 'select', 'textarea'].includes(children.type)))
       ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, { 'aria-invalid': error ? true : undefined, 'aria-describedby': describedBy, 'aria-required': required || undefined })
       : children;
   return (

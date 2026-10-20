@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { useApiData, useMutation } from '../api.js';
 import { AppIcon } from '../AppIcons.js';
 import { fill, todayIso } from '../format.js';
-import { Button, Field, Notice } from '../ui.js';
+import { Button, Field, Notice, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { MicButton, SEVERITY_VALUE, SeverityPicker, UrgentNotice, extractCheckTokens, severityWord, useSafetyCheck, useSpeech } from './kit.js';
 
@@ -295,14 +295,14 @@ export const SymptomForm: React.FC<{
         <input id="sy-dur" className="na-input" dir="auto" maxLength={100} value={v.duration} onChange={(e) => setV((s) => ({ ...s, duration: e.target.value }))} />
       </Field>
       <Field label={S.frequency} htmlFor="sy-freq">
-        <select id="sy-freq" className="na-select" value={v.frequency} onChange={(e) => setV((s) => ({ ...s, frequency: e.target.value }))}>
+        <Select id="sy-freq" className="na-select" value={v.frequency} onChange={(e) => setV((s) => ({ ...s, frequency: e.target.value }))}>
           <option value="">—</option>
           {SYMPTOM_FREQ.map((f) => (
             <option key={f} value={f}>
               {S.freq[f]}
             </option>
           ))}
-        </select>
+        </Select>
       </Field>
       <Field label={S.better} htmlFor="sy-better">
         <input id="sy-better" className="na-input" dir="auto" maxLength={500} value={v.better} onChange={(e) => setV((s) => ({ ...s, better: e.target.value }))} />

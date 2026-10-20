@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate, todayIso } from '../format.js';
 import type { TimelineItem } from '../record/Timeline.js';
-import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
+import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { EntryForm, type Entry } from './forms.js';
 import { ConfirmDialog, Toast, useToast } from './kit.js';
@@ -69,10 +69,10 @@ export const StartPrep: React.FC<{ presetDate?: string; onCreated: (id: string) 
         <textarea id="pv-reason" className="na-textarea" dir="auto" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
       </Field>
       <Field label={V.language} htmlFor="pv-lang">
-        <select id="pv-lang" className="na-select" value={lang} onChange={(e) => setLang(e.target.value as 'ar' | 'en')}>
+        <Select id="pv-lang" className="na-select" value={lang} onChange={(e) => setLang(e.target.value as 'ar' | 'en')}>
           <option value="ar">العربية</option>
           <option value="en">English</option>
-        </select>
+        </Select>
       </Field>
       {error && (
         <Notice tone="danger" icon="alert" live>
