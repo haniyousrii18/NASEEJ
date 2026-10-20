@@ -9,8 +9,6 @@ interface Props {
   setCurrentView: (view: string) => void;
 }
 
-const ROLE_KEYS = ['patient', 'doctor', 'center_manager', 'reception', 'platform_admin'] as const;
-
 /** Workflow titles carry their own "1." / "١." numbering; the step badge shows the number instead. */
 const stripNumber = (s: string) => s.replace(/^[\d٠-٩]+[.)\s]+/, '').trim();
 
@@ -115,21 +113,6 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
         </div>
       </Reveal>
 
-      {/* ------------------------------------------------------------ roles */}
-      <Reveal as="section" className="l-section" aria-labelledby="roles-title">
-        <div className="l-container">
-          <SectionHead eyebrow={L.rolesEyebrow} title={L.rolesTitle} />
-          <div className="l-grid l-grid--roles">
-            {ROLE_KEYS.map((key, i) => (
-              <Reveal key={key} i={i} className="cloud-feature-card l-card l-role">
-                <h3 className="l-card-title">{t.roles[key]}</h3>
-                <p className="l-card-text">{L[`role_${key}` as const]}</p>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </Reveal>
-
       {/* ------------------------------------------------------------ privacy and trust */}
       <Reveal as="section" className="l-section" aria-labelledby="trust-title">
         <div className="l-container">
@@ -141,8 +124,8 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
               </span>
               <h2 className="l-h2 l-h2--inverse">{L.trustTitle}</h2>
               <p className="l-lead l-lead--inverse">{L.trustBody}</p>
-              <button type="button" className="btn-pill btn-pill-cloud l-trust-link" onClick={() => setCurrentView('features')}>
-                {L.exploreFeatures}
+              <button type="button" className="btn-pill btn-pill-cloud l-trust-link" onClick={() => setCurrentView('workflow')}>
+                {t.nav.workflow}
                 <ArrowIcon />
               </button>
             </div>
@@ -170,9 +153,6 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
               <button type="button" className="btn-pill btn-pill-charcoal hero-cta" onClick={() => setCurrentView('login')}>
                 {t.hero.ctaLogin}
                 <ArrowIcon />
-              </button>
-              <button type="button" className="btn-pill btn-pill-ghost hero-cta" onClick={() => setCurrentView('demo')}>
-                {t.hero.ctaDemo}
               </button>
             </div>
           </div>

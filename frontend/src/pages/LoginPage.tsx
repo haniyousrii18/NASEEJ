@@ -154,12 +154,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
             </button>
           </form>
 
-          <p className="auth-aside">
-            {A.noAccess}{' '}
-            <button type="button" className="auth-link" onClick={() => setCurrentView('demo')}>
-              {A.requestDemo}
-            </button>
-          </p>
           <p className="auth-help">{A.forgotHelp}</p>
 
           <div className="auth-demo">

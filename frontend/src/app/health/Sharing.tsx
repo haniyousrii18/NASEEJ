@@ -367,16 +367,6 @@ export const PatientSharing: React.FC<{ navigate: (r: string) => void }> = ({ na
             </ul>
           </Card>
         )}
-        <Card title={S.related} hint={S.relatedBody}>
-          <div className="na-row">
-            <Button small onClick={() => navigate('patient/consents')}>
-              {S.consents}
-            </Button>
-            <Button small onClick={() => navigate('patient/caregivers')}>
-              {S.caregivers}
-            </Button>
-          </div>
-        </Card>
       </div>
       {revoking && <ConfirmDialog title={S.revokeTitle} body={S.revokeBody} confirmLabel={S.revokeConfirm} danger pending={pending} onConfirm={() => void revoke(revoking)} onClose={() => setRevoking(null)} />}
       {history && <History share={history} onClose={() => setHistory(null)} />}

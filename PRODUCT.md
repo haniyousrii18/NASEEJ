@@ -18,19 +18,13 @@ web
 
 ## Users
 
-Roles with a workspace in the app:
+**The patient** is the only user with a workspace. They keep their own health record (profile, symptoms, documents), prepare for visits, use the optional assistant, and share a chosen summary with any clinician through a temporary QR link. A clinician opens that link read-only, with no account.
 
-1. **Patient**: owns a portable electronic medical file. Reads approved records with their source and review state, uploads documents, requests appointments, asks the care team questions, logs symptoms, shares between centers through scoped consent, and authorizes caregivers.
-2. **Authorized Caregiver**: acts for a patient only through an explicit delegation the patient granted: view the approved record, manage appointment requests, message the care team. Each is a separate permission; the delegation expires and can be revoked at any time.
-3. **Doctor / Clinician**: reviews authorized history, documents visits (drafts, then approval), prescribes with allergy visibility, orders and reviews labs, reviews patient-uploaded documents and any AI suggestions, answers patient questions.
-4. **Reception Staff**: registers patients, schedules and confirms appointments, records arrival, messages clinicians about operations. No clinical content.
-5. **Medical Center Manager**: runs one center: working hours, staff and roles, calendar and workload, reports, coordination oversight, activity log. Aggregates only; no individual clinical records.
-6. **Naseej Platform Administrator**: oversees centers, accounts, demo requests and the audit log. Structurally barred from clinical content.
-7. **Care Coordinator**: operational follow-up of cases, tasks and referrals between centers. Operational data only.
+The earlier multi-center clinic platform (doctor, reception, center manager, care coordinator, platform admin and caregiver workspaces, inter-center consents, appointment and messaging flows) was removed. Its database tables remain from migrations 001-004 and are not used by the app.
 
 ## Product Purpose
 
-Naseej gives each patient a well-organized, portable electronic medical file that connects visits, documents, results and centers into one traceable timeline, and helps authorized clinicians review the relevant history quickly. The patient record is the center of the product; appointments and center operations support it. It enforces tenant isolation, role boundaries and human clinician sign-off: no clinical draft or unreviewed result reaches a patient, and no autonomous clinical decision is made by software or AI.
+Naseej is a patient-owned health history and visit-preparation app. It helps a patient organize their medical journey, explain symptoms clearly during a consultation, and securely share selected information with any doctor, clinic or hospital. It makes no diagnosis, treatment recommendation or autonomous clinical decision.
 
 ## Positioning
 

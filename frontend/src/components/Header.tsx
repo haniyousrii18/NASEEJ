@@ -93,17 +93,11 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
 
   const goWorkspace = () => {
     if (!user) return;
-    if (user.systemRole === 'platform_admin') go('admin');
-    else if (user.patientProfileId) go('portal');
-    else if (currentRole === 'doctor') go('doctor');
-    else if (currentRole === 'center_manager') go('manager');
-    else if (currentRole === 'reception') go('reception');
-    else go('workspace');
+    go(user.patientProfileId ? 'portal' : 'workspace');
   };
 
   const links: Array<[string, string]> = [
     ['home', t.nav.home],
-    ['features', t.nav.features],
     ['workflow', t.nav.workflow],
   ];
 

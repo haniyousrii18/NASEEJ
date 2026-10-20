@@ -30,22 +30,10 @@ export const Footer: React.FC = () => {
           <section className="sf-col" aria-labelledby="sf-privacy">
             <h2 id="sf-privacy" className="sf-heading">{L.footerPrivacy}</h2>
             <ul className="sf-list sf-list--marked">
-              <li>{t.features.f1_title}</li>
-              <li>{t.features.f2_title}</li>
-              <li>{t.features.f4_title}</li>
-              <li>{t.features.f5_title}</li>
-            </ul>
-          </section>
-
-          {/* Roles */}
-          <section className="sf-col" aria-labelledby="sf-roles">
-            <h2 id="sf-roles" className="sf-heading">{L.footerRoles}</h2>
-            <ul className="sf-list">
-              <li>{t.roles.platform_admin}</li>
-              <li>{t.roles.center_manager}</li>
-              <li>{t.roles.doctor}</li>
-              <li>{t.roles.reception}</li>
-              <li>{t.roles.patient}</li>
+              <li>{L.t1}</li>
+              <li>{L.t2}</li>
+              <li>{L.t3}</li>
+              <li>{L.t4}</li>
             </ul>
           </section>
 
