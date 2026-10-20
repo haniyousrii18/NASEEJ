@@ -1,0 +1,1222 @@
+/*
+ * Patient app UI kit: one scale for controls, containers and navigation. Loaded after app.css, scoped to .na-app,
+ * so it refines the shared rules (inputs, selects, buttons, chips, tabs, cards, dialogs, menus, sidebar) in one place.
+ * Colour comes only from theme.css tokens; this file defines sizes, radii, borders, focus and elevation.
+ */
+.na-app {
+  /* sizes */
+  --na-h-control: 48px; /* inputs, selects, buttons, tabs: a comfortable touch target */
+  --na-h-small: 40px; /* compact buttons and chips; never below 40 */
+  /* radii: controls 14, inset panels and notices 16, cards and dialogs 24, pills full */
+  --na-r-control: 14px;
+  --na-r-inset: 16px;
+  --na-r-card: 24px;
+  /* a control's edge needs 3:1 against what it sits on (WCAG 1.4.11): ink mixed half way into the surface */
+  --na-control-border: color-mix(in srgb, var(--color-ink) 50%, var(--color-bg-elevated));
+  --na-control-border-hover: color-mix(in srgb, var(--color-ink) 68%, var(--color-bg-elevated));
+  --na-control-bg: var(--color-bg-canvas);
+  --na-ring: 0 0 0 3px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  /* elevation: cards sit on a hairline, popovers and dialogs lift */
+  --na-elev-card: 0 0 0 1px color-mix(in srgb, var(--color-ink) 4%, transparent), 0 1px 3px color-mix(in srgb, var(--color-ink) 8%, transparent);
+  --na-elev-pop: 0 14px 34px -10px rgba(26, 18, 12, 0.28), 0 0 0 1px var(--color-border-subtle);
+  --na-radius: var(--na-r-card);
+  --na-field-radius: var(--na-r-control);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] .na-app {
+  color-scheme: dark;
+  --na-elev-pop: 0 14px 34px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--color-border-subtle);
+}
+
+/* ------------------------------------------------------------------ text controls */
+.na-app .na-label,
+.na-app .na-fieldset > legend,
+.na-app .hp-fieldset > legend {
+  padding: 0;
+  font-size: 14px;
+  font-weight: 620;
+  color: var(--color-ink);
+}
+
+.na-app .na-req {
+  margin-inline-start: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.na-app .na-help {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.na-app .na-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 560;
+  line-height: 1.45;
+  color: var(--color-status-danger-text);
+}
+
+.na-app .na-error svg {
+  flex: none;
+  margin-block-start: 2px;
+}
+
+.na-app .na-field {
+  gap: 8px;
+}
+
+.na-app .na-input,
+.na-app .na-select,
+.na-app .na-textarea {
+  min-height: var(--na-h-control);
+  padding-inline: 14px;
+  border: 1px solid var(--na-control-border);
+  border-radius: var(--na-r-control);
+  background-color: var(--na-control-bg);
+  color: var(--color-ink);
+  font-size: 16px; /* 16px stops phones from zooming the page when a field is focused */
+  line-height: 1.4;
+  transition: border-color var(--t-fast, 120ms) ease, box-shadow var(--t-fast, 120ms) ease;
+}
+
+.na-app .na-textarea {
+  padding-block: 12px;
+  line-height: 1.6;
+}
+
+.na-app .na-input::placeholder,
+.na-app .na-textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.na-app .na-input:hover:not(:disabled),
+.na-app .na-select:hover:not(:disabled),
+.na-app .na-textarea:hover:not(:disabled) {
+  border-color: var(--na-control-border-hover);
+}
+
+.na-app .na-input:focus-visible,
+.na-app .na-select:focus-visible,
+.na-app .na-textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  background-color: var(--na-control-bg);
+  box-shadow: var(--na-ring);
+}
+
+.na-app .na-input[aria-invalid='true'],
+.na-app .na-select[aria-invalid='true'],
+.na-app .na-textarea[aria-invalid='true'] {
+  border-color: var(--color-status-danger-text);
+  box-shadow: inset 0 0 0 1px var(--color-status-danger-text);
+}
+
+.na-app .na-input[aria-invalid='true']:focus-visible,
+.na-app .na-select[aria-invalid='true']:focus-visible,
+.na-app .na-textarea[aria-invalid='true']:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--color-status-danger-text), var(--na-ring);
+}
+
+.na-app .na-input:disabled,
+.na-app .na-select:disabled,
+.na-app .na-textarea:disabled {
+  border-style: dashed;
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.na-app .na-input[readonly] {
+  background-color: var(--color-bg-subtle);
+}
+
+/* a drawn chevron instead of the platform arrow; it sits at the end of the field in both directions */
+.na-app .na-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-inline-end: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236e655e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+[dir='rtl'] .na-app .na-select {
+  background-position: left 14px center;
+}
+
+:root[data-theme='dark'] .na-app .na-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23cdbfb4' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.na-app .na-select option {
+  color: var(--color-ink);
+  background: var(--color-bg-elevated);
+}
+
+/* checkbox and radio rows */
+.na-app .cg-check {
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 8px 0;
+}
+
+.na-app .cg-check input {
+  inline-size: 22px;
+  block-size: 22px;
+  margin-block-start: 1px;
+}
+
+/* ------------------------------------------------------------------ groups of fields */
+.na-app .na-form {
+  gap: 18px 16px;
+}
+
+.na-app .na-form--stack {
+  gap: 18px;
+}
+
+.na-app .hp-fieldset,
+.na-app .na-fieldset {
+  display: grid;
+  gap: 10px;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.na-app .hp-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 12px;
+}
+
+.na-app .na-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* in a side sheet the actions stay reachable while a long form scrolls */
+.na-app .na-drawer-body .na-form-actions {
+  position: sticky;
+  inset-block-end: calc(-1 * max(20px, env(safe-area-inset-bottom)));
+  z-index: 2;
+  margin-inline: -20px;
+  padding: 12px 20px max(14px, env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-elevated);
+}
+
+/* ------------------------------------------------------------------ buttons */
+.na-app .na-btn {
+  min-height: var(--na-h-control);
+  padding-inline: 22px;
+  font-size: 15px;
+  font-weight: 600;
+  border-color: var(--na-control-border);
+}
+
+.na-app .na-btn--small {
+  min-height: var(--na-h-small);
+  padding-inline: 16px;
+  font-size: 14px;
+}
+
+.na-app .na-btn--primary {
+  border-color: var(--color-accent);
+}
+
+.na-app .na-btn--quiet {
+  border-color: transparent;
+}
+
+.na-app .na-btn--quiet:hover:not(:disabled) {
+  background: var(--color-bg-subtle);
+  color: var(--color-ink);
+}
+
+.na-app .na-btn--danger {
+  border-color: var(--color-status-danger-border);
+}
+
+.na-app .na-btn:focus-visible,
+.na-app .na-chip:focus-visible,
+.na-app .na-tab:focus-visible,
+.na-app .na-nav-link:focus-visible,
+.na-app .hp-mode:focus-visible,
+.na-app .hp-tab:focus-visible,
+.na-app .hp-row:focus-visible {
+  outline: none;
+  box-shadow: var(--na-ring);
+}
+
+.na-app .na-btn:disabled {
+  opacity: 0.5;
+}
+
+/* ------------------------------------------------------------------ chips, segmented choices, tabs: one family */
+.na-app .na-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.na-app .na-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--na-h-small);
+  padding: 0 16px;
+  border: 1px solid var(--na-control-border);
+  border-radius: 999px;
+  background: var(--color-bg-elevated);
+  font-size: 14px;
+  font-weight: 560;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: background-color var(--t-fast, 120ms) ease, border-color var(--t-fast, 120ms) ease;
+}
+
+.na-app .na-chip:hover:not(:disabled) {
+  border-color: var(--na-control-border-hover);
+  background: var(--color-bg-subtle);
+}
+
+.na-app .na-chip[aria-pressed='true'] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 13%, var(--color-bg-elevated));
+  font-weight: 650;
+}
+
+/* a drawn check, so a selected chip is never told apart by colour alone */
+.na-app .na-chip[aria-pressed='true']::before {
+  content: '';
+  inline-size: 14px;
+  block-size: 14px;
+  background: var(--color-accent-text, var(--color-accent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.na-app .na-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.na-app .na-tabs,
+.na-app .hp-modes {
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--na-r-inset);
+  background: var(--color-bg-subtle);
+}
+
+.na-app .na-tab,
+.na-app .hp-mode {
+  min-height: 44px;
+  padding-inline: 16px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  font-weight: 560;
+  color: var(--color-body-gray);
+}
+
+.na-app .na-tab[aria-current='page'],
+.na-app .hp-mode[aria-selected='true'] {
+  background: var(--color-bg-elevated);
+  color: var(--color-ink);
+  font-weight: 650;
+  box-shadow: 0 0 0 1px var(--color-border-subtle), 0 1px 2px color-mix(in srgb, var(--color-ink) 10%, transparent);
+}
+
+.na-app .hp-seg-opt {
+  min-height: var(--na-h-control);
+  border: 1px solid var(--na-control-border);
+  border-radius: var(--na-r-control);
+  background: var(--na-control-bg);
+}
+
+.na-app .hp-seg-opt:hover {
+  border-color: var(--na-control-border-hover);
+}
+
+.na-app .hp-seg[data-invalid='true'] .hp-seg-opt {
+  border-color: var(--color-status-danger-text);
+}
+
+/* ------------------------------------------------------------------ filters */
+.na-app .hp-filters {
+  display: grid;
+  gap: 10px;
+  margin-block-end: 14px;
+}
+
+.na-app .hp-filters-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.na-app .hp-search {
+  position: relative;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.na-app .hp-search .na-input {
+  padding-inline: 44px;
+}
+
+.na-app .hp-search-icon {
+  position: absolute;
+  inset-inline-start: 14px;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+[dir='rtl'] .na-app .hp-search-icon {
+  translate: 0 -50%;
+}
+
+.na-app .hp-search-clear {
+  position: absolute;
+  inset-inline-end: 6px;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-body-gray);
+  cursor: pointer;
+}
+
+.na-app .hp-search-clear:hover {
+  background: var(--color-bg-subtle);
+}
+
+.na-app .hp-search-clear:focus-visible {
+  outline: none;
+  box-shadow: var(--na-ring);
+}
+
+.na-app .hp-search input[type='search']::-webkit-search-cancel-button {
+  display: none;
+}
+
+.na-app .hp-filters-btn {
+  flex: none;
+  min-height: var(--na-h-control);
+  border: 1px solid var(--na-control-border);
+  background: var(--color-bg-elevated);
+  color: var(--color-ink);
+}
+
+.na-app .hp-filters-btn[aria-expanded='true'] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg-elevated));
+}
+
+.na-app .hp-count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 22px;
+  block-size: 22px;
+  padding-inline: 6px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.na-app .hp-filters-panel {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--na-r-inset);
+  background: var(--color-bg-subtle);
+}
+
+.na-app .hp-filters-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.na-app .hp-chiplist {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.na-app .hp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-block: 2px;
+  padding-inline: 14px 4px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 11%, var(--color-bg-elevated));
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.na-app .hp-chip button {
+  display: grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.na-app .hp-chip button:hover {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.na-app .hp-chip button:focus-visible {
+  outline: none;
+  box-shadow: var(--na-ring);
+}
+
+.na-app .hp-chip-clear {
+  min-block-size: 36px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-text, var(--color-accent));
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ containers: one card, one inset, no boxes inside boxes */
+.na-app .na-card,
+.na-app .na-stat {
+  border-radius: var(--na-r-card);
+  box-shadow: var(--na-elev-card);
+}
+
+.na-app .na-card--flat {
+  background: var(--color-bg-subtle);
+  box-shadow: none;
+}
+
+.na-app .na-card .na-card {
+  border-radius: var(--na-r-inset);
+  box-shadow: none;
+  background: var(--color-bg-subtle);
+}
+
+.na-app .hp-hero,
+.na-app .hp-panel {
+  border-radius: var(--na-r-card);
+  box-shadow: var(--na-elev-card);
+}
+
+.na-app .hp-consent,
+.na-app .hp-willshare,
+.na-app .hp-check,
+.na-app .hp-draft,
+.na-app .hp-suggest,
+.na-app .hp-first,
+.na-app .na-state,
+.na-app .na-notice,
+.na-app .hp-disclose,
+.na-app .hp-suggestion,
+.na-app .na-tl-body {
+  border-radius: var(--na-r-inset);
+}
+
+.na-app .na-card-title {
+  font-size: 17px;
+  font-weight: 640;
+}
+
+.na-app .na-card-h {
+  margin-block-end: 16px;
+}
+
+.na-app .hp-preview {
+  border-radius: var(--na-r-inset);
+}
+
+/* ------------------------------------------------------------------ dialogs, sheets, menus */
+.na-app .na-dialog,
+.na-dialog {
+  border-radius: var(--na-r-card);
+  box-shadow: var(--na-elev-pop);
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.na-app .na-dialog .na-form-actions,
+.na-dialog .na-form-actions {
+  margin-block-start: 20px;
+}
+
+.na-app .na-menu {
+  padding: 6px;
+  border: 0;
+  border-radius: var(--na-r-inset);
+  box-shadow: var(--na-elev-pop);
+}
+
+.na-app .na-menu-item {
+  min-height: var(--na-h-control);
+  padding-inline: 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 560;
+}
+
+.na-app .na-menu-item:focus-visible {
+  outline: none;
+  box-shadow: var(--na-ring);
+}
+
+.na-app .na-menu-meta {
+  padding: 10px 12px 8px;
+  font-size: 13.5px;
+  color: var(--color-body-gray);
+}
+
+.na-app .na-drawer {
+  box-shadow: var(--na-elev-pop);
+}
+
+.na-app .na-drawer-h {
+  padding-inline: 20px;
+}
+
+/* ------------------------------------------------------------------ sidebar */
+.na-app .na-side {
+  /* a plain surface: no drifting gradient behind the labels */
+  background: var(--color-bg-elevated);
+  background-image: none;
+  animation: none;
+  padding: 14px 12px;
+}
+
+.na-app .na-brand {
+  padding-inline: 8px;
+}
+
+.na-app .na-brand-role {
+  display: none;
+}
+
+.na-app .na-nav ul {
+  gap: 4px;
+}
+
+.na-app .na-nav {
+  padding-block-start: 8px;
+}
+
+.na-app .na-nav-link {
+  min-height: var(--na-h-control);
+  gap: 14px;
+  padding-inline: 14px;
+  border-radius: var(--na-r-control);
+  font-size: 15px;
+  font-weight: 540;
+  color: var(--color-body-gray);
+}
+
+.na-app .na-nav-link .na-icon {
+  color: var(--color-text-muted);
+}
+
+.na-app .na-nav-link:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-ink);
+}
+
+.na-app .na-nav-link:hover .na-icon {
+  color: var(--color-ink);
+}
+
+.na-app .na-nav-link[aria-current='page'] {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-bg-elevated));
+  color: var(--color-ink);
+  font-weight: 650;
+}
+
+.na-app .na-nav-link[aria-current='page'] .na-icon {
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.na-app .na-nav-link[aria-current='page']::before {
+  inset-block: 12px;
+  inline-size: 3px;
+}
+
+.na-app .na-side-foot {
+  gap: 4px;
+  padding-block-start: 12px;
+  margin-block-start: 4px;
+}
+
+.na-app .na-nav-badge {
+  margin-inline-start: auto;
+}
+
+/* top bar and page head keep the same quiet scale */
+.na-app .na-icon-btn {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+}
+
+.na-app .na-icon-btn:focus-visible,
+.na-app .na-account-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--na-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-app .na-input,
+  .na-app .na-select,
+  .na-app .na-textarea,
+  .na-app .na-chip {
+    transition: none;
+  }
+}
+
+/* The page heading (and the main region) receive focus programmatically when a page opens, so screen readers start at
+   the right place. They are not controls, so they never draw a focus ring. */
+.na-app [data-page-title]:focus,
+.na-app [data-page-title]:focus-visible,
+.na-app .na-content:focus,
+.na-app .na-content:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ dropdown (app/Select.tsx) */
+.na-app .sel-trigger {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  text-align: start;
+  cursor: pointer;
+}
+
+.na-app .sel-trigger[data-open='true'] {
+  border-color: var(--color-accent);
+  box-shadow: var(--na-ring);
+}
+
+.na-app .sel-value {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.na-app .sel-value[data-empty='true'] {
+  color: var(--color-text-muted);
+}
+
+.na-app .sel-catch {
+  position: fixed;
+  inset: 0;
+  z-index: 390;
+}
+
+.na-app .sel-pop {
+  position: fixed;
+  z-index: 400;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  margin: 0;
+  padding: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 20px;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--na-elev-pop);
+  outline: none;
+  animation: naPop var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease) both;
+}
+
+.na-app .sel-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-block-size: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--na-control-border);
+  border-radius: var(--na-r-control);
+  background: var(--na-control-bg);
+  color: var(--color-ink);
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-fast, 120ms) ease, background-color var(--t-fast, 120ms) ease;
+}
+
+.na-app .sel-opt-label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.na-app .sel-opt[data-active='true'] {
+  border-color: var(--na-control-border-hover);
+  background: var(--color-bg-subtle);
+}
+
+.na-app .sel-pop:focus-visible .sel-opt[data-active='true'] {
+  box-shadow: var(--na-ring);
+}
+
+.na-app .sel-opt[data-selected='true'] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg-elevated));
+}
+
+.na-app .sel-opt[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.na-app .sel-radio {
+  position: relative;
+  flex: none;
+  inline-size: 24px;
+  block-size: 24px;
+  border: 2px solid var(--na-control-border);
+  border-radius: 999px;
+}
+
+.na-app .sel-opt[data-selected='true'] .sel-radio {
+  border-color: var(--color-accent);
+}
+
+.na-app .sel-opt[data-selected='true'] .sel-radio::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+/* phones: the list is a bottom sheet over a scrim, with room for the safe area */
+.na-app .sel-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 390;
+  background: var(--color-overlay, rgba(26, 18, 12, 0.4));
+}
+
+.na-app .sel-sheet {
+  inset: auto 0 0 0;
+  inline-size: auto;
+  max-block-size: min(72dvh, 560px);
+  padding: 12px 12px max(16px, env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
+  border-inline: 0;
+  border-block-end: 0;
+  animation: naRise var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-app .sel-pop,
+  .na-app .sel-opt {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ forms live in a centered modal
+   Header and action bar stay fixed; only the fields scroll, and only when there are too many to fit. */
+.na-app .na-drawer-scrim {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  padding-block: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-bottom));
+  justify-content: stretch;
+  background: var(--color-overlay);
+}
+
+.na-app .na-drawer {
+  display: flex;
+  flex-direction: column;
+  inline-size: min(560px, 100%);
+  block-size: auto;
+  max-block-size: min(calc(100dvh - 32px), 820px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--na-r-card);
+  box-shadow: var(--na-elev-pop);
+  overflow: hidden;
+  animation: naRise var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+.na-app .na-drawer--lg {
+  inline-size: min(760px, 100%);
+}
+
+.na-app .na-drawer-h {
+  flex: none;
+  align-items: center;
+  padding: 18px 20px 14px;
+  border-block-end: 1px solid var(--color-border-subtle);
+}
+
+.na-app .na-drawer-h .na-card-title {
+  font-size: 18px;
+}
+
+/* the body is the only scrolling part; soft shadows show that there is more above or below */
+.na-app .na-drawer-body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  padding: 20px 20px 0;
+  overflow-y: auto;
+  background:
+    linear-gradient(var(--color-bg-elevated) 30%, transparent) top / 100% 28px no-repeat local,
+    linear-gradient(transparent, var(--color-bg-elevated) 70%) bottom / 100% 28px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, color-mix(in srgb, var(--color-ink) 16%, transparent), transparent) top / 100% 10px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, color-mix(in srgb, var(--color-ink) 16%, transparent), transparent) bottom / 100% 10px no-repeat scroll,
+    var(--color-bg-elevated);
+}
+
+.na-app .na-drawer-body > :last-child {
+  margin-block-end: 20px;
+}
+
+/* actions stay at the foot of the modal while the fields scroll */
+.na-app .na-drawer-body .na-form-actions {
+  position: sticky;
+  inset-block-end: 0;
+  margin-block-end: 0;
+  margin-inline: -20px;
+  padding: 14px 20px max(16px, env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-elevated);
+}
+
+.na-app .na-drawer-body > .na-form-actions:last-child,
+.na-app .na-drawer-body form > .na-form-actions:last-child {
+  margin-block-end: 0;
+}
+
+/* confirmation dialogs are centered on phones too, never a full-width sheet */
+@media (max-width: 640px) {
+  .na-app .na-dialog-scrim {
+    align-items: center;
+    padding: 12px;
+  }
+
+  .na-app .na-dialog {
+    inline-size: 100%;
+    max-block-size: calc(100dvh - 24px);
+    border-radius: var(--na-r-card);
+    border-inline: 1px solid var(--color-border-subtle);
+  }
+
+  .na-app .na-drawer-scrim {
+    padding: 12px;
+  }
+
+  .na-app .na-drawer {
+    max-block-size: calc(100dvh - 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-app .na-drawer {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ calendar (app/DatePicker.tsx) */
+.na-app .dp-trigger {
+  justify-content: space-between;
+  gap: 10px;
+  min-inline-size: 0;
+}
+
+.na-app .dp-trigger-icon {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.na-app .dp-trigger[data-open='true'] .dp-trigger-icon {
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.na-app .dp-pop {
+  position: fixed;
+  z-index: 400;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 20px;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--na-elev-pop);
+  outline: none;
+  animation: naPop var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease) both;
+}
+
+.na-app .dp-sheet {
+  inset: auto 0 0 0;
+  inline-size: auto;
+  max-block-size: 90dvh;
+  overflow-y: auto;
+  border-radius: 24px 24px 0 0;
+  border-inline: 0;
+  border-block-end: 0;
+  padding-block-end: env(safe-area-inset-bottom);
+  animation: naRise var(--motion-duration-normal, 240ms) var(--motion-ease-out, ease) both;
+}
+
+.na-app .dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 16px 6px;
+}
+
+.na-app .dp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.na-app .dp-title[aria-expanded='true'] .dp-chev--down {
+  transform: rotate(180deg);
+}
+
+.na-app .dp-nav {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-body-gray);
+  cursor: pointer;
+}
+
+[dir='rtl'] .na-app .dp-chev--prev,
+[dir='rtl'] .na-app .dp-chev--next {
+  transform: scaleX(-1);
+}
+
+.na-app .dp-nav:hover,
+.na-app .dp-title:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-ink);
+}
+
+.na-app .dp-nav:focus-visible,
+.na-app .dp-title:focus-visible,
+.na-app .dp-day:focus-visible,
+.na-app .dp-month:focus-visible,
+.na-app .dp-link:focus-visible {
+  outline: none;
+  box-shadow: var(--na-ring);
+}
+
+.na-app .dp-grid {
+  inline-size: calc(100% - 24px);
+  margin: 0 12px 10px;
+  border-collapse: separate;
+  border-spacing: 0 2px;
+  table-layout: fixed;
+}
+
+.na-app .dp-wd {
+  padding: 8px 0 6px;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.na-app .dp-grid td {
+  padding: 0;
+  text-align: center;
+}
+
+.na-app .dp-day {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 100%;
+  max-inline-size: 46px;
+  block-size: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.na-app .dp-day[data-outside='true'] {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.na-app .dp-day:hover:not([data-out='true']) {
+  background: var(--color-bg-subtle);
+}
+
+.na-app .dp-day[data-today='true'] {
+  background: var(--color-bg-subtle);
+}
+
+.na-app .dp-day[data-selected='true'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.na-app .dp-day[data-selected='true']:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-accent), var(--na-ring);
+}
+
+/* days outside min / max cannot be chosen: muted and struck through, still readable */
+.na-app .dp-day[data-out='true'] {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.na-app .dp-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 16px 16px;
+}
+
+.na-app .dp-month {
+  min-block-size: 52px;
+  border: 1px solid var(--na-control-border);
+  border-radius: var(--na-r-control);
+  background: var(--na-control-bg);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.na-app .dp-month:hover:not([data-out='true']) {
+  border-color: var(--na-control-border-hover);
+  background: var(--color-bg-subtle);
+}
+
+.na-app .dp-month[data-selected='true'] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg-elevated));
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.na-app .dp-month[data-out='true'] {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.na-app .dp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  border-block-start: 1px solid var(--color-border-subtle);
+}
+
+.na-app .dp-link {
+  min-block-size: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-accent-text, var(--color-accent));
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.na-app .dp-link--muted {
+  color: var(--color-text-muted);
+}
+
+.na-app .dp-link:hover:not(:disabled) {
+  background: var(--color-bg-subtle);
+}
+
+.na-app .dp-link:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-app .dp-pop,
+  .na-app .dp-sheet {
+    animation: none;
+  }
+}

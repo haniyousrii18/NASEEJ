@@ -1,69 +1,24 @@
-# Test Plan & Traceability Matrix — Naseej | نَسيج
+# Test plan — Naseej | نَسيج
 
-## 1. Testing Strategy
+## Automated
+| Suite | Needs | What it proves |
+|---|---|---|
+| `backend/tests/health-units.test.ts` | nothing | emergency/refusal rules (AR/EN), unsafe-output filter, reply shaping (citations kept only if in the list, unsupported answer → "not found", symptom fields validated, navigation whitelisted), entry/symptom validation, token shape and hashing, lifetime limits, rate limiter, summary content validation, record search, provider schema conversion |
+| `backend/tests/ai-providers.test.ts` | nothing | document-analysis adapters with a stubbed HTTP call |
+| `backend/tests/patient-owned-record.test.ts` | PostgreSQL | unauthenticated and non-patient access refused; foreign ids → 404; entry create/patch/delete/restore with source kept; symptoms and timeline; patient visits invisible to clinicians; vault upload with no center, invisible to staff, bad file type refused, trash/restore, AI analysis needs confirmation and is honest when off; an AI suggestion becomes an entry only on confirm; summary built with sources, forged sources rejected, approval required before sharing; share token shown once and stored hashed; clinician view read-only with only approved content and documents; access events without addresses; expiry and revoke take effect immediately; deleting a document cuts it off from a share; assistant not-connected state, fixed urgent/refusal answers, consent switch, interaction log holds metadata only; audit log holds no health content |
+| `backend/tests/auth.test.ts`, `patient-portal.test.ts` | PostgreSQL | login/me; approved-only portal summary; retired endpoints return 404 |
+| `frontend/tests/i18n.test.ts` | nothing | Arabic and English trees have identical keys; landing copy makes no certification claim |
 
-The Naseej test strategy verifies security boundaries, tenant isolation, clinical workflow integrity, and data privacy using automated integration tests executed against PostgreSQL.
+Run: `npm --prefix backend run test:unit`, `npm --prefix backend run test`, `npm --prefix frontend run test`. The API suites change the database: use a **fresh** database (CI does) and an empty `AI_PROVIDER` so no real provider is called. CI also checks migrations (empty-database migrate, re-migrate is a no-op, rollback and re-apply).
 
-```text
-                  +---------------------------+
-                  | End-to-End Clinical Flow  |
-                  +---------------------------+
-                  |  Multi-Tenant Isolation   |
-                  +---------------------------+
-                  |  Role & RBAC Permissions  |
-                  +---------------------------+
-                  | Conflict & Approval Rules |
-                  +---------------------------+
-```
+## Manual (before a demo)
+1. Sign in as the demo patient; Today shows four actions; every nav item loads in Arabic and English with no horizontal scroll at 375 px.
+2. Record a symptom by form, by voice (Chrome/Edge) and by guided questions; confirm the numbers check appears after dictation; delete and undo.
+3. Upload a PDF and a phone photo; edit details; trash and restore; open the original.
+4. Prepare a visit: edit, remove a section, pick documents, approve, preview, print.
+5. Create a share, scan the QR with a phone, open documents, revoke, reload (expired state), check the access history.
+6. With no AI key: the assistant says it is not connected; search and guided capture work; typing an emergency phrase shows the fixed message.
+7. With a synthetic-data key (optional): assistant answers cite sources; "should I stop my medicine?" gets the fixed refusal; a document reading appears as unconfirmed suggestions.
 
----
-
-## 2. Mandatory Test Suites
-
-### Suite A: Tenant Isolation (AC-04 & FR-023)
-1. **Cross-Center Resource Access**: A user authenticated with Center 1 makes a request for a visit, patient, or lab order belonging to Center 2. Must return `403 Forbidden` or `404 Not Found`.
-2. **Identifier Manipulation**: Altering `X-Organization-Id` to a center the user does not belong to must be rejected immediately (`403 Forbidden`).
-3. **Cross-Center Patient Leak Prevention**: Querying `GET /api/patients` under Center 1 returns only patients linked to Center 1.
-
-### Suite B: Role-Based Access Control (RBAC)
-1. **Platform Admin Clinical Wall**: Platform Administrator attempting to view clinical visit contents must be blocked (`403 Forbidden`).
-2. **Receptionist Clinical Wall**: Reception staff cannot create visits, write prescriptions, or approve lab results.
-3. **Clinician Authorization**: Only verified clinicians can sign off visits and prescribe.
-
-### Suite C: Appointment Conflicts & Schedule Integrity (AC-02 & FR-042)
-1. **Double-Booking Rejection**: Booking two appointments for the same clinician at overlapping times must be rejected by the server with a clear conflict error.
-2. **Valid Booking**: An unbooked slot succeeds and transitions status cleanly.
-3. **Reception Check-in**: Receptionist marks patient as `checked_in` with timestamp.
-
-### Suite D: Clinical Drafts & Patient Portal Privacy (AC-03 & AC-07)
-1. **Visit Draft Invisibility**: A patient requesting their own visit while `status = 'draft'` must receive 404 or empty list.
-2. **Visit Approval Visibility**: Once the clinician approves (`status = 'approved'`), the visit is accessible in the patient portal.
-3. **Lab Result Approval Check**: Unapproved lab results cannot be seen in the patient portal.
-
-### Suite E: Tamper-Resistant Audit Trail (FR-140 & FR-142)
-1. Sensitive actions (`VISIT_APPROVE`, `APPOINTMENT_CREATE`, `AUTH_LOGIN`, `PATIENT_CREATE`) automatically write an entry to `audit_logs`.
-2. Direct client modification or deletion of `audit_logs` is rejected.
-
----
-
-## 3. Requirement Traceability Matrix
-
-| Req ID | PRD Section | Acceptance Criteria | Automated Test Suite |
-|---|---|---|---|
-| FR-011 | 7.2 Auth Mapping | Map external identity to user & roles | `tests/auth.test.ts` |
-| FR-022 | 7.3 Isolation | Server-side tenant checks and scoped queries | `tests/tenant-isolation.test.ts` |
-| FR-023 | 7.3 Cross-Tenant | Reject manual identifier manipulation | `tests/tenant-isolation.test.ts` |
-| FR-025 | 7.3 Multi-Center Link | Linking patient does not leak other center records | `tests/tenant-isolation.test.ts` |
-| FR-042 | 7.5 Conflict Prev | Prevent conflicting appointments server-side | `tests/appointment-conflict.test.ts` |
-| FR-045 | 7.5 Reception | Check-in and arrival timestamps | `tests/appointment.test.ts` |
-| FR-063 | 7.7 Visits | Clinician visit drafting | `tests/clinical-workflow.test.ts` |
-| FR-066 | 7.7 Draft Concealment | Patients cannot view unapproved drafts | `tests/patient-portal.test.ts` |
-| FR-070 | 7.8 Prescriptions | Prescriptions with items and allergy check | `tests/clinical-workflow.test.ts` |
-| FR-084 | 7.9 Lab Results | Results hidden from patient until approval | `tests/patient-portal.test.ts` |
-| FR-140 | 7.13 Audit Trail | Immutable audit trail for security & workflows | `tests/audit-logs.test.ts` |
-
----
-
-## Not covered by automated tests
-
-The following were verified by build and by hand against a local run (API calls and the UI), and have **no automated tests yet**: the account API and per-role Settings pages, the notifications table, events, API and UI, and the installable-app work (manifest, service worker, install and update prompts). Manual checks included: another user cannot read or change a notification by id (404), read does not mark a task handled, a caregiver's notifications disappear when the delegation expires, a deleted target shows "no longer available", and `/api` is network-only in the service worker. Installation was not tested on physical devices.
+## Not yet tested
+A live AI provider, physical phones for PWA and camera, clinical review of the safety wording, load and multi-instance rate limiting, a screen-reader accessibility audit.

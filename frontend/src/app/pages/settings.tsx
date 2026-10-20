@@ -7,8 +7,8 @@ import { fill, formatDate, nameOf, pick } from '../format.js';
 import type { AppRole } from '../nav.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { Async, Button, Dialog, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
+import { PrivacySection } from '../health/PrivacyPanel.js';
 import { useA } from '../useA.js';
-import { ScopeList } from './caregiver.js';
 
 /**
  * Settings for the signed-in account. One page per role (`<role>/settings`), composed from the sections that role
@@ -242,180 +242,6 @@ const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }
 };
 
 /* ------------------------------------------------------------------ Patient: sharing summary */
-const PatientSharingSection: React.FC<{ navigate: (route: string) => void }> = ({ navigate }) => {
-  const S = useA().settings;
-  const caregivers = useApiData<Array<{ state: string }>>('/api/portal/caregivers');
-  const consents = useApiData<Array<{ state: string }>>('/api/portal/consents');
-  const count = (s: typeof caregivers.state) => (s.status === 'ready' ? String(s.data.filter((r) => r.state === 'active').length) : '…');
-  return (
-    <Block>
-      <ul className="na-list">
-        <li className="na-list-item">
-          <div className="na-row na-row--between">
-            <div>
-              <strong>{S.sharing.caregivers}</strong>
-            </div>
-            <span className="na-bignum" aria-label={`${S.sharing.caregivers}: ${count(caregivers.state)}`}>{count(caregivers.state)}</span>
-          </div>
-          <div className="na-row">
-            <Button small onClick={() => navigate('patient/caregivers')}>{S.sharing.manageCaregivers}</Button>
-          </div>
-        </li>
-        <li className="na-list-item">
-          <div className="na-row na-row--between">
-            <div>
-              <strong>{S.sharing.consents}</strong>
-            </div>
-            <span className="na-bignum" aria-label={`${S.sharing.consents}: ${count(consents.state)}`}>{count(consents.state)}</span>
-          </div>
-          <div className="na-row">
-            <Button small onClick={() => navigate('patient/consents')}>{S.sharing.manageConsents}</Button>
-          </div>
-        </li>
-      </ul>
-    </Block>
-  );
-};
-
-/* ------------------------------------------------------------------ Caregiver: own delegations */
-interface Delegation {
-  id: string;
-  relationship: string | null;
-  can_view_records: boolean;
-  can_manage_appointments: boolean;
-  can_send_messages: boolean;
-  state: string;
-  expires_at: string;
-  patient_name_ar: string;
-  patient_name_en: string;
-}
-
-const CaregiverDelegationsSection: React.FC<{ navigate: (route: string) => void }> = ({ navigate }) => {
-  const A = useA();
-  const S = A.settings.delegations;
-  const list = useApiData<Delegation[]>('/api/caregiver/delegations');
-  const leave = useMutation();
-  const [confirming, setConfirming] = useState<Delegation | null>(null);
-  const [flash, setFlash] = useState<Flash>(null);
-
-  const doLeave = async () => {
-    if (!confirming) return;
-    const res = await leave.run(`/api/caregiver/delegations/${confirming.id}/leave`, 'POST');
-    setConfirming(null);
-    if (res.ok) {
-      setFlash({ tone: 'ok', text: S.left });
-      void list.reload();
-    } else {
-      setFlash({ tone: 'danger', text: res.error.message });
-    }
-  };
-
-  return (
-    <Block>
-      {flash && <Notice tone={flash.tone} live>{flash.text}</Notice>}
-      <Async state={list.state} onRetry={list.reload} isEmpty={(d) => d.filter((x) => x.state === 'active').length === 0} empty={<EmptyState title={S.none} />}>
-        {(rows) => (
-          <ul className="na-list">
-            {rows
-              .filter((d) => d.state === 'active')
-              .map((d) => (
-                <li key={d.id} className="na-list-item">
-                  <div className="na-row na-row--between">
-                    <strong>{nameOf(A.lang, { name_ar: d.patient_name_ar, name_en: d.patient_name_en })}</strong>
-                    <Pill tone="ok">✓ {A.care.states.active}</Pill>
-                  </div>
-                  <ScopeList d={d} />
-                  <p className="na-muted">{fill(S.ends, { date: formatDate(A.lang, d.expires_at) })}</p>
-                  <div className="na-row">
-                    <Button small variant="quiet" onClick={() => setConfirming(d)}>{A.settings.actions.end}</Button>
-                  </div>
-                </li>
-              ))}
-          </ul>
-        )}
-      </Async>
-      <div className="na-row">
-        <Button small onClick={() => navigate('caregiver/home')}>{S.manage}</Button>
-      </div>
-      {confirming && (
-        <Dialog title={S.leaveTitle} onClose={() => setConfirming(null)}>
-          <p>{S.leaveBody}</p>
-          <div className="na-set-actions">
-            <Button variant="danger" disabled={leave.pending} onClick={() => void doLeave()}>{A.settings.actions.end}</Button>
-            <Button variant="quiet" onClick={() => setConfirming(null)}>{A.common.actions.cancel}</Button>
-          </div>
-        </Dialog>
-      )}
-    </Block>
-  );
-};
-
-/* ------------------------------------------------------------------ Staff: read-only affiliation */
-const AffiliationSection: React.FC<{ centers: Center[]; showProfessional: boolean; headed?: boolean }> = ({ centers, showProfessional, headed }) => {
-  const A = useA();
-  const S = A.settings.affiliations;
-  if (centers.length === 0) return null;
-  return (
-    <Block heading={headed ? S.title : undefined}>
-      <ul className="na-list">
-        {centers.map((c) => (
-          <li key={c.id} className="na-list-item">
-            <dl className="na-dl">
-              <ReadRow label={S.center}>{pick(A.lang, c as unknown as Record<string, unknown>, 'name')}</ReadRow>
-              <ReadRow label={S.role}>{S.roles[c.role] ?? c.role}</ReadRow>
-              {showProfessional && <ReadRow label={S.specialty}>{pick(A.lang, c as unknown as Record<string, unknown>, 'specialty') || S.none}</ReadRow>}
-              {showProfessional && <ReadRow label={S.license} ltr>{c.license_number || S.none}</ReadRow>}
-            </dl>
-          </li>
-        ))}
-      </ul>
-    </Block>
-  );
-};
-
-/* ------------------------------------------------------------------ Manager: whole-center details */
-const CenterSection: React.FC<{ centers: Center[]; navigate: (route: string) => void; headed?: boolean }> = ({ centers, navigate, headed }) => {
-  const A = useA();
-  const S = A.settings.center;
-  const { currentOrgId } = useAuth();
-  const managed = centers.filter((c) => c.role === 'center_manager');
-  const center = managed.find((c) => c.id === currentOrgId) ?? managed[0];
-  if (!center) return null;
-  const row = center as unknown as Record<string, unknown>;
-  return (
-    <Block heading={headed ? S.title : undefined}>
-      <dl className="na-dl">
-        <ReadRow label={S.name}>{pick(A.lang, row, 'name')}</ReadRow>
-        <ReadRow label={S.code} ltr>{center.code}</ReadRow>
-        <ReadRow label={S.phone} ltr>{center.contact_phone || A.settings.states.empty}</ReadRow>
-        <ReadRow label={S.email} ltr>{center.contact_email || A.settings.states.empty}</ReadRow>
-        <ReadRow label={S.address}>{pick(A.lang, row, 'address') || A.settings.states.empty}</ReadRow>
-      </dl>
-      <h3 className="na-card-title">{S.links}</h3>
-      <div className="na-row">
-        <Button small onClick={() => navigate('manager/staff')}>{S.staff}</Button>
-        <Button small onClick={() => navigate('manager/services')}>{S.services}</Button>
-        <Button small onClick={() => navigate('manager/schedule')}>{S.schedule}</Button>
-      </div>
-    </Block>
-  );
-};
-
-/* ------------------------------------------------------------------ Platform administrator */
-const PlatformSection: React.FC<{ navigate: (route: string) => void }> = ({ navigate }) => {
-  const S = useA().settings.platform;
-  return (
-    <Block>
-      <div className="na-row">
-        <Button small onClick={() => navigate('admin/centers')}>{S.centers}</Button>
-        <Button small onClick={() => navigate('admin/accounts')}>{S.accounts}</Button>
-        <Button small onClick={() => navigate('admin/audit')}>{S.audit}</Button>
-      </div>
-    </Block>
-  );
-};
-
-/* ------------------------------------------------------------------ Preferences (this device) */
 const PreferencesSection: React.FC = () => {
   const A = useA();
   const S = A.settings.prefs;
@@ -522,19 +348,13 @@ const SecuritySection: React.FC = () => {
 };
 
 /* ------------------------------------------------------------------ The page */
-type TabId = 'profile' | 'contact' | 'sharing' | 'access' | 'org' | 'platform' | 'security' | 'prefs';
+type TabId = 'profile' | 'contact' | 'privacy' | 'security' | 'prefs';
 
-const TAB_ICON: Record<TabId, IconName> = { profile: 'user', contact: 'message', sharing: 'users', access: 'users', org: 'building', platform: 'building', security: 'shield', prefs: 'globe' };
+const TAB_ICON: Record<TabId, IconName> = { profile: 'user', contact: 'message', privacy: 'lock', security: 'shield', prefs: 'globe' };
 
 /** Which tabs each role has, in display order. A tab exists only when it holds working controls. */
 const TABS_BY_ROLE: Record<AppRole, TabId[]> = {
-  patient: ['profile', 'contact', 'sharing', 'security', 'prefs'],
-  caregiver: ['profile', 'access', 'security', 'prefs'],
-  doctor: ['profile', 'org', 'security', 'prefs'],
-  reception: ['profile', 'org', 'security', 'prefs'],
-  care_coordinator: ['profile', 'org', 'security', 'prefs'],
-  center_manager: ['profile', 'org', 'security', 'prefs'],
-  platform_admin: ['profile', 'platform', 'security', 'prefs'],
+  patient: ['profile', 'contact', 'privacy', 'security', 'prefs'],
 };
 
 const initials = (name: string) =>
@@ -609,15 +429,7 @@ export const Settings: React.FC<{ role: AppRole; navigate: (route: string) => vo
               </>
             ),
             contact: data.patient ? <PatientContactSection data={data} onSaved={reload} /> : null,
-            sharing: <PatientSharingSection navigate={navigate} />,
-            access: <CaregiverDelegationsSection navigate={navigate} />,
-            org: (
-              <>
-                <AffiliationSection centers={data.centers} showProfessional={role === 'doctor'} headed={role === 'center_manager'} />
-                {role === 'center_manager' && <CenterSection centers={data.centers} navigate={navigate} headed />}
-              </>
-            ),
-            platform: <PlatformSection navigate={navigate} />,
+            privacy: <PrivacySection navigate={navigate} />,
             security: <SecuritySection />,
             prefs: <PreferencesSection />,
           };

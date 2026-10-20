@@ -11,7 +11,7 @@
     "seed": "tsx scripts/seed.ts",
     "db:check": "tsx scripts/check-database.ts schema",
     "db:rollback-check": "tsx scripts/check-database.ts rollback",
-    "test:unit": "vitest run tests/ai-providers.test.ts",
+    "test:unit": "vitest run tests/ai-providers.test.ts tests/health-units.test.ts",
     "test": "vitest run"
   },
   "dependencies": {
@@ -20,6 +20,7 @@
     "cors": "^2.8.5",
     "dotenv": "^18.0.8",
     "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.11.5"
   },

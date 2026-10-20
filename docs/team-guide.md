@@ -64,16 +64,10 @@ npm run dev
 ### حسابات تجريبية (كلمة السر لكلها `Password123!`)
 | الدور | الإيميل |
 |---|---|
-| مدير المنصة | `admin@naseej.health` |
-| مدير المركز | `manager.noor@naseej.health` |
-| طبيب | `doctor.noor@naseej.health` |
-| استقبال | `reception.noor@naseej.health` |
-| منسّق رعاية | `coordinator.noor@naseej.health` |
-| مريض | `patient@naseej.health` |
-| مرافق (مفوَّض من المريض) | `caregiver.noor@naseej.health` |
+| مريض (الحساب الوحيد الذي يسجّل الدخول) | `patient@naseej.health` |
 
 ### ميزة الذكاء الاصطناعي (اختيارية)
-مقفولة افتراضيًا ومش محتاجها للشغل العادي. لو هتجرّبها: حط في `.env` بتاعك **أنت فقط** إما `AI_PROVIDER=gemini` مع `GEMINI_API_KEY` (مفتاح مجاني من aistudio.google.com)، أو `AI_PROVIDER=anthropic` مع `ANTHROPIC_API_KEY`. الطبقة المجانية من Google ممكن تستخدم الملفات لتحسين منتجاتها، فاستخدم ملفات وهمية بس. المفتاح ما يتبعتش في شات ولا يتكتب في كود. استخدم ملفات تجريبية بس.
+مقفولة افتراضيًا (المساعد وقراءة المستندات)، ومش محتاجها للشغل العادي. لو هتجرّبها: حط في `.env` بتاعك **أنت فقط** إما `AI_PROVIDER=gemini` مع `GEMINI_API_KEY` (مفتاح مجاني من aistudio.google.com)، أو `AI_PROVIDER=anthropic` مع `ANTHROPIC_API_KEY`. الطبقة المجانية من Google ممكن تستخدم الملفات لتحسين منتجاتها، فاستخدم ملفات وهمية بس. المفتاح ما يتبعتش في شات ولا يتكتب في كود. استخدم ملفات تجريبية بس.
 
 ---
 
@@ -104,7 +98,7 @@ npm --prefix backend run migrate  # لو في migration جديدة
 
 ### ب) اعمل فرع للمهمة
 ```bash
-git switch -c feature/reception-calendar
+git switch -c feature/symptom-form
 ```
 أسماء الفروع: `النوع/وصف-قصير-بالإنجليزي`
 - `feature/…` ميزة جديدة
@@ -116,12 +110,12 @@ git switch -c feature/reception-calendar
 ```bash
 git status                        # شوف إيه اللي اتغير
 git add backend/src/routes/x.ts   # أضف ملفات محددة، مش git add . بشكل أعمى
-git commit -m "feat(reception): add week view to the schedule"
+git commit -m "feat(symptoms): add duration field"
 ```
 صيغة رسالة الـcommit: `النوع(المنطقة): وصف قصير بالإنجليزي`
 - الأنواع: `feat` `fix` `docs` `test` `refactor` `chore`
-- المناطق: `patient` `doctor` `reception` `manager` `caregiver` `admin` `api` `db` `ai` `ui`
-- مثال: `fix(api): refuse expired caregiver delegation`
+- المناطق: `record` `vault` `prep` `share` `assistant` `api` `db` `ai` `ui`
+- مثال: `fix(share): refuse an expired link`
 
 قبل `git add` بص على `git status`، ولو ظهر `.env` أو `storage/` أو `node_modules` يبقى في غلط (المفروض يكونوا متجاهَلين تلقائيًا).
 
@@ -147,7 +141,7 @@ git merge origin/main
 
 ### و) ارفع وافتح Pull Request
 ```bash
-git push -u origin feature/reception-calendar
+git push -u origin feature/symptom-form
 ```
 افتح الرابط اللي بيظهر في الترمنال، أو من صفحة المستودع اضغط **Compare & pull request**. في الـPR اكتب:
 - إيه اللي اتغير ولية (جملتين تكفي).
@@ -158,7 +152,7 @@ git push -u origin feature/reception-calendar
 ### ز) المراجعة والدمج
 - واحد من الفريق (غيرك) يراجع ويوافق قبل الدمج.
 - اللي فتح الـPR هو اللي يدمجه بعد الموافقة (**Squash and merge** عشان تاريخ `main` يفضل نضيف).
-- بعد الدمج: `git switch main && git pull` وامسح الفرع القديم `git branch -d feature/reception-calendar`.
+- بعد الدمج: `git switch main && git pull` وامسح الفرع القديم `git branch -d feature/symptom-form`.
 
 ### قائمة فحص الـPR
 - [ ] الفرع متحدّث من `main` وماشي بدون تعارض
@@ -233,7 +227,7 @@ git merge origin/main
 | `psql` مش معروف | مجلد `bin` بتاع PostgreSQL مش في الـPATH |
 | البورت 3000 أو 5000 مشغول | اقفل البرنامج اللي ماسكه، أو غيّر `PORT` في `.env` للباك |
 | الواجهة بتفتح بس كل الطلبات بتفشل | الباك مش شغّال، شغّل `npm run dev` من الجذر |
-| `relation "caregiver_delegations" does not exist` أو شبهها | في migration جديدة: `npm --prefix backend run migrate` |
+| `relation "health_entries" does not exist` أو شبهها | في migration جديدة: `npm --prefix backend run migrate` |
 | الاختبارات بتفشل بشكل عشوائي بعد تشغيل قبلها | الاختبارات بتغيّر القاعدة: `migrate -- --reset` ثم `seed` |
 | بعد `git pull` المشروع بقى بيطلع أخطاء | شغّل `npm install` وبعدها `migrate` |
 
@@ -252,9 +246,9 @@ git merge origin/main
 5. **أول رفع للشغل الحالي** (فيه تغييرات كتير غير مرفوعة):
    ```bash
    git status                                  # راجع القائمة، لازم ما يظهرش .env
-   git switch -c chore/workspaces-and-docs
+   git switch -c chore/docs-update
    git add -A
-   git commit -m "feat: five role workspaces, caregiver delegation, AI review, docs"
+   git commit -m "docs: patient-first documentation"
    git push -u origin chore/workspaces-and-docs
    ```
    وافتح PR وادمجه. ملفات `.env` و`storage/` و`node_modules` و`.claude/` متجاهَلة في `.gitignore`.

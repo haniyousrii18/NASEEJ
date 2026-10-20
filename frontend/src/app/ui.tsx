@@ -1,7 +1,12 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { lockScroll, trapTab } from '../lib/overlay.js';
 import { AppIcon, type IconName } from './AppIcons.js';
 import { useA } from './useA.js';
+import { Select } from './Select.js';
+import { DatePicker } from './DatePicker.js';
+
+export { Select, DatePicker };
 import type { ApiFailure, AsyncState } from './api.js';
 
 /** Presentational building blocks of the authenticated app. All styling comes from `na-` classes in app.css. */
@@ -89,15 +94,40 @@ export const Button: React.FC<
   </button>
 );
 
-export const Field: React.FC<{ label: string; htmlFor: string; help?: string; children: React.ReactNode }> = ({ label, htmlFor, help, children }) => (
-  <div className="na-field">
-    <label className="na-label" htmlFor={htmlFor}>
-      {label}
-    </label>
-    {children}
-    {help && <p className="na-help">{help}</p>}
-  </div>
-);
+/**
+ * A labelled control. The label is always visible; `help` is one short line; `error` appears next to the control it
+ * belongs to and is wired to it (aria-invalid, aria-describedby) so a screen reader reads it with the field.
+ */
+export const Field: React.FC<{ label: string; htmlFor: string; help?: string; error?: string; required?: boolean; children: React.ReactNode }> = ({ label, htmlFor, help, error, required, children }) => {
+  const A = useA();
+  const helpId = help ? `${htmlFor}-help` : undefined;
+  const errId = error ? `${htmlFor}-err` : undefined;
+  const describedBy = [errId, helpId].filter(Boolean).join(' ') || undefined;
+  const control =
+    React.isValidElement(children) && (children.type === Select || children.type === DatePicker || (typeof children.type === 'string' && ['input', 'select', 'textarea'].includes(children.type)))
+      ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, { 'aria-invalid': error ? true : undefined, 'aria-describedby': describedBy, 'aria-required': required || undefined })
+      : children;
+  return (
+    <div className="na-field" data-invalid={error ? 'true' : undefined}>
+      <label className="na-label" htmlFor={htmlFor}>
+        {label}
+        {required && <span className="na-req">{A.health.common.required}</span>}
+      </label>
+      {control}
+      {help && (
+        <p className="na-help" id={helpId}>
+          {help}
+        </p>
+      )}
+      {error && (
+        <p className="na-error" id={errId} role="alert">
+          <AppIcon name="alert" size={14} />
+          {error}
+        </p>
+      )}
+    </div>
+  );
+};
 
 /** A neutral message block for the "nothing here yet" state. */
 export const EmptyState: React.FC<{ title: string; body?: string; action?: React.ReactNode }> = ({ title, body, action }) => (
@@ -167,6 +197,12 @@ export function Async<T>({
   return <>{children(state.data, state.meta)}</>;
 }
 
+/**
+ * Modals are rendered into the app root, outside the page wrapper: that wrapper keeps a transform after its entrance
+ * animation, and a transformed ancestor would make `position: fixed` relative to the page instead of the screen.
+ */
+const modalRoot = (): Element => document.querySelector('.na-app') ?? document.body;
+
 /** A modal dialog with focus handling: focus moves in, Escape closes, focus returns to the opener. */
 export const Dialog: React.FC<{ title: string; onClose: () => void; children: React.ReactNode }> = ({ title, onClose, children }) => {
   const A = useA();
@@ -199,7 +235,7 @@ export const Dialog: React.FC<{ title: string; onClose: () => void; children: Re
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div className="na-dialog-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="na-dialog" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
         <div className="na-card-h">
@@ -211,14 +247,14 @@ export const Dialog: React.FC<{ title: string; onClose: () => void; children: Re
         {children}
       </div>
     </div>
-  );
+    , modalRoot());
 };
 
 /**
  * A side sheet for a task that belongs to the page behind it (open an appointment, book one): it slides in from
  * the reading-end edge, keeps focus inside, closes on Escape or a click outside, and returns focus to the opener.
  */
-export const Drawer: React.FC<{ title: string; subtitle?: string; onClose: () => void; children: React.ReactNode }> = ({ title, subtitle, onClose, children }) => {
+export const Drawer: React.FC<{ title: string; subtitle?: string; size?: 'md' | 'lg'; onClose: () => void; children: React.ReactNode }> = ({ title, subtitle, size = 'md', onClose, children }) => {
   const A = useA();
   const ref = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
@@ -242,9 +278,9 @@ export const Drawer: React.FC<{ title: string; subtitle?: string; onClose: () =>
     };
   }, []);
 
-  return (
+  return createPortal(
     <div className="na-drawer-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="na-drawer" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
+      <div className={`na-drawer${size === 'lg' ? ' na-drawer--lg' : ''}`} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
         <div className="na-drawer-h">
           <div>
             <h2 className="na-card-title">{title}</h2>
@@ -257,7 +293,7 @@ export const Drawer: React.FC<{ title: string; subtitle?: string; onClose: () =>
         <div className="na-drawer-body">{children}</div>
       </div>
     </div>
-  );
+    , modalRoot());
 };
 
 export const SyntheticNote: React.FC = () => {

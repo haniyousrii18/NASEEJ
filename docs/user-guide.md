@@ -1,85 +1,27 @@
-# User Guide for Primary Roles — Naseej | نَسيج
+# User guide — Naseej | نَسيج
 
-## Introduction
-Naseej is a multi-tenant healthcare information platform connecting patient health information across medical centers while maintaining strict data isolation and clinical review standards.
+Demo patient: `patient@naseej.health` / `Password123!` (synthetic). Language and theme switch from the top bar.
 
----
+## 1. Today
+Four actions: record a symptom, add a document, ask the assistant, prepare for a visit. Below: your next visit, a draft summary you have not approved, document suggestions waiting for you, and active share links.
 
-## 1. Platform Administrator
-- **Role Objective**: Oversee medical center onboardings, technical configuration, and audit logs.
-- **Access Boundary**: Structurally barred from accessing patient medical records or clinical consultations (`FORBIDDEN_PLATFORM_ADMIN_CLINICAL_WALL`).
-- **Demo Account**: `admin@naseej.health` / `Password123!`
-- **Workflows**:
-  1. Navigate to **Platform Admin Dashboard**.
-  2. Review registered healthcare organizations and their codes.
-  3. Click **+ Add Medical Center** to configure a new hospital or clinic with its unique identifier.
-  4. Review incoming public demo requests submitted from the landing page.
-  5. Inspect the immutable **Security Audit Trail** for cross-tenant violations and administrative events.
+## 2. Health profile
+Tabs for conditions, medicines, allergies, surgeries/procedures, measurements, visits, and "From my clinicians" (read-only). Add, edit, delete (with undo). Each item shows where it came from and whether you confirmed it.
 
----
+## 3. Symptoms and timeline
+"Record a symptom": what you feel, when it started, how bad (mild/moderate/severe), how often, what helps or worsens it, notes, related documents. Use the microphone to dictate: the text is yours to edit, and you check names, numbers and dates before saving. The timeline lists symptoms, visits and documents by date; edit or delete what you entered.
 
-## 2. Medical Center Manager
-- **Role Objective**: Manage center staff memberships, doctor schedules, and operational health metrics.
-- **Access Boundary**: Strictly limited to the manager's assigned medical center tenant.
-- **Demo Account**: `manager.noor@naseej.health` / `Password123!`
-- **Workflows**:
-  1. Sign in to the **Center Operations Dashboard**.
-  2. Review center metrics: active staff members, patients checked in, and confirmed appointments.
-  3. In the **Center Staff Directory**, click **+ Add Staff Member** to invite new doctors or receptionists.
-  4. Review operational audit logs scoped strictly to the center.
+## 4. Documents
+Add a PDF or photo with a title, type, date and provider. Search and filter. The original is always available. If AI reading is connected you may allow it **per file**: results appear as suggestions that are not in your record until you press "I confirm this is correct". Deleted documents go to "Deleted" and can be restored.
 
----
+## 5. Visits and preparation
+Choose a date (or none) and write the reason. Naseej builds a draft from your record, each item with its source. Edit text, remove items or sections, choose documents, add questions. Preview what the doctor will see, then approve. The summary is not a diagnosis or advice.
 
-## 3. Doctor / Clinician
-- **Role Objective**: Review patient history, allergies, document consultation visits, write prescriptions, and order/approve lab tests.
-- **Access Boundary**: Authorized patients within the center. Cannot see patients or visits belonging to other centers.
-- **Demo Account**: `doctor.noor@naseej.health` / `Password123!`
-- **Workflows**:
-  1. Open the **Clinician Workspace**.
-  2. In the left panel, see patients waiting in the **Waiting Room Queue** (patients checked in by reception).
-  3. Click a patient to inspect their profile:
-     - Notice the **Critical Safety Allergy Banner** highlighting documented allergies (e.g., Penicillin, Sulfa).
-     - Review past approved consultations.
-  4. Click **+ Document New Visit**:
-     - Record Chief Complaint, Vital Signs (BP, Pulse, Temp, SpO2), Diagnosis, and Treatment Plan.
-     - Saves as an unapproved **draft** (strictly hidden from the patient portal).
-  5. When ready, click **✓ Sign & Approve Visit** to publish the consultation to the patient portal.
-  6. Click **+ Add Rx** to issue a prescription with medications, dosage, frequency, and duration.
-  7. Click **+ Order Lab Test** to request laboratory examinations.
+## 6. Assistant
+Ask about your record (answers cite sources or say it is not recorded), dictate or answer step-by-step questions to record a symptom, or ask it to open a screen. Anything it drafts is shown for your review and nothing is saved until you save it. It cannot diagnose, advise treatment or change a dose; for anything that sounds urgent it shows a fixed message to contact emergency services. Turn it on or off in Settings → Privacy and assistant.
 
----
+## 7. Sharing
+Choose an approved summary, the documents, whether to show your name, and the duration (up to 7 days by default). Preview, confirm, and show the QR to the doctor. The code is shown once. Revoke at any time; the access history shows when it was opened and from what kind of device.
 
-## 4. Reception Staff
-- **Role Objective**: Register incoming patients, book appointments, and record patient arrival (check-in).
-- **Access Boundary**: Administrative workflows only. Strictly barred from documenting visits or modifying clinical records.
-- **Demo Account**: `reception.noor@naseej.health` / `Password123!`
-- **Workflows**:
-  1. Open the **Reception Services Workspace**.
-  2. Click **+ Register New Patient** to register an individual with their National ID, name, and phone. The system links the patient to the active center and generates a local MRN.
-  3. Click **+ Book Appointment**:
-     - Select patient, clinician, date, and time slot.
-     - The server validates clinician availability and prevents double-booking conflicts.
-  4. When the patient arrives at the clinic, find their confirmed appointment in the table and click **✓ Check-In Patient**.
-  5. The appointment transitions to `checked_in` with a precise arrival timestamp, instantly notifying the attending clinician's queue.
-
----
-
-## 5. Patient
-- **Role Objective**: Access approved longitudinal health records, active prescriptions, lab results, submit questions to the care team, and log symptoms.
-- **Access Boundary**: Strictly limited to the patient's own approved health records. Cannot view unapproved visit drafts or preliminary lab results.
-- **Demo Account**: `patient@naseej.health` / `Password123!`
-- **Workflows**:
-  1. Sign in to the **Patient Portal**.
-  2. In the **Summary Tab**, view affiliated medical centers, local MRNs, and emergency contacts.
-  3. Navigate to **My Approved Visits** to review signed consultations. Notice that drafts currently being worked on by doctors do not appear here.
-  4. Navigate to **My Active Prescriptions** to view medications and dosage instructions.
-  5. Navigate to **My Laboratory Results** to review verified lab tests with reference ranges.
-  6. Click **Ask Care Team a Question** to submit inquiries or refill requests.
-  7. Click **Log Daily Symptom** to track symptoms and assign severity scores (1 to 10).
-
----
-
-## 6. All roles: notifications, settings and installing the app
-- **Notifications:** the bell in the top bar shows how many are unread. Select it for the newest items, or open **Notifications** in the sidebar (above Settings) for the inbox with All, Unread and Archived tabs and category filters. Archive an item to hide it; restore it from the Archived tab. Selecting an item opens the related screen (a reception request opens that appointment). "Read" only means you have seen it; an item is marked "handled" when the task is actually done. Reception can confirm a pending appointment request straight from its notification (it asks first). Notifications are not for emergencies.
-- **Settings:** at the bottom of the sidebar, above Sign out. Change your name and phone (patients: contact and emergency details), your password (the current password is required), the interface language and the light or dark mode (saved on this device). Caregivers can end their own access there.
-- **Install the app:** use the install icon in the top bar of the public site. If your browser has no install prompt, the app shows the steps for your device (iPhone and iPad: Share, then Add to Home Screen). Details in `docs/pwa.md`.
+## 8. For the clinician
+Scan the QR: a read-only page opens with the reason, symptoms, medicines, allergies and any attached documents, each with its source. No account or app is needed. If the link has expired or been revoked, ask the patient for a new one. Print or save as PDF if the connection is poor.

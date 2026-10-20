@@ -1,5 +1,7 @@
 # Database Design & Entity Relationship — Naseej | نَسيج
 
+> **Scope note:** the app is now patient-only. The tables of sections 1-4 (organizations, memberships, appointments, visits, prescriptions, labs, consents, care coordination, caregivers, ops messages, demo requests) come from the earlier multi-center platform; they remain in the schema but are unused except `patient_profiles`, `users`, approved `visits`/`prescriptions`/`lab_*` read by the portal summary, `documents`, `document_*`, `patient_allergies`, `symptom_reports`, `audit_logs` and `notifications`. New tables are in section 5.
+
 ## 1. Schema Overview
 
 The database design adheres to 3NF normalization, foreign key constraints with cascading rules, strict indexing for tenant isolation (`organization_id`), and timestamp tracking for auditability.
@@ -313,3 +315,21 @@ Additive and reversible (`database/migrations/rollback/004_down.sql`). One table
 - `created_at`, `read_at` (seen), `handled_at` (set by the server when the record shows the task is done), `dismissed_at`, `expires_at` (set to creation + 90 days; expired items are no longer shown)
 
 Indexes serve the inbox, the unread count and lookup by related record. No clinical text, names or message bodies are stored.
+
+## 5. Migration 005: patient-owned record
+
+Additive and reversible (`rollback/005_down.sql`).
+
+| Table | Purpose and key columns |
+|---|---|
+| `health_entries` | condition, medication, allergy, procedure, measurement, visit. `kind`, `title`, `status` (active/past), `start_date`, `end_date`, `event_date`, `dose`, `frequency`, `reaction`, `severity`, `value`, `unit`, `provider_name`, `notes`, `source` (patient / assistant / document / clinician), `review_status` (confirmed / needs_review), `source_document_id`, `source_fact_id`, `deleted_at` |
+| `symptom_reports` (extended) | + `duration_text`, `frequency`, `better_factors`, `worse_factors`, `captured_via` (form / assistant / voice), `deleted_at`, `updated_at` |
+| `documents` (extended) | `organization_id` now nullable (a vault document has no center); + `doc_type`, `provider_name`, `deleted_at` |
+| `document_links` | document ↔ symptom / entry / visit of the same patient |
+| `document_facts` (extended) | + `patient_decision` (confirmed / rejected), `patient_decided_at`; AI readings stay suggestions until confirmed |
+| `visit_preps` | `visit_date`, `status` (draft / approved), `content` JSONB (reason, overview, sections of sourced items), `approved_at` |
+| `record_shares` | `token_hash` CHAR(64) unique (SHA-256 of a 256-bit token), `snapshot` JSONB (frozen approved content), `expires_at`, `revoked_at`, `view_count`, `last_viewed_at` |
+| `share_documents` | documents a share may stream |
+| `share_access_events` | `event` (view / document / denied_expired / denied_revoked), `device`, `ip_hash` (keyed, truncated), `occurred_at` |
+| `ai_interactions` | metadata only: `kind`, `outcome`, `provider`, `model`, `latency_ms` |
+| `patient_profiles` (extended) | `ai_assistant_consent_at` (NULL = never allowed) |

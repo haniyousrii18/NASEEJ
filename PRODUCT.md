@@ -10,72 +10,65 @@ web
 
 ## Stack
 
-- Frontend: React 18, Vite, TypeScript, plain CSS design tokens (responsive, bilingual Arabic RTL / English LTR)
-- Backend: Node.js, Express, TypeScript / ES modules, pg (PostgreSQL driver)
-- Database: PostgreSQL (SQL migrations 001-004, relational schema with foreign keys and tenant scoping)
-- Testing: Vitest and Supertest for API, permission and isolation tests
-- Optional AI: provider adapters inside the API (Google Gemini over HTTPS, Anthropic SDK), off unless configured
+- Frontend: React 19, Vite 8, TypeScript, plain CSS design tokens (responsive, bilingual Arabic RTL / English LTR), installable PWA
+- Backend: Node.js, Express 5, TypeScript / ES modules, pg (PostgreSQL driver)
+- Database: PostgreSQL (SQL migrations 001-005 with rollbacks)
+- Testing: Vitest and Supertest (API, ownership and share tests against a real database), Vitest unit tests
+- Optional AI: provider-agnostic boundary in the API (Google Gemini over HTTPS, Anthropic SDK), off unless configured
 
 ## Users
 
-Roles with a workspace in the app:
+**The patient** is the only signed-in user. They keep their own health record (profile, symptoms, documents), prepare for visits, optionally use the assistant, and share a chosen summary with any clinician through a temporary QR link.
 
-1. **Patient**: owns a portable electronic medical file. Reads approved records with their source and review state, uploads documents, requests appointments, asks the care team questions, logs symptoms, shares between centers through scoped consent, and authorizes caregivers.
-2. **Authorized Caregiver**: acts for a patient only through an explicit delegation the patient granted: view the approved record, manage appointment requests, message the care team. Each is a separate permission; the delegation expires and can be revoked at any time.
-3. **Doctor / Clinician**: reviews authorized history, documents visits (drafts, then approval), prescribes with allergy visibility, orders and reviews labs, reviews patient-uploaded documents and any AI suggestions, answers patient questions.
-4. **Reception Staff**: registers patients, schedules and confirms appointments, records arrival, messages clinicians about operations. No clinical content.
-5. **Medical Center Manager**: runs one center: working hours, staff and roles, calendar and workload, reports, coordination oversight, activity log. Aggregates only; no individual clinical records.
-6. **Naseej Platform Administrator**: oversees centers, accounts, demo requests and the audit log. Structurally barred from clinical content.
-7. **Care Coordinator**: operational follow-up of cases, tasks and referrals between centers. Operational data only.
+**The clinician** has no account. They open the patient's link read-only on a phone and see only what the patient approved.
+
+The earlier multi-center clinic platform (doctor, reception, center manager, care coordinator, platform admin and caregiver workspaces, inter-center consents, appointment and messaging flows) was removed. Its tables from migrations 001-004 remain in the schema but are unused.
 
 ## Product Purpose
 
-Naseej gives each patient a well-organized, portable electronic medical file that connects visits, documents, results and centers into one traceable timeline, and helps authorized clinicians review the relevant history quickly. The patient record is the center of the product; appointments and center operations support it. It enforces tenant isolation, role boundaries and human clinician sign-off: no clinical draft or unreviewed result reaches a patient, and no autonomous clinical decision is made by software or AI.
+Naseej is a patient-owned health history and visit-preparation app. It helps a patient organize their medical journey, explain symptoms clearly during a consultation, and securely share selected information with any doctor, clinic or hospital. It makes no diagnosis, treatment recommendation or autonomous clinical decision.
 
 ## Positioning
 
-Unlike generic EHRs that isolate data inside one clinic, or networks that merge records indiscriminately, Naseej lets one patient identity span several centers while every record keeps its owning center and access policy. Cross-center access needs the patient's explicit, scoped, unexpired and revocable consent, and each such read is audited.
+Unlike clinic EHRs that keep a patient's information inside one provider, Naseej puts the record with the patient. Sharing is an explicit act: choose the content, preview it, set an expiry, confirm, and revoke whenever you like.
 
 ## Operating Context
 
-- Outpatient clinics, clinical consultation, reception, center administration, and patients and their families at home.
+- Patients at home on a phone; clinicians glancing at a shared summary during a consultation.
 - Academic prototype run locally on team and evaluator machines with 100% synthetic data.
 - Dual-language: Arabic (primary, RTL) and English (LTR).
 
 ## Capabilities and Constraints
 
-- **Strict tenant isolation**: every query is scoped by `organization_id`; knowing another center's ID never exposes its data.
-- **Approval workflow**: visits, prescriptions and lab results are drafts until a clinician approves them.
-- **Conflict prevention**: clinician slots are validated server-side to prevent double booking.
-- **Audit trail**: sensitive access, status changes, approvals, delegations and AI review actions are logged. Message text and clinical values are not copied into the log.
-- **Delegated access**: caregiver access exists only through an active, unexpired delegation with the specific permission, checked on the server for every request.
-- **Operational messaging**: reception and clinicians exchange non-clinical coordination messages, stored and authorized server-side. It is not a clinical or urgent channel.
-- **AI document reading (optional)**: when a provider is configured and the patient allowed it for that file, a document can be read (OCR, type suggestion, candidate facts with page and passage). Results are unreviewed suggestions that a clinician accepts, corrects or rejects; they never appear to patients or caregivers as verified. Not run against a live provider yet.
-- **Synthetic data only**: real patient data is forbidden.
-- **Autonomous decisions prohibited**: the system does not diagnose, prescribe or change treatment.
-- **In-app notifications**: created on the server after the business operation, minimal content (event type and a date or time), recipients from roles and active delegations, typed destinations, one quick action (confirm an appointment). Periodic refresh, not real time. Not an emergency channel. See `docs/notifications.md`.
-- **Account settings**: every role has a Settings page (profile, password, language and appearance; patients also edit contact and emergency details; caregivers see and can end their own access). The API acts on the signed-in account only.
-- **Installable app**: a PWA with a versioned static cache; authenticated API responses are never cached. See `docs/pwa.md`.
-- **Not implemented**: email and push notifications, privacy-request workflow, voice dictation, external identity provider, background job queue.
+- **Patient-owned record:** conditions, medications, allergies, procedures, measurements, visits, symptoms, documents; each fact keeps date, source and review state.
+- **Document vault:** PDF/image upload or capture, search, links, original always available, trash with restore.
+- **AI document reading (optional):** results are unconfirmed suggestions with page and passage; only the patient's confirmation makes one a record entry. Off until a provider key is set; never run against a live provider yet.
+- **Visit summary:** built from the record by code, every item sourced, editable, approved by the patient before it can be shared.
+- **Assistant (optional):** answers from the patient's own record with validated citations, drafts symptoms for the patient to review, navigates the app. No write tools, no diagnosis, no treatment or dose advice; emergency wording and advice requests get fixed answers before any model is called. Needs a provider key and the patient's own switch.
+- **Voice:** browser speech recognition into an editable field, with a check of numbers and dates before saving.
+- **QR sharing:** hashed 256-bit token shown once, frozen snapshot, expiry, instant revoke, access history, read-only no-account page, printable.
+- **Audit and privacy:** ids and kinds only in the audit log; assistant conversation text is not stored; expired shares are scrubbed after a day.
+- **Account settings, in-app notifications, installable PWA** (`docs/notifications.md`, `docs/pwa.md`).
+- **Not implemented:** email and push, server-side transcription, clinician accounts, FHIR import/export, external identity provider, clinical review of the safety wording, regulatory compliance claims.
+- **Synthetic data only:** real patient data is forbidden.
+
+Design and rules: `docs/patient-record.md`.
 
 ## Brand Commitments
 
-- Name: **Naseej | نَسيج** (weave / fabric of connected healthcare).
-- Logo: approved asset `logo.png`, interconnected medical nodes forming an "S" weave in a turquoise to fresh-green gradient. Do not redraw it.
-- Visual language: calm clinical warmth. Warm ivory (light) and warm onyx (dark) with one orange action color, defined in `DESIGN.md`. The public site and the workspaces share it and differ only in density.
+- Name: **Naseej | نَسيج** (weave / fabric).
+- Logo: approved asset `logo.png`. Do not redraw it.
+- Visual language: calm clinical warmth. Warm ivory (light) and warm onyx (dark) with one orange action color, defined in `DESIGN.md`.
 
 ## Evidence on Hand
 
-- `Naseej-PRD.md`: product requirements baseline with implementation status.
-- `Naseej-Accounts-PRD.md`: workspace requirements with implementation status per role.
-- `docs/workspaces.md`: what each workspace does and how delegation, messaging and AI work.
-- `DESIGN.md`: the single design system.
-- `logo.png`: approved brand asset.
+- `docs/patient-record.md`, `Naseej-PRD.md`, `docs/test-plan.md`, `DESIGN.md`, `logo.png`.
 
 ## Product Principles
 
-1. **Connecting is not exposing**: linking a patient to a center, or a person to a patient, grants nothing by itself.
-2. **Clinician in the loop**: software drafts and suggests; clinicians keep responsibility for medical decisions.
-3. **Traceability by default**: every clinical entry carries author, date, source and approval state.
-4. **Honest states**: a missing record reads "not recorded", never "absent"; a feature that is off says so instead of simulating a result.
-5. **Bilingual equity**: Arabic with full RTL support is the native experience, not an afterthought.
+1. **The patient decides.** Nothing is saved or shared without their confirmation.
+2. **Suggestions are not facts.** AI readings and drafts stay visibly unconfirmed until the patient confirms.
+3. **Traceability by default.** Every item shows where it came from.
+4. **Honest states.** A missing record reads "not recorded", never "absent"; a feature that is off says so instead of simulating a result.
+5. **Not a doctor.** The product organizes and informs; it never diagnoses, prescribes or changes a dose.
+6. **Bilingual equity.** Arabic with full RTL support is the native experience.

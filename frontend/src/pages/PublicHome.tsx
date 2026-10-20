@@ -9,8 +9,6 @@ interface Props {
   setCurrentView: (view: string) => void;
 }
 
-const ROLE_KEYS = ['platform_admin', 'center_manager', 'doctor', 'reception', 'patient'] as const;
-
 /** Workflow titles carry their own "1." / "١." numbering; the step badge shows the number instead. */
 const stripNumber = (s: string) => s.replace(/^[\d٠-٩]+[.)\s]+/, '').trim();
 
@@ -36,11 +34,11 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
   const steps = [t.workflow.step1_title, t.workflow.step2_title, t.workflow.step3_title, t.workflow.step4_title, t.workflow.step5_title].map(stripNumber);
   const stepDescs = [t.workflow.step1_desc, t.workflow.step2_desc, t.workflow.step3_desc, t.workflow.step4_desc, t.workflow.step5_desc];
   const values = [
-    { title: t.features.f1_title, desc: t.features.f1_desc },
-    { title: t.features.f2_title, desc: t.features.f2_desc },
-    { title: t.features.f5_title, desc: t.features.f5_desc },
+    { title: L.v1_title, desc: L.v1_desc },
+    { title: L.v2_title, desc: L.v2_desc },
+    { title: L.v3_title, desc: L.v3_desc },
   ];
-  const trustPoints = [t.features.f1_title, t.features.f2_title, t.features.f4_title, t.features.f5_title];
+  const trustPoints = [L.t1, L.t2, L.t3, L.t4];
 
   return (
     <div className="landing">
@@ -58,12 +56,12 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
             </h1>
             <p className="hero-lead">{t.hero.description}</p>
             <div className="hero-actions">
-              <button type="button" className="btn-pill btn-pill-charcoal hero-cta" onClick={() => setCurrentView('demo')}>
-                {t.hero.ctaDemo}
+              <button type="button" className="btn-pill btn-pill-charcoal hero-cta" onClick={() => setCurrentView('login')}>
+                {t.hero.ctaLogin}
                 <ArrowIcon />
               </button>
-              <button type="button" className="btn-pill btn-pill-ghost hero-cta" onClick={() => setCurrentView('login')}>
-                {t.hero.ctaLogin}
+              <button type="button" className="btn-pill btn-pill-ghost hero-cta" onClick={() => setCurrentView('workflow')}>
+                {t.nav.workflow}
               </button>
             </div>
           </div>
@@ -115,21 +113,6 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
         </div>
       </Reveal>
 
-      {/* ------------------------------------------------------------ roles */}
-      <Reveal as="section" className="l-section" aria-labelledby="roles-title">
-        <div className="l-container">
-          <SectionHead eyebrow={L.rolesEyebrow} title={L.rolesTitle} />
-          <div className="l-grid l-grid--roles">
-            {ROLE_KEYS.map((key, i) => (
-              <Reveal key={key} i={i} className="cloud-feature-card l-card l-role">
-                <h3 className="l-card-title">{t.roles[key]}</h3>
-                <p className="l-card-text">{L[`role_${key}` as const]}</p>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </Reveal>
-
       {/* ------------------------------------------------------------ privacy and trust */}
       <Reveal as="section" className="l-section" aria-labelledby="trust-title">
         <div className="l-container">
@@ -141,8 +124,8 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
               </span>
               <h2 className="l-h2 l-h2--inverse">{L.trustTitle}</h2>
               <p className="l-lead l-lead--inverse">{L.trustBody}</p>
-              <button type="button" className="btn-pill btn-pill-cloud l-trust-link" onClick={() => setCurrentView('features')}>
-                {L.exploreFeatures}
+              <button type="button" className="btn-pill btn-pill-cloud l-trust-link" onClick={() => setCurrentView('workflow')}>
+                {t.nav.workflow}
                 <ArrowIcon />
               </button>
             </div>
@@ -167,12 +150,9 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
               <p className="l-lead">{L.ctaBody}</p>
             </div>
             <div className="hero-actions">
-              <button type="button" className="btn-pill btn-pill-charcoal hero-cta" onClick={() => setCurrentView('demo')}>
-                {t.hero.ctaDemo}
-                <ArrowIcon />
-              </button>
-              <button type="button" className="btn-pill btn-pill-ghost hero-cta" onClick={() => setCurrentView('login')}>
+              <button type="button" className="btn-pill btn-pill-charcoal hero-cta" onClick={() => setCurrentView('login')}>
                 {t.hero.ctaLogin}
+                <ArrowIcon />
               </button>
             </div>
           </div>

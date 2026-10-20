@@ -1,21 +1,16 @@
 # Security Policy
 
-## Supported Versions
+Naseej is an academic graduation prototype using synthetic data only. It is not production software and must not be used with real patient data without the deployment work listed in `docs/patient-record.md` (encryption at rest, retention and purge jobs, a shared rate-limit store, clinical review of the AI safety wording, a data-processing agreement with any AI provider).
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+## Reporting a vulnerability
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+Please report suspected vulnerabilities privately to the project team (contact: [To be completed by the team]) rather than opening a public issue. Include the affected route or screen, the steps to reproduce, and the impact. Do not include real personal data in a report.
 
-## Reporting a Vulnerability
+## Security design in brief
 
-Use this section to tell people how to report a vulnerability.
+- Every patient-owned query is scoped by the session's patient profile; a row that is not the caller's is reported as not found.
+- Share links use a 256-bit random token stored only as a SHA-256 hash; they expire, can be revoked at once, and are read-only.
+- The AI assistant has no write tools; its safety rules run on the server; nothing is sent to a provider without the patient's switch and per-file confirmation.
+- Secrets and API keys belong in `.env` (never committed); the audit log holds ids and kinds, never health content.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Details and known limits: `docs/patient-record.md`.

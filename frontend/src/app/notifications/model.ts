@@ -56,37 +56,12 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 /** The internal route (hash route, no leading slash) a notification opens, or null when there is none for this role. */
 export function destinationRoute(n: NotificationDto, role: AppRole): string | null {
-  const id = n.destination.id && UUID_RE.test(n.destination.id) ? n.destination.id : null;
   const base = ROLE_BASE[role];
   switch (n.destination.kind) {
-    case 'appointment':
-      if (role === 'reception') {
-        const date = n.params.date;
-        return id && date && DATE_RE.test(date) ? `reception/schedule?date=${date}&appointment=${id}` : 'reception/schedule';
-      }
-      if (role === 'doctor') return 'doctor/appointments';
-      if (role === 'center_manager') return 'manager/schedule';
-      if (role === 'patient') return 'patient/appointments';
-      return null;
-    case 'caregiver_patient': {
-      if (role !== 'caregiver' || !id) return null;
-      const tab = n.category === 'appointments' ? 'appointments' : n.category === 'messages' ? 'messages' : 'timeline';
-      return `caregiver/patient/${id}/${tab}`;
-    }
-    case 'patient_messages':
-      return role === 'doctor' ? 'doctor/messages' : role === 'patient' ? 'patient/messages' : null;
     case 'document':
-      return role === 'doctor' ? 'doctor/home' : role === 'patient' ? 'patient/documents' : null;
+      return 'patient/documents';
     case 'records':
-      return role === 'patient' ? 'patient/timeline' : null;
-    case 'caregiver_access':
-      return role === 'patient' ? 'patient/caregivers' : role === 'caregiver' ? 'caregiver/home' : null;
-    case 'ops_messages':
-      return role === 'reception' ? 'reception/messages' : role === 'doctor' ? 'doctor/messages' : null;
-    case 'coordination_task':
-      return role === 'care_coordinator' ? 'coordinator/tasks' : null;
-    case 'demo_request':
-      return role === 'platform_admin' ? 'admin/requests' : null;
+      return 'patient/timeline';
     case 'account_security':
       return `${base}/settings?tab=security`;
     default:

@@ -1,6 +1,7 @@
 import { app } from './app.js';
 import { ENV } from './config/env.js';
 import { pool } from './config/db.js';
+import { scrubDeadShares } from './routes/shareRoutes.js';
 
 async function startServer() {
   try {
@@ -11,6 +12,12 @@ async function startServer() {
     const server = app.listen(ENV.PORT, () => {
       console.log(`[Naseej API] Server running in ${ENV.NODE_ENV} mode on http://localhost:${ENV.PORT}`);
     });
+
+    // Erase the frozen copy of expired or revoked shares (data minimization); once now, then hourly.
+    const scrub = () => scrubDeadShares().catch((err) => console.error('[Shares] scrub failed:', err?.message));
+    void scrub();
+    const scrubTimer = setInterval(scrub, 60 * 60 * 1000);
+    scrubTimer.unref();
 
     const shutdown = async () => {
       console.log('\n[Naseej API] Gracefully shutting down...');

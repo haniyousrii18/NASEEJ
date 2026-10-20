@@ -3,6 +3,7 @@ import { useRequest } from '../api.js';
 import { fill, formatDate } from '../format.js';
 import type { AppRole } from '../nav.js';
 import { Button } from '../ui.js';
+import { AppIcon, type IconName } from '../AppIcons.js';
 import { useA } from '../useA.js';
 import { destinationRoute, eventKey, type ActionId, type NotificationDto } from './model.js';
 
@@ -16,6 +17,8 @@ interface Props {
   onRemoved: (id: string, wasUnread: boolean) => void;
   /** Called after the person leaves for the destination (the panel closes itself). */
   onNavigated?: () => void;
+  /** 'row' is the inbox page layout (icon, text, one archive button); the default is the compact bell panel. */
+  variant?: 'panel' | 'row';
 }
 
 /**
@@ -23,7 +26,9 @@ interface Props {
  * buttons: each stops its click from reaching the body, does only its own job, and a consequential one asks first.
  * "Read" is shown apart from "handled": reading never completes the task the notification is about.
  */
-export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate, onChanged, onRemoved, onNavigated }) => {
+const CATEGORY_ICON: Record<string, IconName> = { appointments: 'calendar', messages: 'message', records: 'documents', access: 'users', account: 'lock', operations: 'checks', administration: 'building' };
+
+export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate, onChanged, onRemoved, onNavigated, variant = 'panel' }) => {
   const A = useA();
   const T = A.notifications;
   const request = useRequest();
@@ -110,6 +115,69 @@ export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate,
   };
 
   const unread = !n.read;
+
+  if (variant === 'row') {
+    const title = words?.title ?? n.eventType;
+    const api = n.actions.filter((a) => a.kind === 'api');
+    return (
+      <li className="na-ntr" data-unread={unread} data-state={n.state}>
+        <button type="button" className="na-ntr-main" onClick={() => void open()} aria-describedby={`nt-${n.id}-meta`}>
+          <span className="na-ntr-icon" aria-hidden="true">
+            <AppIcon name={CATEGORY_ICON[n.category] ?? 'bell'} size={20} />
+            {unread && <span className="na-ntr-dot" />}
+          </span>
+          <span className="na-ntr-text">
+            <span className="na-ntr-title">{title}</span>
+            {body && <span className="na-ntr-body">{body}</span>}
+            <span className="na-ntr-meta" id={`nt-${n.id}-meta`}>
+              <span>{(T.categories as Record<string, string>)[n.category] ?? n.category}</span>
+              <time dateTime={n.createdAt}>{formatDate(A.lang, n.createdAt, true)}</time>
+              <span className="na-ntr-state">{unread ? T.status.unread : T.status.read}</span>
+              {n.state === 'handled' && <span className="na-ntr-flag">{T.status.handled}</span>}
+              {n.state === 'unavailable' && <span className="na-ntr-flag">{T.status.unavailable}</span>}
+            </span>
+          </span>
+        </button>
+        <div className="na-ntr-end">
+          {asking ? (
+            <>
+              <span className="na-nt-ask" role="alert">{T.actions.confirmAsk}</span>
+              <Button small variant="primary" disabled={busy} onClick={() => void confirmAppointment()}>
+                {T.actions.confirmYes}
+              </Button>
+              <Button small variant="quiet" disabled={busy} onClick={() => setAsking(false)}>
+                {T.actions.cancel}
+              </Button>
+            </>
+          ) : (
+            <>
+              {api.map((a) => (
+                <Button key={a.id} small variant="primary" disabled={busy} onClick={runAction(a.id)}>
+                  {T.actions[a.id as 'confirm_appointment']}
+                </Button>
+              ))}
+              <button
+                type="button"
+                className="na-ntr-icon-btn"
+                disabled={busy}
+                onClick={dismiss}
+                aria-label={fill(archived ? T.restoreLabel : T.archiveLabel, { title })}
+                title={archived ? T.actions.restore : T.actions.dismiss}
+              >
+                <AppIcon name={archived ? 'refresh' : 'archive'} size={20} />
+              </button>
+            </>
+          )}
+        </div>
+        {message && (
+          <p className="na-nt-msg" data-tone={message.tone} role={message.tone === 'danger' ? 'alert' : 'status'}>
+            {message.text}
+          </p>
+        )}
+      </li>
+    );
+  }
+
   return (
     <li className="na-nt" data-unread={unread} data-state={n.state}>
       <button type="button" className="na-nt-main" onClick={() => void open()} aria-describedby={`nt-${n.id}-meta`}>

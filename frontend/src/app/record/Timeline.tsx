@@ -2,13 +2,15 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { useDownload, useRequest, type ApiFailure } from '../api.js';
 import { fill, formatBytes, formatDate, nameOf } from '../format.js';
-import { Button, EmptyState, ErrorState, Loading, Notice, Pill } from '../ui.js';
+import { Button, EmptyState, ErrorState, Field, Loading, Notice, Pill, Select } from '../ui.js';
+import { FilterBar } from '../health/filters.js';
 import { useA } from '../useA.js';
-import { ProvenancePill, ReviewPill } from './badges.js';
+import { ReviewPill } from './badges.js';
+import { DatePicker } from '../DatePicker.js';
 
 export interface TimelineItem {
   id: string;
-  type: 'visit' | 'prescription' | 'lab_result' | 'document' | 'appointment' | 'symptom_report';
+  type: 'visit' | 'prescription' | 'lab_result' | 'document' | 'appointment' | 'symptom_report' | 'patient_entry';
   occurredAt: string;
   recordedAt: string;
   organization: { id: string; name_ar: string; name_en: string };
@@ -21,7 +23,7 @@ export interface TimelineItem {
   data: Record<string, any>;
 }
 
-const TYPES: TimelineItem['type'][] = ['visit', 'prescription', 'lab_result', 'document', 'appointment', 'symptom_report'];
+const TYPES: TimelineItem['type'][] = ['visit', 'prescription', 'lab_result', 'document', 'appointment', 'symptom_report', 'patient_entry'];
 const ICON: Record<TimelineItem['type'], IconName> = {
   visit: 'visit',
   prescription: 'pill',
@@ -29,6 +31,7 @@ const ICON: Record<TimelineItem['type'], IconName> = {
   document: 'documents',
   appointment: 'calendar',
   symptom_report: 'message',
+  patient_entry: 'pulse',
 };
 
 interface Props {
@@ -40,13 +43,17 @@ interface Props {
   pageSize?: number;
   /** False for a caregiver: original files are downloaded by the patient and clinicians only. */
   canDownload?: boolean;
+  /** Extra controls for one entry (e.g. edit and delete for what the patient entered). */
+  renderActions?: (item: TimelineItem) => React.ReactNode;
+  /** Changing this value reloads the list. */
+  reloadKey?: number;
 }
 
 /**
  * The chronological record. Filters by type, center and date; pages with a cursor; every entry shows where it
  * came from (center, author, provenance, review state) and links to its source. It never summarizes or interprets.
  */
-export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize = 20, canDownload = true }) => {
+export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize = 20, canDownload = true, renderActions, reloadKey = 0 }) => {
   const A = useA();
   const T = A.record.timeline;
   const request = useRequest();
@@ -62,6 +69,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
   const [status, setStatus] = useState<'loading' | 'ready' | 'more' | 'error'>('loading');
   const [error, setError] = useState<ApiFailure | null>(null);
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
+  const [showFilters, setShowFilters] = useState(false);
   const [notice, setNotice] = useState('');
   const seq = useRef(0);
   const centers = useRef(new Map<string, { id: string; name_ar: string; name_en: string }>());
@@ -100,7 +108,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, reloadKey]);
 
   const toggleType = (t: string) => setSelected((s) => (s.includes(t) ? s.filter((x) => x !== t) : [...s, t]));
   const toggleOpen = (id: string) =>
@@ -118,54 +126,55 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
     setTo('');
   };
 
-  const filtered = selected.length > 0 || org || from || to;
 
   return (
     <div className="na-stack">
 
-      <section className="na-card" aria-label={A.common.filters.type}>
-        <div className="na-stack">
-          <div className="na-chips" role="group" aria-label={A.common.filters.type}>
+      <FilterBar
+        open={showFilters}
+        onToggle={() => setShowFilters((v) => !v)}
+        onReset={reset}
+        active={[
+          ...selected.map((t) => ({ key: `t-${t}`, label: A.common.recordType[t as TimelineItem['type']], onRemove: () => toggleType(t) })),
+          ...(org ? [{ key: 'org', label: nameOf(A.lang, centers.current.get(org)), onRemove: () => setOrg('') }] : []),
+          ...(from ? [{ key: 'from', label: `${A.common.filters.from}: ${formatDate(A.lang, from)}`, onRemove: () => setFrom('') }] : []),
+          ...(to ? [{ key: 'to', label: `${A.common.filters.to}: ${formatDate(A.lang, to)}`, onRemove: () => setTo('') }] : []),
+        ]}
+      >
+        <fieldset className="hp-fieldset">
+          <legend>{A.common.filters.type}</legend>
+          <div className="na-chips">
             {allowedTypes.map((t) => (
               <button key={t} type="button" className="na-chip" aria-pressed={selected.includes(t)} onClick={() => toggleType(t)}>
                 {A.common.recordType[t]}
               </button>
             ))}
           </div>
-          <div className="na-form">
-            <div className="na-field">
-              <label className="na-label" htmlFor="tl-center">
-                {A.common.filters.center}
-              </label>
-              <select id="tl-center" className="na-select" value={org} onChange={(e) => setOrg(e.target.value)}>
-                <option value="">{A.common.filters.allCenters}</option>
-                {[...centers.current.values()].map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {nameOf(A.lang, c)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="na-field">
-              <label className="na-label" htmlFor="tl-from">
-                {A.common.filters.from}
-              </label>
-              <input id="tl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
-            </div>
-            <div className="na-field">
-              <label className="na-label" htmlFor="tl-to">
-                {A.common.filters.to}
-              </label>
-              <input id="tl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
-            </div>
-            {filtered && (
-              <Button variant="quiet" onClick={reset}>
-                {A.common.filters.reset}
-              </Button>
-            )}
+        </fieldset>
+        <fieldset className="hp-fieldset">
+          <legend>{A.health.common.dateRange}</legend>
+          <div className="hp-pair">
+            <Field label={A.common.filters.from} htmlFor="tl-from">
+              <DatePicker id="tl-from" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+            </Field>
+            <Field label={A.common.filters.to} htmlFor="tl-to">
+              <DatePicker id="tl-to" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+            </Field>
           </div>
-        </div>
-      </section>
+        </fieldset>
+        {centers.current.size > 1 && (
+          <Field label={A.common.filters.center} htmlFor="tl-center">
+            <Select id="tl-center" className="na-select" value={org} onChange={(e) => setOrg(e.target.value)}>
+              <option value="">{A.common.filters.allCenters}</option>
+              {[...centers.current.values()].map((c) => (
+                <option key={c.id} value={c.id}>
+                  {nameOf(A.lang, c)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+      </FilterBar>
 
       {notice && (
         <Notice tone="danger" icon="alert" live>
@@ -198,11 +207,11 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                         : formatDate(A.lang, item.occurredAt, item.type === 'visit' || item.type === 'symptom_report')}
                     </time>
                   </div>
-                  <div className="na-tl-meta">
-                    <Pill>{A.common.recordType[item.type]}</Pill>
-                    <ProvenancePill provenance={item.provenance} />
-                    <ReviewPill status={item.reviewStatus} />
-                    {item.organization.id && <Pill tone="info">{nameOf(A.lang, item.organization)}</Pill>}
+                  <div className="na-tl-meta hp-meta">
+                    <span>{A.common.recordType[item.type]}</span>
+                    <span>{(A.common.provenance as Record<string, string>)[item.provenance]}</span>
+                    {['draft', 'unreviewed', 'needs_review'].includes(item.reviewStatus) && <ReviewPill status={item.reviewStatus} />}
+                    {item.organization.id && <span>{nameOf(A.lang, item.organization)}</span>}
                     {item.isExternal && <Pill tone="lilac">{A.common.record.external}</Pill>}
                   </div>
                   <button
@@ -214,6 +223,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                   >
                     {openIds.has(item.id) ? A.common.actions.hideDetails : A.common.actions.showDetails}
                   </button>
+                  {renderActions && <div className="na-row" style={{ marginTop: 6 }}>{renderActions(item)}</div>}
                   {openIds.has(item.id) && (
                     <div className="na-tl-detail">
                       <Details item={item} onDownload={!canDownload ? undefined : async () => {
@@ -261,9 +271,11 @@ export function titleOf(item: TimelineItem, A: ReturnType<typeof useA>): string 
     case 'document':
       return d.title || d.fileName;
     case 'appointment':
-      return d.reason || (A.common.appointmentStatus as Record<string, string>)[d.status] || d.status;
+      return d.reason || `${A.common.recordType.appointment} · ${(A.common.appointmentStatus as Record<string, string>)[d.status] || d.status}`;
     case 'symptom_report':
       return d.description;
+    case 'patient_entry':
+      return d.title;
   }
 }
 
@@ -354,9 +366,22 @@ const Details: React.FC<{ item: TimelineItem; onDownload?: () => void }> = ({ it
       </dl>
     );
   }
+  if (item.type === 'patient_entry') {
+    return (
+      <dl className="na-dl">
+        {row(R.value, d.value ? `${d.value}${d.unit ? ` ${d.unit}` : ''}` : '')}
+        {row(R.sourceCenter, d.providerName)}
+        {row(R.notes, d.notes)}
+      </dl>
+    );
+  }
   return (
     <dl className="na-dl">
       {row(R.notes, d.description)}
+      {row(A.health.symptoms.duration, d.durationText)}
+      {row(A.health.symptoms.frequency, d.frequency ? (A.health.symptoms.freq as Record<string, string>)[d.frequency] : '')}
+      {row(A.health.symptoms.better, d.betterFactors)}
+      {row(A.health.symptoms.worse, d.worseFactors)}
       {row(R.severity, d.severityReportedByPatient ? `${d.severityReportedByPatient} / 10` : '')}
       {row(R.notes, d.notes)}
     </dl>

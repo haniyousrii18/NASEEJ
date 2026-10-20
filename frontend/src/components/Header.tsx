@@ -32,7 +32,7 @@ const CloseIcon: React.FC = () => (
  */
 export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
   const { lang, setLang, t, isRtl } = useLang();
-  const { user, logout, currentOrgId, setCurrentOrgId, currentRole } = useAuth();
+  const { user, logout, currentRole } = useAuth();
   const installApp = useInstall();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -93,17 +93,11 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
 
   const goWorkspace = () => {
     if (!user) return;
-    if (user.systemRole === 'platform_admin') go('admin');
-    else if (user.patientProfileId) go('portal');
-    else if (currentRole === 'doctor') go('doctor');
-    else if (currentRole === 'center_manager') go('manager');
-    else if (currentRole === 'reception') go('reception');
-    else go('workspace');
+    go(user.patientProfileId ? 'portal' : 'workspace');
   };
 
   const links: Array<[string, string]> = [
     ['home', t.nav.home],
-    ['features', t.nav.features],
     ['workflow', t.nav.workflow],
   ];
 
@@ -169,16 +163,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
 
           <div className="site-end">
             <div className="site-auth">
-              {user && user.memberships && user.memberships.length > 1 && (
-                <select value={currentOrgId || ''} onChange={(e) => setCurrentOrgId(e.target.value)} className="form-select site-org-select" aria-label={t.nav.workspaces}>
-                  {user.memberships.map((m) => (
-                    <option key={m.organization_id} value={m.organization_id}>
-                      {isRtl ? m.organization_name_ar : m.organization_name_en} ({m.role})
-                    </option>
-                  ))}
-                </select>
-              )}
-
               {user ? (
                 <>
                   <button type="button" onClick={goWorkspace} className="site-account">

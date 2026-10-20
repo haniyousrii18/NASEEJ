@@ -8,11 +8,11 @@ export const WorkflowPage: React.FC = () => {
   const { t, isRtl } = useLang();
 
   const steps = [
-    { num: '01', title: t.workflow.step1_title, desc: t.workflow.step1_desc, icon: '🆔', accent: 'var(--color-metric-accent)' },
-    { num: '02', title: t.workflow.step2_title, desc: t.workflow.step2_desc, icon: '🗓️', accent: 'var(--color-sleep-lilac)' },
-    { num: '03', title: t.workflow.step3_title, desc: t.workflow.step3_desc, icon: '🩺', accent: 'var(--color-recovery-green)' },
-    { num: '04', title: t.workflow.step4_title, desc: t.workflow.step4_desc, icon: '💊', accent: 'var(--color-coral-signal)' },
-    { num: '05', title: t.workflow.step5_title, desc: t.workflow.step5_desc, icon: '✨', accent: 'var(--color-signal-gold)' },
+    { num: '01', title: t.workflow.step1_title, desc: t.workflow.step1_desc, icon: '📝', accent: 'var(--color-metric-accent)' },
+    { num: '02', title: t.workflow.step2_title, desc: t.workflow.step2_desc, icon: '🗂️', accent: 'var(--color-sleep-lilac)' },
+    { num: '03', title: t.workflow.step3_title, desc: t.workflow.step3_desc, icon: '🧭', accent: 'var(--color-recovery-green)' },
+    { num: '04', title: t.workflow.step4_title, desc: t.workflow.step4_desc, icon: '✅', accent: 'var(--color-coral-signal)' },
+    { num: '05', title: t.workflow.step5_title, desc: t.workflow.step5_desc, icon: '🔗', accent: 'var(--color-signal-gold)' },
   ];
 
   return (
@@ -23,7 +23,7 @@ export const WorkflowPage: React.FC = () => {
           <div className="recognition-laurel-pair">
             <div className="recognition-laurel-item">
               <LeafIcon />
-              <span>{isRtl ? 'تسلسل رحلة الرعاية السريرية' : 'End-to-End Care Journey'}</span>
+              <span>{isRtl ? 'رحلتك مع نسيج' : 'Your journey'}</span>
               <LeafIcon />
             </div>
           </div>
@@ -32,8 +32,8 @@ export const WorkflowPage: React.FC = () => {
           </h1>
           <p className="text-subhead" style={{ maxWidth: 640, margin: '0 auto' }}>
             {isRtl
-              ? 'سلسلة الإجراءات المترابطة التي تضمن التدفق السلس للمعلومات بين موظفي الاستقبال، والأطباء، والمرضى.'
-              : 'An integrated sequence ensuring safe, continuous information flow between reception, clinicians, and patients.'}
+              ? 'خمس خطوات تُبقي القرار بيدك في كل مرحلة: ما تسجّله، وما تعتمده، وما تشاركه.'
+              : 'Five steps that keep the decision in your hands at every stage: what you record, what you approve, and what you share.'}
           </p>
         </div>
 

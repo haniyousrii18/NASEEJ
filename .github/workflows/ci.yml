@@ -96,7 +96,7 @@ jobs:
         run: |
           npm --prefix backend run migrate
           npm --prefix backend run seed
-      - name: API tests (auth, RBAC, tenant isolation, clinical wall, portals)
+      - name: API tests (auth, patient record, vault, visit summary, QR sharing, assistant boundary)
         run: npm --prefix backend run test
 
   database:

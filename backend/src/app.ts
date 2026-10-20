@@ -1,33 +1,27 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { authRouter } from './routes/authRoutes.js';
-import { organizationRouter } from './routes/organizationRoutes.js';
-import { patientRouter } from './routes/patientRoutes.js';
-import { appointmentRouter } from './routes/appointmentRoutes.js';
-import { visitRouter } from './routes/visitRoutes.js';
-import { prescriptionRouter } from './routes/prescriptionRoutes.js';
-import { labRouter } from './routes/labRoutes.js';
 import { portalRouter } from './routes/portalRoutes.js';
-import { auditRouter } from './routes/auditRoutes.js';
-import { publicRouter } from './routes/publicRoutes.js';
 import { documentRouter } from './routes/documentRoutes.js';
-import { consentRouter } from './routes/consentRoutes.js';
-import { coordinationRouter } from './routes/coordinationRoutes.js';
-import { centerRouter } from './routes/centerRoutes.js';
-import { adminRouter } from './routes/adminRoutes.js';
-import { doctorRouter } from './routes/doctorRoutes.js';
 import { documentReviewRouter } from './routes/documentReviewRoutes.js';
-import { patientCaregiverRouter, caregiverRouter } from './routes/caregiverRoutes.js';
-import { opsMessageRouter } from './routes/opsMessageRoutes.js';
 import { accountRouter } from './routes/accountRoutes.js';
 import { notificationRouter } from './routes/notificationRoutes.js';
+import { recordRouter } from './routes/recordRoutes.js';
+import { vaultRouter } from './routes/vaultRoutes.js';
+import { prepRouter } from './routes/prepRoutes.js';
+import { patientShareRouter, publicShareRouter } from './routes/shareRoutes.js';
+import { assistantRouter } from './routes/assistantRoutes.js';
+import { ENV } from './config/env.js';
 
 export const app: Express = express();
 
 // Middlewares
+// Behind a reverse proxy the client address comes from X-Forwarded-For; without one it must not be trusted (rate limits, share access hashes).
+if (ENV.TRUST_PROXY > 0) app.set('trust proxy', ENV.TRUST_PROXY);
 app.use(cors({ origin: true, credentials: true }));
 // Uploads arrive as base64 JSON (about 4 MB of file), so only the documents route gets a larger body limit.
 app.use('/api/documents', express.json({ limit: '6mb' }));
+app.use('/api/vault', express.json({ limit: '6mb' }));
 app.use(express.json());
 
 // Health Check
@@ -44,25 +38,15 @@ app.get('/api/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRouter);
 app.use('/api/account', accountRouter);
 app.use('/api/notifications', notificationRouter);
-app.use('/api/organizations', organizationRouter);
-app.use('/api/patients', patientRouter);
-app.use('/api/appointments', appointmentRouter);
-app.use('/api/visits', visitRouter);
-app.use('/api/prescriptions', prescriptionRouter);
-app.use('/api/labs', labRouter);
-app.use('/api/portal/caregivers', patientCaregiverRouter);
 app.use('/api/portal', portalRouter);
-app.use('/api/audit-logs', auditRouter);
-app.use('/api/public', publicRouter);
-app.use('/api/portal/consents', consentRouter);
 app.use('/api/documents', documentReviewRouter);
 app.use('/api/documents', documentRouter);
-app.use('/api/caregiver', caregiverRouter);
-app.use('/api/ops-messages', opsMessageRouter);
-app.use('/api/coordination', coordinationRouter);
-app.use('/api/center', centerRouter);
-app.use('/api/admin', adminRouter);
-app.use('/api/doctor', doctorRouter);
+app.use('/api/record', recordRouter);
+app.use('/api/vault', vaultRouter);
+app.use('/api/prep', prepRouter);
+app.use('/api/shares', patientShareRouter);
+app.use('/api/share-view', publicShareRouter);
+app.use('/api/assistant', assistantRouter);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {

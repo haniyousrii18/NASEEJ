@@ -1,0 +1,173 @@
+/*
+ * The page a clinician opens from a patient's QR code (#/share/<token>). A public, standalone surface:
+ * it shares the colour tokens and type with the rest of the product but has its own light chrome and prints cleanly.
+ */
+.sv-page {
+  min-block-size: 100dvh;
+  background: var(--color-bg-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-arabic);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.sv-page[lang='en'] {
+  font-family: var(--font-latin);
+}
+
+.sv-page *,
+.sv-page *::before,
+.sv-page *::after {
+  box-sizing: border-box;
+}
+
+.sv-page :focus-visible {
+  outline: 2px solid var(--color-focus-ring, var(--color-accent));
+  outline-offset: 2px;
+}
+
+.sv-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px max(16px, env(safe-area-inset-left)) 12px max(16px, env(safe-area-inset-right));
+  border-block-end: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-elevated);
+}
+
+.sv-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.sv-ro {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.sv-main {
+  max-inline-size: 760px;
+  margin-inline: auto;
+  padding: 20px 16px 48px;
+  outline: none;
+}
+
+.sv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 18px;
+}
+
+.sv-head h1 {
+  margin: 0;
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.sv-until {
+  margin: 4px 0 0;
+  color: var(--color-body-gray);
+  font-size: 14px;
+}
+
+.sv-btn {
+  min-block-size: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-bg-elevated);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 580;
+  cursor: pointer;
+}
+
+.sv-btn:hover {
+  background: var(--color-bg-subtle);
+}
+
+.sv-state {
+  margin-block-start: 48px;
+  padding: 28px 22px;
+  border-radius: 24px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-elevated);
+  text-align: center;
+}
+
+.sv-state h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.sv-state p {
+  margin: 0 0 16px;
+  color: var(--color-body-gray);
+}
+
+.sv-state--error h1 {
+  color: var(--color-status-danger-text);
+}
+
+.sv-page .hp-sv {
+  padding: 18px 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+  background: var(--color-bg-elevated);
+}
+
+/* a bare .na-dl / .na-btn outside the signed-in shell */
+.sv-page .na-dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.sv-page .na-dl dt {
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
+.sv-page .na-dl dd {
+  margin: 0;
+}
+
+.sv-page .na-btn {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+@media print {
+  .sv-bar,
+  .sv-noprint,
+  .hp-noprint {
+    display: none !important;
+  }
+  .sv-page {
+    background: #fff;
+    color: #000;
+  }
+  .sv-page .hp-sv {
+    border: 0;
+    padding: 0;
+  }
+}
