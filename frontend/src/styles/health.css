@@ -265,24 +265,6 @@
   font-size: 13.5px;
 }
 
-/* ------------------------------------------------------------------ filters stay out of the way until asked for */
-.hp-filterbar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-block-end: 10px;
-}
-
-.hp-filters-panel {
-  margin-block-end: 14px;
-}
-
-.hp-filterblock {
-  display: grid;
-  gap: 10px;
-  margin-block-end: 10px;
-}
-
 /* ------------------------------------------------------------------ small pieces */
 .hp-dashed .na-pill {
   border-style: dashed;

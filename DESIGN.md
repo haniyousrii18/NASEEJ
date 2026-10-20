@@ -79,6 +79,18 @@ Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top b
 - **Phone:** a bottom tab bar (`hp-tabbar`: Today, Symptoms, Documents, Assistant, More) replaces the top-bar menu button; the top bar keeps only the bell and the account menu (language, theme, sign out live there).
 - **Sharing shows its consequences** (`hp-willshare`): items, documents, identity, end time and how to revoke, before the confirm dialog repeats them.
 
+## 7c. UI kit (ui-kit.css, scoped to .na-app)
+One scale for the whole patient app; change a token, not a screen.
+- **Sizes:** controls and buttons 48px (`--na-h-control`), compact buttons and chips 40px (`--na-h-small`); text in fields is 16px so phones do not zoom on focus; labels 14px / 620.
+- **Radii:** controls 14, inset panels and notices 16, cards and dialogs 24, buttons and chips pills.
+- **Fields have a visible edge:** a 1px border mixed 50% ink into the surface (`--na-control-border`, at least 3:1), filled with the canvas colour so a field reads as an inset on a card; focus is an accent border plus a 3px ring; invalid is a danger border plus a message under the field; disabled is dashed and muted.
+- **Selects** use a drawn chevron placed at the end of the field in both directions; `color-scheme` follows the theme so native menus match.
+- **Field** (`app/ui.tsx`): label always visible, "required" in words, one-line help, specific error beside the control wired with aria-invalid and aria-describedby.
+- **Filters** (`app/health/filters.tsx`): optional search, a Filters button with a count, a grouped panel (chips, date range, selects) that applies live, and the active filters as removable chips with Clear all, always visible.
+- **Chips, segmented choices and tabs** share one family; a selected chip shows a drawn check, never colour alone.
+- **Containers:** a card carries one task; a card inside a card is flattened; elevation is a hairline for cards and a soft lift for menus, dialogs and sheets. Side-sheet forms keep their actions in a sticky footer.
+- **Sidebar:** plain surface, 48px items, accent-tinted active item with a start marker, account group below a hairline; the role label is not repeated.
+
 ## 8. Clinical content rules (design-level)
 - Provenance (who or what the entry came from) and review state are visible on every record. "Not recorded" never reads as "absent".
 - AI-derived content is dashed-bordered, labelled "AI-generated", carries its source page and passage, and is never styled like confirmed data until a clinician accepts it.

@@ -5,6 +5,7 @@ import { fill, formatBytes, formatDate, todayIso } from '../format.js';
 import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { ENTRY_KINDS, type EntryKind } from './forms.js';
+import { FilterBar } from './filters.js';
 import { ConfirmDialog, MAX_BYTES, OriginPill, Toast, shrinkImage, toBase64, useToast } from './kit.js';
 
 export interface VaultDoc {
@@ -71,21 +72,23 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
   const [allowAi, setAllowAi] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [msg, setMsg] = useState<{ tone: 'ok' | 'danger'; text: string } | null>(null);
+  const [fileError, setFileError] = useState('');
   const pending = progress !== null;
 
   const choose = async (f: File | undefined) => {
     setMsg(null);
+    setFileError('');
     if (!f) return setFile(null);
-    if (f.type && !['application/pdf', 'image/png', 'image/jpeg'].includes(f.type)) return setMsg({ tone: 'danger', text: V.badType });
+    if (f.type && !['application/pdf', 'image/png', 'image/jpeg'].includes(f.type)) return setFileError(V.badType);
     const small = await shrinkImage(f);
-    if (small.size > MAX_BYTES) return setMsg({ tone: 'danger', text: V.tooBig });
+    if (small.size > MAX_BYTES) return setFileError(V.tooBig);
     setFile(small);
     setV((s) => ({ ...s, title: s.title || small.name.replace(/\.\w+$/, '') }));
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return setMsg({ tone: 'danger', text: V.chooseFile });
+    if (!file) return setFileError(V.chooseFile);
     setMsg(null);
     setProgress(0);
     const body = {
@@ -109,7 +112,7 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
   return (
     <Card title={V.add}>
       <form className="na-form na-form--stack" onSubmit={submit} noValidate>
-        <Field label={V.file} htmlFor="vd-file" help={V.fileHelp}>
+        <Field label={V.file} htmlFor="vd-file" help={V.fileHelp} required error={fileError}>
           <div className="na-row">
             <input id="vd-file" ref={input} type="file" className="hp-visually-hidden" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={(e) => void choose(e.target.files?.[0])} />
             <Button small icon="upload" onClick={() => input.current?.click()}>
@@ -535,6 +538,7 @@ export const PatientVault: React.FC = () => {
   const [adding, setAdding] = useState(() => !!hashParam('new'));
   const [trash, setTrash] = useState(() => hashParam('trash') === '1');
   const [version, setVersion] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [q, setQ] = useState('');
   const [type, setType] = useState('');
   const [from, setFrom] = useState('');
@@ -598,23 +602,35 @@ export const PatientVault: React.FC = () => {
         )}
         <Card title={trash ? V.trash : undefined}>
           {!trash && (
-            <div className="hp-filterblock">
-              <Field label={V.search} htmlFor="vl-q">
-                <input id="vl-q" type="search" className="na-input" dir="auto" value={q} onChange={(e) => setQ(e.target.value)} />
+            <FilterBar
+              search={{ id: 'vl-q', label: V.search, placeholder: V.searchShort, value: q, onChange: setQ }}
+              open={filtersOpen}
+              onToggle={() => setFiltersOpen((o) => !o)}
+              onReset={() => {
+                setQ('');
+                setType('');
+                setFrom('');
+                setTo('');
+              }}
+              active={[
+                ...(type ? [{ key: 'type', label: (V.types as Record<string, string>)[type] ?? type, onRemove: () => setType('') }] : []),
+                ...(from ? [{ key: 'from', label: `${V.from}: ${formatDate(A.lang, from)}`, onRemove: () => setFrom('') }] : []),
+                ...(to ? [{ key: 'to', label: `${V.to}: ${formatDate(A.lang, to)}`, onRemove: () => setTo('') }] : []),
+              ]}
+            >
+              <Field label={V.type} htmlFor="vl-type">
+                <select id="vl-type" className="na-select" value={type} onChange={(e) => setType(e.target.value)}>
+                  <option value="">{V.allTypes}</option>
+                  {DOC_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {V.types[t]}
+                    </option>
+                  ))}
+                </select>
               </Field>
-              <details className="hp-disclose">
-                <summary>{A.health.common.moreFilters}</summary>
-                <div className="na-form">
-                  <Field label={V.type} htmlFor="vl-type">
-                    <select id="vl-type" className="na-select" value={type} onChange={(e) => setType(e.target.value)}>
-                      <option value="">{V.allTypes}</option>
-                      {DOC_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {V.types[t]}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
+              <fieldset className="hp-fieldset">
+                <legend>{A.health.common.dateRange}</legend>
+                <div className="hp-pair">
                   <Field label={V.from} htmlFor="vl-from">
                     <input id="vl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
                   </Field>
@@ -622,8 +638,8 @@ export const PatientVault: React.FC = () => {
                     <input id="vl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
                   </Field>
                 </div>
-              </details>
-            </div>
+              </fieldset>
+            </FilterBar>
           )}
           <Async
             state={docs.state}

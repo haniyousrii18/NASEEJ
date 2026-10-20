@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { useApiData, useMutation } from '../api.js';
-import { todayIso } from '../format.js';
+import { AppIcon } from '../AppIcons.js';
+import { fill, todayIso } from '../format.js';
 import { Button, Field, Notice } from '../ui.js';
 import { useA } from '../useA.js';
 import { MicButton, SEVERITY_VALUE, SeverityPicker, UrgentNotice, extractCheckTokens, severityWord, useSafetyCheck, useSpeech } from './kit.js';
@@ -56,6 +57,7 @@ export const EntryForm: React.FC<{ kind: EntryKind; initial?: Partial<Entry> & {
     notes: initial?.notes ?? '',
   });
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState<{ title?: string; value?: string; date?: string }>({});
   const set = (k: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [k]: e.target.value }));
 
   const titleLabel = F.title[kind];
@@ -70,7 +72,12 @@ export const EntryForm: React.FC<{ kind: EntryKind; initial?: Partial<Entry> & {
     if (kind === 'measurement') Object.assign(body, { value: v.value.trim(), unit: v.unit.trim() || null, event_date: v.event_date });
     if (kind === 'procedure' || kind === 'visit') Object.assign(body, { event_date: v.event_date, provider_name: v.provider_name.trim() || null });
     if (capturedVia && !editing) body.captured_via = capturedVia;
-    if (!body.title) return setError(A.health.common.required + ': ' + titleLabel);
+    const next: { title?: string; value?: string; date?: string } = {};
+    if (!body.title) next.title = fill(A.health.common.errFill, { field: titleLabel });
+    if (kind === 'measurement' && !v.value.trim()) next.value = fill(A.health.common.errFill, { field: F.value });
+    if ((kind === 'measurement' || kind === 'procedure' || kind === 'visit') && !v.event_date) next.date = fill(A.health.common.errFill, { field: F.eventDate });
+    setErrors(next);
+    if (Object.keys(next).length) return;
     const res = await run<Entry>(editing ? `/api/record/entries/${initial!.id}` : '/api/record/entries', editing ? 'PATCH' : 'POST', body);
     if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : res.error.status === 400 ? res.error.message : A.health.common.failed);
     onSaved(res.data);
@@ -78,8 +85,8 @@ export const EntryForm: React.FC<{ kind: EntryKind; initial?: Partial<Entry> & {
 
   return (
     <form className="na-form na-form--stack" onSubmit={submit} noValidate>
-      <Field label={titleLabel} htmlFor="en-title">
-        <input id="en-title" className="na-input" value={v.title} maxLength={255} onChange={set('title')} autoFocus required aria-required="true" />
+      <Field label={titleLabel} htmlFor="en-title" required error={errors.title}>
+        <input id="en-title" className="na-input" value={v.title} maxLength={255} onChange={set('title')} autoFocus />
       </Field>
 
       {hasDates(kind) && (
@@ -124,7 +131,7 @@ export const EntryForm: React.FC<{ kind: EntryKind; initial?: Partial<Entry> & {
 
       {kind === 'measurement' && (
         <>
-          <Field label={F.value} htmlFor="en-value">
+          <Field label={F.value} htmlFor="en-value" required error={errors.value}>
             <input id="en-value" className="na-input na-ltr" inputMode="decimal" value={v.value} maxLength={60} onChange={set('value')} />
           </Field>
           <Field label={F.unit} htmlFor="en-unit">
@@ -145,8 +152,8 @@ export const EntryForm: React.FC<{ kind: EntryKind; initial?: Partial<Entry> & {
           )}
         </>
       ) : kind !== 'allergy' ? (
-        <Field label={F.eventDate} htmlFor="en-date">
-          <input id="en-date" type="date" className="na-input" max={kind === 'visit' ? undefined : todayIso()} value={v.event_date} onChange={set('event_date')} required />
+        <Field label={F.eventDate} htmlFor="en-date" required error={errors.date}>
+          <input id="en-date" type="date" className="na-input" max={kind === 'visit' ? undefined : todayIso()} value={v.event_date} onChange={set('event_date')} />
         </Field>
       ) : null}
 
@@ -221,6 +228,7 @@ export const SymptomForm: React.FC<{
   const [voiced, setVoiced] = useState(origin === 'voice');
   const [checked, setChecked] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState<{ description?: string; severity?: string; check?: string }>({});
   const [urgent, setUrgent] = useState<string | null>(null);
   const safety = useSafetyCheck();
   const docs = useApiData<any[]>(docsOpen ? '/api/vault/documents?limit=50' : null);
@@ -238,8 +246,12 @@ export const SymptomForm: React.FC<{
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!v.description.trim() || !v.severity) return setError(S.validation);
-    if (needsCheck && !checked) return setError(S.checkedConfirm);
+    const next: { description?: string; severity?: string; check?: string } = {};
+    if (!v.description.trim()) next.description = S.errDescription;
+    if (!v.severity) next.severity = S.errSeverity;
+    if (needsCheck && !checked) next.check = S.errCheck;
+    setErrors(next);
+    if (Object.keys(next).length) return;
     // The emergency message appears first; saving the symptom is never blocked by it.
     if (urgent === null) {
       const msg = await safety(`${v.description} ${v.notes}`);
@@ -269,12 +281,12 @@ export const SymptomForm: React.FC<{
 
   return (
     <form className="na-form na-form--stack" onSubmit={submit} noValidate>
-      <Field label={S.what} htmlFor="sy-what" help={S.whatHelp}>
-        <textarea id="sy-what" className="na-textarea" dir="auto" rows={3} maxLength={1000} value={v.description} onChange={(e) => setV((s) => ({ ...s, description: e.target.value }))} autoFocus required aria-required="true" />
+      <Field label={S.what} htmlFor="sy-what" help={S.whatHelp} required error={errors.description}>
+        <textarea id="sy-what" className="na-textarea" dir="auto" rows={3} maxLength={1000} value={v.description} onChange={(e) => setV((s) => ({ ...s, description: e.target.value }))} autoFocus />
       </Field>
       <MicButton listening={speech.listening} supported={speech.supported} onStart={speech.start} onStop={speech.stop} error={speech.error} />
 
-      <SeverityPicker value={v.severity} onChange={(n) => setV((s) => ({ ...s, severity: n }))} labels={S.sev} name="sy-sev" legend={S.severity} />
+      <SeverityPicker value={v.severity} onChange={(n) => { setErrors((x) => ({ ...x, severity: undefined })); setV((s) => ({ ...s, severity: n })); }} labels={S.sev} name="sy-sev" legend={S.severity} required error={errors.severity} />
 
       <Field label={S.start} htmlFor="sy-start">
         <input id="sy-start" type="date" className="na-input" max={todayIso()} value={v.onset} onChange={(e) => setV((s) => ({ ...s, onset: e.target.value }))} />
@@ -333,9 +345,15 @@ export const SymptomForm: React.FC<{
             ))}
           </p>
           <label className="cg-check">
-            <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} />
+            <input type="checkbox" checked={checked} onChange={(e) => { setChecked(e.target.checked); setErrors((x) => ({ ...x, check: undefined })); }} />
             <span>{S.checkedConfirm}</span>
           </label>
+          {errors.check && (
+            <p className="na-error" role="alert">
+              <AppIcon name="alert" size={14} />
+              {errors.check}
+            </p>
+          )}
         </div>
       )}
 

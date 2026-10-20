@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { useDownload, useRequest, type ApiFailure } from '../api.js';
 import { fill, formatBytes, formatDate, nameOf } from '../format.js';
-import { Button, EmptyState, ErrorState, Loading, Notice, Pill } from '../ui.js';
+import { Button, EmptyState, ErrorState, Field, Loading, Notice, Pill } from '../ui.js';
+import { FilterBar } from '../health/filters.js';
 import { useA } from '../useA.js';
 import { ReviewPill } from './badges.js';
 
@@ -124,62 +125,55 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
     setTo('');
   };
 
-  const filtered = selected.length > 0 || !!org || !!from || !!to;
-  const activeFilters = selected.length + (org ? 1 : 0) + (from ? 1 : 0) + (to ? 1 : 0);
 
   return (
     <div className="na-stack">
 
-      <div className="hp-filterbar">
-        <Button small variant="quiet" icon="search" aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
-          {filtered ? fill(A.health.common.filtersOn, { n: activeFilters }) : A.health.common.filters}
-        </Button>
-        {filtered && (
-          <Button small variant="quiet" onClick={reset}>
-            {A.common.filters.reset}
-          </Button>
-        )}
-      </div>
-      {showFilters && (
-        <section className="na-card hp-filters-panel" aria-label={A.common.filters.type}>
-          <div className="na-stack">
-            <div className="na-chips" role="group" aria-label={A.common.filters.type}>
-              {allowedTypes.map((t) => (
-                <button key={t} type="button" className="na-chip" aria-pressed={selected.includes(t)} onClick={() => toggleType(t)}>
-                  {A.common.recordType[t]}
-                </button>
-              ))}
-            </div>
-            <div className="na-form">
-              <div className="na-field">
-                <label className="na-label" htmlFor="tl-center">
-                  {A.common.filters.center}
-                </label>
-                <select id="tl-center" className="na-select" value={org} onChange={(e) => setOrg(e.target.value)}>
-                  <option value="">{A.common.filters.allCenters}</option>
-                  {[...centers.current.values()].map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {nameOf(A.lang, c)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="na-field">
-                <label className="na-label" htmlFor="tl-from">
-                  {A.common.filters.from}
-                </label>
-                <input id="tl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
-              </div>
-              <div className="na-field">
-                <label className="na-label" htmlFor="tl-to">
-                  {A.common.filters.to}
-                </label>
-                <input id="tl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
-              </div>
-            </div>
+      <FilterBar
+        open={showFilters}
+        onToggle={() => setShowFilters((v) => !v)}
+        onReset={reset}
+        active={[
+          ...selected.map((t) => ({ key: `t-${t}`, label: A.common.recordType[t as TimelineItem['type']], onRemove: () => toggleType(t) })),
+          ...(org ? [{ key: 'org', label: nameOf(A.lang, centers.current.get(org)), onRemove: () => setOrg('') }] : []),
+          ...(from ? [{ key: 'from', label: `${A.common.filters.from}: ${formatDate(A.lang, from)}`, onRemove: () => setFrom('') }] : []),
+          ...(to ? [{ key: 'to', label: `${A.common.filters.to}: ${formatDate(A.lang, to)}`, onRemove: () => setTo('') }] : []),
+        ]}
+      >
+        <fieldset className="hp-fieldset">
+          <legend>{A.common.filters.type}</legend>
+          <div className="na-chips">
+            {allowedTypes.map((t) => (
+              <button key={t} type="button" className="na-chip" aria-pressed={selected.includes(t)} onClick={() => toggleType(t)}>
+                {A.common.recordType[t]}
+              </button>
+            ))}
           </div>
-        </section>
-      )}
+        </fieldset>
+        <fieldset className="hp-fieldset">
+          <legend>{A.health.common.dateRange}</legend>
+          <div className="hp-pair">
+            <Field label={A.common.filters.from} htmlFor="tl-from">
+              <input id="tl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+            </Field>
+            <Field label={A.common.filters.to} htmlFor="tl-to">
+              <input id="tl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+            </Field>
+          </div>
+        </fieldset>
+        {centers.current.size > 1 && (
+          <Field label={A.common.filters.center} htmlFor="tl-center">
+            <select id="tl-center" className="na-select" value={org} onChange={(e) => setOrg(e.target.value)}>
+              <option value="">{A.common.filters.allCenters}</option>
+              {[...centers.current.values()].map((c) => (
+                <option key={c.id} value={c.id}>
+                  {nameOf(A.lang, c)}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+      </FilterBar>
 
       {notice && (
         <Notice tone="danger" icon="alert" live>

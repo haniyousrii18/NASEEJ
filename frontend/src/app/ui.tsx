@@ -89,15 +89,40 @@ export const Button: React.FC<
   </button>
 );
 
-export const Field: React.FC<{ label: string; htmlFor: string; help?: string; children: React.ReactNode }> = ({ label, htmlFor, help, children }) => (
-  <div className="na-field">
-    <label className="na-label" htmlFor={htmlFor}>
-      {label}
-    </label>
-    {children}
-    {help && <p className="na-help">{help}</p>}
-  </div>
-);
+/**
+ * A labelled control. The label is always visible; `help` is one short line; `error` appears next to the control it
+ * belongs to and is wired to it (aria-invalid, aria-describedby) so a screen reader reads it with the field.
+ */
+export const Field: React.FC<{ label: string; htmlFor: string; help?: string; error?: string; required?: boolean; children: React.ReactNode }> = ({ label, htmlFor, help, error, required, children }) => {
+  const A = useA();
+  const helpId = help ? `${htmlFor}-help` : undefined;
+  const errId = error ? `${htmlFor}-err` : undefined;
+  const describedBy = [errId, helpId].filter(Boolean).join(' ') || undefined;
+  const control =
+    React.isValidElement(children) && typeof children.type === 'string' && ['input', 'select', 'textarea'].includes(children.type)
+      ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, { 'aria-invalid': error ? true : undefined, 'aria-describedby': describedBy, 'aria-required': required || undefined })
+      : children;
+  return (
+    <div className="na-field" data-invalid={error ? 'true' : undefined}>
+      <label className="na-label" htmlFor={htmlFor}>
+        {label}
+        {required && <span className="na-req">{A.health.common.required}</span>}
+      </label>
+      {control}
+      {help && (
+        <p className="na-help" id={helpId}>
+          {help}
+        </p>
+      )}
+      {error && (
+        <p className="na-error" id={errId} role="alert">
+          <AppIcon name="alert" size={14} />
+          {error}
+        </p>
+      )}
+    </div>
+  );
+};
 
 /** A neutral message block for the "nothing here yet" state. */
 export const EmptyState: React.FC<{ title: string; body?: string; action?: React.ReactNode }> = ({ title, body, action }) => (

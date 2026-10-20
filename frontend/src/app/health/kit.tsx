@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRequest } from '../api.js';
+import { AppIcon } from '../AppIcons.js';
 import { Button, Dialog, Pill, type Tone } from '../ui.js';
 import { useA } from '../useA.js';
 
@@ -128,12 +129,17 @@ export const SEVERITY_VALUE = { mild: 3, moderate: 6, severe: 9 } as const;
 export type SeverityWord = keyof typeof SEVERITY_VALUE;
 export const severityWord = (n: number | null | undefined): SeverityWord | null => (!n ? null : n <= 3 ? 'mild' : n <= 6 ? 'moderate' : 'severe');
 
-export const SeverityPicker: React.FC<{ value: number | null; onChange: (n: number) => void; labels: Record<SeverityWord, string>; name: string; legend: string }> = ({ value, onChange, labels, name, legend }) => {
+export const SeverityPicker: React.FC<{ value: number | null; onChange: (n: number) => void; labels: Record<SeverityWord, string>; name: string; legend: string; required?: boolean; error?: string }> = ({ value, onChange, labels, name, legend, required, error }) => {
+  const A = useA();
   const current = severityWord(value);
+  const errId = `${name}-err`;
   return (
-    <fieldset className="na-fieldset hp-seg">
-      <legend>{legend}</legend>
-      <div className="hp-seg-row" role="radiogroup" aria-label={legend}>
+    <fieldset className="na-fieldset hp-seg" aria-describedby={error ? errId : undefined} data-invalid={error ? 'true' : undefined}>
+      <legend>
+        {legend}
+        {required && <span className="na-req">{A.health.common.required}</span>}
+      </legend>
+      <div className="hp-seg-row" role="radiogroup" aria-label={legend} aria-required={required || undefined} aria-invalid={error ? true : undefined}>
         {(Object.keys(SEVERITY_VALUE) as SeverityWord[]).map((w) => (
           <label key={w} className="hp-seg-opt" data-on={current === w}>
             <input type="radio" name={name} checked={current === w} onChange={() => onChange(SEVERITY_VALUE[w])} />
@@ -141,6 +147,12 @@ export const SeverityPicker: React.FC<{ value: number | null; onChange: (n: numb
           </label>
         ))}
       </div>
+      {error && (
+        <p className="na-error" id={errId} role="alert">
+          <AppIcon name="alert" size={14} />
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 };
