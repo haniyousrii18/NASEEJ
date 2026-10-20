@@ -43,6 +43,14 @@ describe('translation input and number safety', () => {
     expect(preservesNumbers('حمى ٣٩ لمدة ٣ أيام', 'Fever for days')).toBe(false);
     expect(preservesNumbers('ألم في الصدر', 'Chest pain 2 times')).toBe(false);
   });
+
+  it('accepts the Arabic dual for a 2, but only for a 2', () => {
+    expect(preservesNumbers('Chest pain for 2 days', 'ألم في الصدر منذ يومين')).toBe(true);
+    expect(preservesNumbers('Pain 7/10 for 2 days', 'ألم 7/10 منذ يومين')).toBe(true);
+    expect(preservesNumbers('Chest pain for 3 days', 'ألم في الصدر منذ يومين')).toBe(false);
+    expect(preservesNumbers('Chest pain for 2 days', 'ألم في الصدر منذ أيام')).toBe(false);
+    expect(preservesNumbers('Chest pain for 2 days', 'ألم في الصدر منذ 3 أيام')).toBe(false);
+  });
 });
 
 describe('shaping the provider reply', () => {

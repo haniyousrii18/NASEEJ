@@ -47,11 +47,24 @@ export function numbersIn(text: string): string[] {
   return (western.match(/\d+(?:[.,]\d+)*/g) ?? []).map((n) => n.replace(/,/g, ''));
 }
 
-/** True when the translation contains exactly the numbers the original has (order and formatting aside). */
+/** Arabic says "2 days" as one dual word (يومين), with no digit. Only these exact words may stand in for a "2". */
+const ARABIC_DUAL = /(?:^|[^؀-ۿ])(?:يومين|يومان|أسبوعين|اسبوعين|شهرين|ساعتين|دقيقتين|ليلتين|سنتين|عامين|مرتين|جرعتين|حبتين|قرصين|كبسولتين|نصفين)(?![؀-ۿ])/;
+
+/**
+ * True when the translation carries the same numbers as the original (order and formatting aside). Nothing may be added or
+ * changed. A "2" may be missing only when the translation expresses it with an Arabic dual word.
+ */
 export function preservesNumbers(original: string, translated: string): boolean {
   const a = numbersIn(original).sort();
   const b = numbersIn(translated).sort();
-  return a.length === b.length && a.every((n, i) => n === b[i]);
+  if (a.length === b.length && a.every((n, i) => n === b[i])) return true;
+  const rest = [...a];
+  for (const n of b) {
+    const i = rest.indexOf(n);
+    if (i < 0) return false; // a number the original does not have
+    rest.splice(i, 1);
+  }
+  return rest.length > 0 && rest.every((n) => n === '2') && ARABIC_DUAL.test(translated);
 }
 
 const SCHEMA: JsonSchema = {
