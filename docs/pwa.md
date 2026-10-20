@@ -12,7 +12,7 @@ Naseej can be installed as an app on computers and phones. It is a standard prog
 |---|---|
 | Built JS, CSS, HTML, icons, logo | Precached, versioned by content hash; old caches are removed on update |
 | Navigation to any app route | Falls back to the precached `index.html` (the app uses hash routes, so deep links work offline for the shell), except under `/api/` |
-| `/api/*` | **NetworkOnly.** Never read from or written to Cache Storage: no patient, caregiver, appointment, clinical, document, consent, message or notification data is cached |
+| `/api/*` | **NetworkOnly.** Never read from or written to Cache Storage: no patient, document, share, assistant or notification data is cached |
 | Google Fonts stylesheet / font files | Stale-while-revalidate / cache-first (public, non-personal) |
 | Everything else | Not cached |
 

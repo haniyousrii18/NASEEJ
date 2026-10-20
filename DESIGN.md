@@ -9,8 +9,8 @@ History: an earlier `DESIGN.md` described a different reference system ("Bevel",
 
 | Surface | Where | Look |
 |---|---|---|
-| **Public site** | landing, features, workflow, demo request, login (`landing.css`, `auth.css`, `shell.css`) | Expressive: hero imagery, gradients, large type. Uses the global light/dark preference (`naseej_theme`). |
-| **Workspaces** | everything under `#/patient`, `#/caregiver`, `#/doctor`, `#/reception`, `#/manager`, `#/coordinator`, `#/admin` (`app.css`, `doctor.css`) | Operational: compact, flat, scannable. Own light/dark preference (`naseej_ws_theme`). |
+| **Public site** | landing, workflow, login, and the clinician summary page `#/share/<token>` (`landing.css`, `auth.css`, `shell.css`, `share.css`) | Expressive: hero imagery, gradients, large type. Uses the global light/dark preference (`naseej_theme`). |
+| **Patient app** | everything under `#/patient` (`app.css`, `health.css`) | Operational: compact, flat, scannable. Own light/dark preference (`naseej_ws_theme`). |
 
 Shared by both: the color tokens below, Cairo (Arabic) and Inter (Latin) type, Arabic RTL as the primary language, English LTR as a full equal.
 
@@ -63,19 +63,19 @@ Deliberate differences from the reference: color comes from the Naseej tokens ab
 ## 6. Layout (workspaces)
 Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top bar (64px) + content. Below 1024px the sidebar becomes a drawer. A faint animated line backdrop sits behind content (`AppBackdrop`) and is disabled for reduced motion.
 
-- **Sidebar:** the role's navigation groups, then a pinned foot with the **Account** group (**Notifications** with its unread badge, then **Settings**) above **Sign out**. There is no public-site link in the sidebar.
-- **Top bar, start to end:** (mobile: drawer button) | the **collapse/expand toggle** (desktop only, between the sidebar and the page name) | page name | center switcher (when the person has several) | **notification bell** with unread count | theme | language | account menu.
+- **Sidebar:** the patient navigation groups, then a pinned foot with the **Account** group (**Notifications** with its unread badge, then **Settings**) above **Sign out**. There is no public-site link in the sidebar.
+- **Top bar, start to end:** (mobile: drawer button) | the **collapse/expand toggle** (desktop only, between the sidebar and the page name) | page name | **notification bell** with unread count | theme | language | account menu.
 - **A closed drawer stays inside the viewport.** The closed workspace drawer and the public menu are hidden with `opacity` and `visibility`, never parked off-screen with a large `translateX`: Android Chrome counts a fixed element outside the viewport toward the page width, which leaves a blank band and sideways scrolling.
 - **Public site bar:** brand, then icon-only buttons at every width: install (only when available), theme, language, sign in, and the menu button last. There is no "request a demo" link in the bar (it stays on the home page and the login page).
 
 ## 7. Components (workspaces)
-`PageHead`, `Card`, `Stat`, `Pill`, `Notice`, `Button`, `Field`, `EmptyState`, `Loading` (skeleton), `ErrorState`, `Async`, `Dialog`, `Drawer` in `app/ui.tsx`. Domain pieces: **Settings** (`app/pages/settings.tsx`, `.na-set-*`: a vertical tab list on the reading side beside one content card; tabs depend on the role; below 900px the tabs become a scrolling row inside their own strip; type is compact and fluid, 12.5 to 14px; every panel stays mounted so unsaved edits survive a tab switch; no instructional or explanatory text, only labels, values and feedback), **Notifications** (`app/notifications`, `.na-nt-*`: bell, panel and inbox; state is shown with a glyph and a word, never colour alone; quick actions are separate buttons from the item body), record `Timeline`, `ReviewPill`/`ProvenancePill`, `AiPanel` (AI suggestions), the reception calendar, the manager calendar (counts only), caregiver scope lists, operational message list.
+`PageHead`, `Card`, `Stat`, `Pill`, `Notice`, `Button`, `Field`, `EmptyState`, `Loading` (skeleton), `ErrorState`, `Async`, `Dialog`, `Drawer` in `app/ui.tsx`. Domain pieces: **Settings** (`app/pages/settings.tsx`, `.na-set-*`: a vertical tab list on the reading side beside one content card; tabs depend on the role; below 900px the tabs become a scrolling row inside their own strip; type is compact and fluid, 12.5 to 14px; every panel stays mounted so unsaved edits survive a tab switch; no instructional or explanatory text, only labels, values and feedback), **Notifications** (`app/notifications`, `.na-nt-*`: bell, panel and inbox; state is shown with a glyph and a word, never colour alone; quick actions are separate buttons from the item body), record `Timeline`, `ReviewPill`/`ProvenancePill`. The patient-record screens (`app/health`, `hp-` classes): Today action tiles, severity segmented control, undo toast, dictation button and check step, assistant thread with citations and a dashed draft card, visit-summary editor, QR panel, and the shared `SnapshotView` used for the preview, print and clinician page. An unconfirmed AI reading is always dashed and labelled; an urgent assistant message is bordered, tinted and prefixed with "!".
 
 ## 8. Clinical content rules (design-level)
 - Provenance (who or what the entry came from) and review state are visible on every record. "Not recorded" never reads as "absent".
 - AI-derived content is dashed-bordered, labelled "AI-generated", carries its source page and passage, and is never styled like confirmed data until a clinician accepts it.
 - Drafts and unreviewed items never appear in patient or caregiver views.
-- No banners or warnings about emergencies are shown on messaging and question screens (removed by product decision); the interface carries no instructional or warning banners, only errors, validation and confirmations.
+- The assistant and symptom forms show the fixed emergency message when the server flags emergency wording; apart from that the interface carries no instructional or warning banners, only errors, validation and confirmations.
 
 ## 9. Accessibility and language
 - Visible focus ring on everything interactive; keyboard-operable controls; skip link; page title receives focus on route change.
@@ -85,9 +85,9 @@ Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top b
 
 ## 10. Do and don't
 - Do reuse the tokens in section 3; add a new token in `theme.css` for both themes if one is genuinely needed.
-- Do keep workspace-only styling under the scoped prefixes.
+- Do keep app styling under the scoped prefixes.
 - Don't introduce a second brand color, a new font family, gradients on workspace surfaces, or decorative shadows.
-- Don't change `landing.css`, `auth.css` or the public components when styling a workspace, and vice versa.
+- Don't change `landing.css`, `auth.css` or the public components when styling the app, and vice versa.
 - Don't signal state by color alone.
 - Don't add instructional or explanatory copy to Settings or to cards; keep labels, values, errors and confirmations.
 - Don't position a fixed panel outside the viewport to hide it.
