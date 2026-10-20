@@ -25,6 +25,10 @@ Frontend: `frontend/src/app/health/*` (Today, Profile, Symptoms, Vault, Visits, 
 - **Shares:** token = 256 random bits shown once in the QR (`/#/share/<token>`; the fragment is never sent to a server). Only its SHA-256 is stored. The share holds a frozen copy of what the patient approved; expired or revoked shares answer `410` and the copy is erased a day later (`scrubDeadShares`). Public endpoints are rate limited (60/min per address, 10 unknown-token attempts per 10 min), `no-store`, `no-referrer`, `noindex`. Access events keep device class and a keyed, truncated address hash.
 - **Audit:** create/update/delete/restore, approvals, AI consent, share create/revoke are logged with ids and kinds only.
 
+## Demo data
+
+`npm --prefix backend run seed` empties every table and loads one synthetic patient (Mohammed Al-Mansoor, `patient@naseej.health`) with two or three examples per page, so the screens are easy to read. It also creates two visit summaries and one active share through the same tables the app uses; the share link cannot be shown again because only its hash is stored. Demo files are written under `STORAGE_DIR/demo/`. It contains no clinic, staff or center data. All data is synthetic.
+
 ## Configuration
 
 `.env.example` documents: `AI_PROVIDER` (`anthropic` | `gemini`), the matching key, `AI_MODEL`, `AI_CHAT_TIMEOUT_MS`, `ASSISTANT_MAX_PER_HOUR`, `SHARE_MAX_HOURS`, `TRUST_PROXY`. With no provider the assistant says it is not connected; record search, guided symptom capture, visit-summary drafting and sharing still work. New provider: implement `ChatProvider` in `services/ai/chat.ts`.

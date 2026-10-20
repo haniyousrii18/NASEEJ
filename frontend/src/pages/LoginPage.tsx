@@ -115,7 +115,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
                   aria-describedby={errorMsg ? 'login-error' : undefined}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="doctor.noor@naseej.health"
+                  placeholder="patient@naseej.health"
                   className="auth-input"
                 />
               </div>
