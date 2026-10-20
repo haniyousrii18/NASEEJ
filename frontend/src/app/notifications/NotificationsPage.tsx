@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRequest } from '../api.js';
 import type { ApiFailure } from '../api.js';
 import { fill } from '../format.js';
@@ -6,8 +6,9 @@ import type { AppRole } from '../nav.js';
 import { Button, EmptyState, ErrorState, Loading, PageHead } from '../ui.js';
 import { useA } from '../useA.js';
 import { NotificationItem } from './NotificationItem.js';
+import { SearchField } from '../health/filters.js';
 import { useNotifications } from './NotificationsContext.js';
-import type { NotificationDto } from './model.js';
+import { eventKey, type NotificationDto } from './model.js';
 
 const PAGE = 20;
 const CATEGORIES = ['appointments', 'messages', 'records', 'access', 'operations', 'account', 'administration'] as const;
@@ -18,8 +19,6 @@ interface Summary {
   archived: number;
   byCategory: Record<string, { total: number; unread: number }>;
 }
-
-const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
 /** The notifications inbox: status tabs with counts, category filters with counts, day groups, paging, bulk "mark all read". */
 export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: string) => void }> = ({ role, navigate }) => {
@@ -35,6 +34,7 @@ export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: stri
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [failure, setFailure] = useState<ApiFailure | null>(null);
   const [more, setMore] = useState(false);
+  const [query, setQuery] = useState('');
 
   const path = useCallback(
     (offset: number) => `/api/notifications?role=${role}&limit=${PAGE}&offset=${offset}&status=${status}${category ? `&category=${category}` : ''}`,
@@ -96,53 +96,53 @@ export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: stri
     }
   };
 
-  // Day groups, newest first (the server already orders the rows).
-  const groups = useMemo(() => {
-    const today = new Date();
-    const yesterday = new Date(today.getTime() - 86_400_000);
-    const out: Array<{ label: string; items: NotificationDto[] }> = [];
-    for (const n of rows) {
-      const d = new Date(n.createdAt);
-      const label = dayKey(d) === dayKey(today) ? T.groups.today : dayKey(d) === dayKey(yesterday) ? T.groups.yesterday : T.groups.earlier;
-      const last = out[out.length - 1];
-      if (last && last.label === label) last.items.push(n);
-      else out.push({ label, items: [n] });
-    }
-    return out;
-  }, [rows, T]);
-
   const count = (key: Status) => (!summary ? '' : ` (${key === 'all' ? summary.total : key === 'unread' ? summary.unread : summary.archived})`);
   const hasUnread = status !== 'archived' && rows.some((r) => !r.read);
+
+  // Search covers the rows that are loaded: the title and the sentence the person reads.
+  const textOf = (n: NotificationDto) => {
+    const words = (T.events as Record<string, { title: string; body: string }>)[eventKey(n)] ?? (T.events as Record<string, { title: string; body: string }>)[n.eventType];
+    return `${words?.title ?? ''} ${words?.body ?? ''} ${(T.categories as Record<string, string>)[n.category] ?? ''}`.toLowerCase();
+  };
+  const needle = query.trim().toLowerCase();
+  const visible = needle ? rows.filter((n) => textOf(n).includes(needle)) : rows;
 
   return (
     <>
       <PageHead
         title={T.title}
         subtitle={summary ? fill(T.summary, { n: summary.unread, total: summary.total }) : undefined}
-        actions={hasUnread ? <Button small onClick={() => void markAll()}>{T.markAllRead}</Button> : undefined}
+        actions={
+          hasUnread ? (
+            <Button onClick={() => void markAll()}>
+              {T.markAllRead}
+              {summary && summary.unread > 0 && <span className="hp-count">{summary.unread}</span>}
+            </Button>
+          ) : undefined
+        }
       />
 
-      <div className="na-nt-filters" role="group" aria-label={T.filters.status}>
-        {(['all', 'unread', 'archived'] as const).map((s) => (
-          <button key={s} type="button" className="na-nt-chip na-nt-chip--status" aria-pressed={status === s} onClick={() => setStatus(s)}>
-            {status === s ? '✓ ' : ''}
-            {T.filters[s]}
-            {count(s)}
-          </button>
-        ))}
-      </div>
-      <div className="na-nt-filters" role="group" aria-label={T.filters.category}>
-        {['', ...CATEGORIES].map((c) => {
-          const n = c ? summary?.byCategory[c]?.total ?? 0 : null;
-          if (c && summary && n === 0 && category !== c) return null;
-          return (
-            <button key={c || 'all'} type="button" className="na-nt-chip" aria-pressed={category === c} onClick={() => setCategory(c)}>
-              {category === c ? '✓ ' : ''}
-              {c ? T.categories[c as keyof typeof T.categories] : T.filters.all}
-              {c && summary ? ` (${n})` : ''}
+      <div className="na-nt-toolbar">
+        <div className="na-chips" role="group" aria-label={T.filters.status}>
+          {(['all', 'unread', 'archived'] as const).map((s) => (
+            <button key={s} type="button" className="na-chip" aria-pressed={status === s} onClick={() => setStatus(s)}>
+              {T.filters[s]}
+              {count(s)}
             </button>
-          );
-        })}
+          ))}
+        </div>
+        <div className="na-nt-toolbar-end">
+          <select className="na-select na-nt-type" aria-label={T.filters.category} value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">{T.allTypes}</option>
+            {CATEGORIES.filter((c) => !summary || (summary.byCategory[c]?.total ?? 0) > 0 || category === c).map((c) => (
+              <option key={c} value={c}>
+                {T.categories[c as keyof typeof T.categories]}
+                {summary ? ` (${summary.byCategory[c]?.total ?? 0})` : ''}
+              </option>
+            ))}
+          </select>
+          <SearchField id="nt-q" label={T.search} value={query} onChange={setQuery} />
+        </div>
       </div>
 
       {phase === 'loading' ? (
@@ -153,19 +153,27 @@ export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: stri
         <EmptyState title={status === 'unread' ? T.emptyUnread : status === 'archived' ? T.emptyArchived : T.empty} />
       ) : (
         <>
-          {groups.map((g) => (
-            <section key={g.label} className="na-nt-day" aria-label={g.label}>
-              <h2 className="na-nt-day-h">{g.label}</h2>
-              <ul className="na-nt-list na-nt-list--page">
-                {g.items.map((n) => (
-                  <NotificationItem key={n.id} n={n} archived={status === 'archived'} role={role} navigate={navigate} onChanged={onChanged} onRemoved={onRemoved} />
+          <p className="na-help" role="status">
+            {needle ? fill(T.count, { n: visible.length }) : fill(T.count, { n: total })}
+            {needle && rows.length < total ? ` · ${T.searchHint}` : ''}
+          </p>
+          {visible.length === 0 ? (
+            <EmptyState title={T.noMatch} />
+          ) : (
+            <section className="na-card na-ntr-card" aria-label={T.title}>
+              <ul className="na-ntr-list">
+                {visible.map((n) => (
+                  <NotificationItem key={n.id} n={n} variant="row" archived={status === 'archived'} role={role} navigate={navigate} onChanged={onChanged} onRemoved={onRemoved} />
                 ))}
               </ul>
             </section>
-          ))}
+          )}
           {rows.length < total && (
-            <div className="na-set-actions">
-              <Button disabled={more} onClick={() => void loadMore()}>{T.loadMore}</Button>
+            <div className="na-ntr-more">
+              <span className="na-muted">{fill(T.shown, { n: rows.length, total })}</span>
+              <Button disabled={more} onClick={() => void loadMore()}>
+                {T.loadMore}
+              </Button>
             </div>
           )}
         </>
