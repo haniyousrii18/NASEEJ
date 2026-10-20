@@ -11,7 +11,7 @@
     "seed": "tsx scripts/seed.ts",
     "db:check": "tsx scripts/check-database.ts schema",
     "db:rollback-check": "tsx scripts/check-database.ts rollback",
-    "test:unit": "vitest run tests/ai-providers.test.ts",
+    "test:unit": "vitest run tests/ai-providers.test.ts tests/health-units.test.ts",
     "test": "vitest run"
   },
   "dependencies": {

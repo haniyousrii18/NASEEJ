@@ -8,7 +8,7 @@ import { ProvenancePill, ReviewPill } from './badges.js';
 
 export interface TimelineItem {
   id: string;
-  type: 'visit' | 'prescription' | 'lab_result' | 'document' | 'appointment' | 'symptom_report';
+  type: 'visit' | 'prescription' | 'lab_result' | 'document' | 'appointment' | 'symptom_report' | 'patient_entry';
   occurredAt: string;
   recordedAt: string;
   organization: { id: string; name_ar: string; name_en: string };
@@ -21,7 +21,7 @@ export interface TimelineItem {
   data: Record<string, any>;
 }
 
-const TYPES: TimelineItem['type'][] = ['visit', 'prescription', 'lab_result', 'document', 'appointment', 'symptom_report'];
+const TYPES: TimelineItem['type'][] = ['visit', 'prescription', 'lab_result', 'document', 'appointment', 'symptom_report', 'patient_entry'];
 const ICON: Record<TimelineItem['type'], IconName> = {
   visit: 'visit',
   prescription: 'pill',
@@ -29,6 +29,7 @@ const ICON: Record<TimelineItem['type'], IconName> = {
   document: 'documents',
   appointment: 'calendar',
   symptom_report: 'message',
+  patient_entry: 'pulse',
 };
 
 interface Props {
@@ -40,13 +41,17 @@ interface Props {
   pageSize?: number;
   /** False for a caregiver: original files are downloaded by the patient and clinicians only. */
   canDownload?: boolean;
+  /** Extra controls for one entry (e.g. edit and delete for what the patient entered). */
+  renderActions?: (item: TimelineItem) => React.ReactNode;
+  /** Changing this value reloads the list. */
+  reloadKey?: number;
 }
 
 /**
  * The chronological record. Filters by type, center and date; pages with a cursor; every entry shows where it
  * came from (center, author, provenance, review state) and links to its source. It never summarizes or interprets.
  */
-export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize = 20, canDownload = true }) => {
+export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize = 20, canDownload = true, renderActions, reloadKey = 0 }) => {
   const A = useA();
   const T = A.record.timeline;
   const request = useRequest();
@@ -100,7 +105,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, reloadKey]);
 
   const toggleType = (t: string) => setSelected((s) => (s.includes(t) ? s.filter((x) => x !== t) : [...s, t]));
   const toggleOpen = (id: string) =>
@@ -214,6 +219,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                   >
                     {openIds.has(item.id) ? A.common.actions.hideDetails : A.common.actions.showDetails}
                   </button>
+                  {renderActions && <div className="na-row" style={{ marginTop: 6 }}>{renderActions(item)}</div>}
                   {openIds.has(item.id) && (
                     <div className="na-tl-detail">
                       <Details item={item} onDownload={!canDownload ? undefined : async () => {
@@ -264,6 +270,8 @@ export function titleOf(item: TimelineItem, A: ReturnType<typeof useA>): string 
       return d.reason || (A.common.appointmentStatus as Record<string, string>)[d.status] || d.status;
     case 'symptom_report':
       return d.description;
+    case 'patient_entry':
+      return d.title;
   }
 }
 
@@ -354,9 +362,22 @@ const Details: React.FC<{ item: TimelineItem; onDownload?: () => void }> = ({ it
       </dl>
     );
   }
+  if (item.type === 'patient_entry') {
+    return (
+      <dl className="na-dl">
+        {row(R.value, d.value ? `${d.value}${d.unit ? ` ${d.unit}` : ''}` : '')}
+        {row(R.sourceCenter, d.providerName)}
+        {row(R.notes, d.notes)}
+      </dl>
+    );
+  }
   return (
     <dl className="na-dl">
       {row(R.notes, d.description)}
+      {row(A.health.symptoms.duration, d.durationText)}
+      {row(A.health.symptoms.frequency, d.frequency ? (A.health.symptoms.freq as Record<string, string>)[d.frequency] : '')}
+      {row(A.health.symptoms.better, d.betterFactors)}
+      {row(A.health.symptoms.worse, d.worseFactors)}
       {row(R.severity, d.severityReportedByPatient ? `${d.severityReportedByPatient} / 10` : '')}
       {row(R.notes, d.notes)}
     </dl>

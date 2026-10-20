@@ -17,7 +17,7 @@ Shared by both: the color tokens below, Cairo (Arabic) and Inter (Latin) type, A
 ## 2. Theme isolation (important)
 - Tokens live in `frontend/src/styles/theme.css`: `:root` for light and `:root[data-theme='dark']` for dark.
 - The signed-in shell applies its own choice through `ThemeContext.workspace` only while it is mounted, and restores the public preference when the user leaves. The public site never reads `naseej_ws_theme`.
-- Workspace rules are scoped to `.na-app` or `na-`/`rec-`/`ai-`/`cg-`/`ops-`/`mc-`/`doc-`/`up-` prefixed classes. Do not restyle a bare element or a global token from workspace CSS.
+- Workspace rules are scoped to `.na-app` or `na-`/`rec-`/`ai-`/`cg-`/`ops-`/`mc-`/`doc-`/`up-`/`hp-`/`sv-` prefixed classes (`hp-` patient-owned record screens in `health.css`; `sv-` the public clinician summary page in `share.css`). Do not restyle a bare element or a global token from workspace CSS.
 
 ## 3. Color tokens (real values)
 

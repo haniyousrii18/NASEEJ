@@ -126,3 +126,7 @@ The signed-in app lives in `frontend/src/app` with its own shell, hash router (`
 - **Known limitations:** no service catalogue or rooms/equipment (Services are derived from doctor specialties); no "patients needing follow-up" concept; document upload uses base64 JSON; allergies stay patient-level; the demo-account list on the Login page does not include a coordinator (the page is protected); the auth token and user profile persist in `localStorage` via the existing `AuthContext`.
 - **Account and settings:** `routes/accountRoutes.ts` (`/api/account`) plus one Settings page per role in `app/pages/settings.tsx`. Preferences that only affect presentation (language, workspace theme) stay on the device.
 - **Notifications in the client:** `app/notifications` (context with periodic refresh, bell, inbox, and the single typed destination map in `model.ts`). The shell wraps itself in `NotificationsProvider`.
+
+## 5. Patient-owned record layer (migration 005)
+
+A patient-centred layer sits beside the center model: health entries, vault documents without a center, visit summaries, temporary QR shares and an AI assistant with a provider-agnostic boundary (`services/ai/chat.ts`). Design, rules and limits are in `docs/patient-record.md`.

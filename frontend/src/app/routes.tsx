@@ -4,11 +4,18 @@ import { AdminAccounts, AdminAudit, AdminCenters, AdminHome, AdminRequests } fro
 import { CaseDetail, CoordinatorCases, CoordinatorHome, CoordinatorReferrals, CoordinatorTasks, FollowupLog } from './pages/coordinator.js';
 import { DoctorAppointments, DoctorHome, DoctorPatients, DoctorPending, PatientWorkspace } from './pages/doctor.js';
 import { ManagerActivity, ManagerCoordination, ManagerHome, ManagerReports, ManagerSchedule, ManagerServices, ManagerStaff } from './pages/manager.js';
-import { PatientAppointments, PatientConsents, PatientHome, PatientMedications, PatientMessages, PatientSummary, PatientTimeline } from './pages/patient.js';
+import { PatientAppointments, PatientConsents, PatientMedications, PatientMessages, PatientSummary } from './pages/patient.js';
+import { PatientToday } from './health/Home.js';
+import { PatientProfile } from './health/Profile.js';
+import { PatientSymptoms } from './health/Symptoms.js';
+import { PatientVault } from './health/Vault.js';
+import { PatientVisits } from './health/Visits.js';
+import { PrepEditor } from './health/PrepEditor.js';
+import { PatientAssistant } from './health/Assistant.js';
+import { PatientSharing } from './health/Sharing.js';
 import { CaregiverHome, CaregiverPatient } from './pages/caregiver.js';
 import { DoctorMessages, OpsMessages } from './pages/messages.js';
 import { PatientCaregivers } from './pages/patientCaregivers.js';
-import { PatientLibrary } from './pages/patientLibrary.js';
 import { FrontDesk } from './reception/FrontDesk.js';
 import { Patients } from './reception/Patients.js';
 import { ReceptionFrame } from './reception/ReceptionFrame.js';
@@ -61,13 +68,21 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
   switch (route) {
     // Patient
     case 'patient/home':
-      return <PatientHome navigate={navigate} />;
+      return <PatientToday navigate={navigate} />;
+    case 'patient/profile':
+      return <PatientProfile navigate={navigate} />;
+    case 'patient/visits':
+      return <PatientVisits navigate={navigate} />;
+    case 'patient/assistant':
+      return <PatientAssistant navigate={navigate} />;
+    case 'patient/sharing':
+      return <PatientSharing navigate={navigate} />;
     case 'patient/summary':
       return <PatientSummary navigate={navigate} />;
     case 'patient/timeline':
-      return <PatientTimeline />;
+      return <PatientSymptoms />;
     case 'patient/documents':
-      return <PatientLibrary />;
+      return <PatientVault />;
     case 'patient/medications':
       return <PatientMedications />;
     case 'patient/appointments':
@@ -138,6 +153,9 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
   }
 
   // Parameterised routes
+  if (parts[0] === 'patient' && parts[1] === 'visits' && parts[2] === 'prep' && parts[3]) {
+    return <PrepEditor key={parts[3]} id={parts[3]} navigate={navigate} />;
+  }
   if (parts[0] === 'doctor' && parts[1] === 'patient' && parts[2]) {
     return <PatientWorkspace key={parts[2]} patientId={parts[2]} tab={parts[3] ?? 'summary'} navigate={navigate} />;
   }

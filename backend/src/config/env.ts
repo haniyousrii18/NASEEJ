@@ -26,6 +26,14 @@ export const ENV = {
   // Empty means each provider uses its own default model.
   AI_MODEL: process.env.AI_MODEL || '',
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '120000', 10),
+  // The patient assistant answers interactively, so it gets a much shorter limit than document reading.
+  AI_CHAT_TIMEOUT_MS: parseInt(process.env.AI_CHAT_TIMEOUT_MS || '25000', 10),
+  // Messages a patient may send to the assistant per hour (counted from ai_interactions, so it survives restarts).
+  ASSISTANT_MAX_PER_HOUR: parseInt(process.env.ASSISTANT_MAX_PER_HOUR || '40', 10),
+  // Temporary shares: the longest lifetime a patient may choose, in hours.
+  SHARE_MAX_HOURS: parseInt(process.env.SHARE_MAX_HOURS || '168', 10),
+  // Number of reverse proxies in front of the API (0 = none). Needed so rate limits see the real client address.
+  TRUST_PROXY: parseInt(process.env.TRUST_PROXY || '0', 10),
   // Patient-only portal: on unless PATIENT_ONLY_MODE=false (the API tests turn it off to log in as staff).
   PATIENT_ONLY_MODE: process.env.PATIENT_ONLY_MODE !== 'false',
 };

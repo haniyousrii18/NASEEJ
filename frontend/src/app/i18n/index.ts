@@ -11,9 +11,10 @@ import { receptionT } from './reception.js';
 import { recordT } from './record.js';
 import { settingsT } from './settings.js';
 import { notificationsT } from './notifications.js';
+import { healthT } from './health.js';
 
 // Each area adds its own file here. The English tree of every file is typed against its Arabic tree.
 export const appT = {
-  ar: { care: careT.ar, common: commonT.ar, nav: navT.ar, record: recordT.ar, ops: opsT.ar, patient: patientT.ar, doctor: doctorT.ar, coordinator: coordinatorT.ar, reception: receptionT.ar, manager: managerT.ar, admin: adminT.ar, settings: settingsT.ar, notifications: notificationsT.ar },
-  en: { care: careT.en, common: commonT.en, nav: navT.en, record: recordT.en, ops: opsT.en, patient: patientT.en, doctor: doctorT.en, coordinator: coordinatorT.en, reception: receptionT.en, manager: managerT.en, admin: adminT.en, settings: settingsT.en, notifications: notificationsT.en },
+  ar: { care: careT.ar, common: commonT.ar, nav: navT.ar, record: recordT.ar, ops: opsT.ar, patient: patientT.ar, doctor: doctorT.ar, coordinator: coordinatorT.ar, reception: receptionT.ar, manager: managerT.ar, admin: adminT.ar, settings: settingsT.ar, notifications: notificationsT.ar, health: healthT.ar },
+  en: { care: careT.en, common: commonT.en, nav: navT.en, record: recordT.en, ops: opsT.en, patient: patientT.en, doctor: doctorT.en, coordinator: coordinatorT.en, reception: receptionT.en, manager: managerT.en, admin: adminT.en, settings: settingsT.en, notifications: notificationsT.en, health: healthT.en },
 };

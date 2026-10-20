@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LangProvider, useLang } from './context/LangContext.js';
 import { ThemeProvider } from './context/ThemeContext.js';
 import { MotionRoot, PageTransition } from './components/motion.js';
@@ -15,6 +15,7 @@ import { ManagerDashboard } from './pages/ManagerDashboard.js';
 import { DoctorWorkspace } from './pages/DoctorWorkspace.js';
 import { ReceptionWorkspace } from './pages/ReceptionWorkspace.js';
 import { PatientPortal } from './pages/PatientPortal.js';
+import { ShareView, isShareRoute } from './pages/ShareView.js';
 import { PwaPrompts, PWA_RESTORE_KEY } from './pwa/PwaPrompts.js';
 import { InstallProvider } from './pwa/InstallContext.js';
 import './styles/theme.css';
@@ -23,6 +24,7 @@ import './styles/landing.css';
 import './styles/auth.css';
 import './styles/doctor.css';
 import './styles/app.css';
+import './styles/health.css';
 import { AppShell } from './app/AppShell.js';
 import { AUTHENTICATED_VIEWS } from './app/nav.js';
 
@@ -46,6 +48,14 @@ const MainContent: React.FC = () => {
   });
   const { user, currentRole } = useAuth();
   const { t } = useLang();
+  // A clinician opening a patient's QR link: a standalone, read-only page that needs no account.
+  const [sharing, setSharing] = useState(isShareRoute);
+  useEffect(() => {
+    const onHash = () => setSharing(isShareRoute());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  if (sharing) return <ShareView />;
 
   const isAuthView = AUTHENTICATED_VIEWS.has(currentView);
 

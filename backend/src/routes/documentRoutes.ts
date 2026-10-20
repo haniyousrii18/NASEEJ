@@ -35,8 +35,8 @@ async function accessibleDocument(actor: Actor, id: string): Promise<any | null>
   if (!isUuid(id)) return null;
   const res = await query(
     `SELECT d.*, to_char(d.document_date, 'YYYY-MM-DD') AS document_date_text, o.name_ar AS org_ar, o.name_en AS org_en, u.full_name_ar AS up_ar, u.full_name_en AS up_en
-     FROM documents d JOIN organizations o ON o.id = d.organization_id JOIN users u ON u.id = d.uploaded_by
-     WHERE d.id = $1`,
+     FROM documents d LEFT JOIN organizations o ON o.id = d.organization_id JOIN users u ON u.id = d.uploaded_by
+     WHERE d.id = $1 AND d.deleted_at IS NULL`,
     [id]
   );
   if (res.rowCount === 0) return null;
@@ -67,7 +67,7 @@ const meta = (d: any, actor: Actor) => ({
   documentDate: d.document_date_text ?? null,
   createdAt: d.created_at,
   visitId: d.visit_id,
-  organization: { id: d.organization_id, name_ar: d.org_ar, name_en: d.org_en },
+  organization: { id: d.organization_id ?? '', name_ar: d.org_ar ?? '', name_en: d.org_en ?? '' },
   uploadedBy: { name_ar: d.up_ar, name_en: d.up_en },
   isExternal: actor.kind === 'doctor' && d.organization_id !== actor.orgId,
 });
@@ -134,7 +134,7 @@ documentRouter.get('/:id/download', async (req: Request, res: Response): Promise
     }
 
     logAuditEvent({
-      organizationId: actor.kind === 'doctor' ? actor.orgId : doc.organization_id,
+      organizationId: actor.kind === 'doctor' ? actor.orgId : doc.organization_id ?? null,
       actorId: req.user!.id,
       actorEmail: req.user!.email,
       actorRole: actor.kind === 'doctor' ? 'doctor' : 'patient',

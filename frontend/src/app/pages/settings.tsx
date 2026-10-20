@@ -7,6 +7,7 @@ import { fill, formatDate, nameOf, pick } from '../format.js';
 import type { AppRole } from '../nav.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { Async, Button, Dialog, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
+import { PrivacySection } from '../health/PrivacyPanel.js';
 import { useA } from '../useA.js';
 import { ScopeList } from './caregiver.js';
 
@@ -522,13 +523,13 @@ const SecuritySection: React.FC = () => {
 };
 
 /* ------------------------------------------------------------------ The page */
-type TabId = 'profile' | 'contact' | 'sharing' | 'access' | 'org' | 'platform' | 'security' | 'prefs';
+type TabId = 'profile' | 'contact' | 'sharing' | 'privacy' | 'access' | 'org' | 'platform' | 'security' | 'prefs';
 
-const TAB_ICON: Record<TabId, IconName> = { profile: 'user', contact: 'message', sharing: 'users', access: 'users', org: 'building', platform: 'building', security: 'shield', prefs: 'globe' };
+const TAB_ICON: Record<TabId, IconName> = { profile: 'user', contact: 'message', sharing: 'users', privacy: 'lock', access: 'users', org: 'building', platform: 'building', security: 'shield', prefs: 'globe' };
 
 /** Which tabs each role has, in display order. A tab exists only when it holds working controls. */
 const TABS_BY_ROLE: Record<AppRole, TabId[]> = {
-  patient: ['profile', 'contact', 'sharing', 'security', 'prefs'],
+  patient: ['profile', 'contact', 'sharing', 'privacy', 'security', 'prefs'],
   caregiver: ['profile', 'access', 'security', 'prefs'],
   doctor: ['profile', 'org', 'security', 'prefs'],
   reception: ['profile', 'org', 'security', 'prefs'],
@@ -610,6 +611,7 @@ export const Settings: React.FC<{ role: AppRole; navigate: (route: string) => vo
             ),
             contact: data.patient ? <PatientContactSection data={data} onSaved={reload} /> : null,
             sharing: <PatientSharingSection navigate={navigate} />,
+            privacy: <PrivacySection navigate={navigate} />,
             access: <CaregiverDelegationsSection navigate={navigate} />,
             org: (
               <>

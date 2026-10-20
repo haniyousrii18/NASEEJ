@@ -84,6 +84,7 @@ const ar = {
     document: 'مستند',
     appointment: 'موعد',
     symptom_report: 'أعراض أبلغ عنها المريض',
+    patient_entry: 'سجّلته بنفسي',
   },
   provenance: {
     clinician_authored: 'كتبها طبيب',
@@ -99,6 +100,8 @@ const ar = {
     amended: 'معدَّلة',
     reviewed: 'راجعها طبيب',
     unreviewed: 'لم يراجعها طبيب بعد',
+    confirmed: 'أكدتُه بنفسي',
+    needs_review: 'يحتاج إلى مراجعة',
     not_applicable: '',
     dispensed: 'صُرفت',
     cancelled: 'ملغاة',
@@ -229,6 +232,7 @@ const en: typeof ar = {
     document: 'Document',
     appointment: 'Appointment',
     symptom_report: 'Patient-reported symptoms',
+    patient_entry: 'Recorded by me',
   },
   provenance: {
     clinician_authored: 'Written by a clinician',
@@ -244,6 +248,8 @@ const en: typeof ar = {
     amended: 'Amended',
     reviewed: 'Reviewed by a clinician',
     unreviewed: 'Not yet reviewed by a clinician',
+    confirmed: 'Confirmed by me',
+    needs_review: 'Needs a check',
     not_applicable: '',
     dispensed: 'Dispensed',
     cancelled: 'Cancelled',

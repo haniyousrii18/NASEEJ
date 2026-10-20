@@ -21,13 +21,22 @@ import { patientCaregiverRouter, caregiverRouter } from './routes/caregiverRoute
 import { opsMessageRouter } from './routes/opsMessageRoutes.js';
 import { accountRouter } from './routes/accountRoutes.js';
 import { notificationRouter } from './routes/notificationRoutes.js';
+import { recordRouter } from './routes/recordRoutes.js';
+import { vaultRouter } from './routes/vaultRoutes.js';
+import { prepRouter } from './routes/prepRoutes.js';
+import { patientShareRouter, publicShareRouter } from './routes/shareRoutes.js';
+import { assistantRouter } from './routes/assistantRoutes.js';
+import { ENV } from './config/env.js';
 
 export const app: Express = express();
 
 // Middlewares
+// Behind a reverse proxy the client address comes from X-Forwarded-For; without one it must not be trusted (rate limits, share access hashes).
+if (ENV.TRUST_PROXY > 0) app.set('trust proxy', ENV.TRUST_PROXY);
 app.use(cors({ origin: true, credentials: true }));
 // Uploads arrive as base64 JSON (about 4 MB of file), so only the documents route gets a larger body limit.
 app.use('/api/documents', express.json({ limit: '6mb' }));
+app.use('/api/vault', express.json({ limit: '6mb' }));
 app.use(express.json());
 
 // Health Check
@@ -63,6 +72,12 @@ app.use('/api/coordination', coordinationRouter);
 app.use('/api/center', centerRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/doctor', doctorRouter);
+app.use('/api/record', recordRouter);
+app.use('/api/vault', vaultRouter);
+app.use('/api/prep', prepRouter);
+app.use('/api/shares', patientShareRouter);
+app.use('/api/share-view', publicShareRouter);
+app.use('/api/assistant', assistantRouter);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {

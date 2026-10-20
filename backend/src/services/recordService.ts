@@ -11,8 +11,8 @@ import { ConsentKind, EffectiveConsent, effectiveConsentsForReader, scopeCovers 
  *  - Clinician: everything at their own center (drafts included, flagged as such), plus other centers'
  *               approved records ONLY under an effective consent (active, unexpired, scope-covering).
  */
-export type TimelineType = 'visit' | 'prescription' | 'lab_result' | 'document' | 'appointment' | 'symptom_report';
-export const TIMELINE_TYPES: TimelineType[] = ['visit', 'prescription', 'lab_result', 'document', 'appointment', 'symptom_report'];
+export type TimelineType = 'visit' | 'prescription' | 'lab_result' | 'document' | 'appointment' | 'symptom_report' | 'patient_entry';
+export const TIMELINE_TYPES: TimelineType[] = ['visit', 'prescription', 'lab_result', 'document', 'appointment', 'symptom_report', 'patient_entry'];
 
 export type Viewer = { kind: 'patient'; patientId: string } | { kind: 'clinician'; patientId: string; orgId: string };
 
@@ -121,7 +121,7 @@ export async function buildTimeline(viewer: Viewer, options: TimelineOptions): P
     const external = viewer.kind === 'clinician' && orgId !== viewer.orgId;
     return { isExternal: external, consentId: external ? scope.consentFor(orgId, kind)?.id ?? null : null };
   };
-  const org = (r: any) => ({ id: r.organization_id, name_ar: r.org_ar, name_en: r.org_en });
+  const org = (r: any) => ({ id: r.organization_id ?? '', name_ar: r.org_ar ?? '', name_en: r.org_en ?? '' });
   const author = (r: any) => (r.a_ar || r.a_en ? { name_ar: r.a_ar, name_en: r.a_en } : null);
 
   // ---- visits
@@ -250,12 +250,12 @@ export async function buildTimeline(viewer: Viewer, options: TimelineOptions): P
     params.push(limit);
     const rows = await query(
       `SELECT d.id, d.organization_id, d.created_at, to_char(d.document_date, 'YYYY-MM-DD') AS document_date, d.title, d.file_name, d.mime_type, d.file_size, d.source_type,
-              d.review_status, d.visit_id, d.ai_processing_allowed, dp.status AS ai_status,
+              d.review_status, d.visit_id, d.ai_processing_allowed, d.doc_type, d.provider_name, dp.status AS ai_status,
               (SELECT COUNT(*)::int FROM document_facts f WHERE f.document_id = d.id AND f.review_status IN ('accepted', 'corrected')) AS facts_reviewed,
               o.name_ar org_ar, o.name_en org_en, u.full_name_ar a_ar, u.full_name_en a_en
-       FROM documents d JOIN organizations o ON o.id = d.organization_id JOIN users u ON u.id = d.uploaded_by
+       FROM documents d LEFT JOIN organizations o ON o.id = d.organization_id JOIN users u ON u.id = d.uploaded_by
        LEFT JOIN document_processing dp ON dp.document_id = d.id
-       WHERE ${where}${filters} ORDER BY COALESCE(d.document_date::timestamptz, d.created_at) DESC LIMIT $${params.length}`,
+       WHERE d.deleted_at IS NULL AND ${where}${filters} ORDER BY COALESCE(d.document_date::timestamptz, d.created_at) DESC LIMIT $${params.length}`,
       params
     );
     for (const r of rows.rows) {
@@ -273,7 +273,7 @@ export async function buildTimeline(viewer: Viewer, options: TimelineOptions): P
         data: {
           title: r.title || r.file_name, fileName: r.file_name, mimeType: r.mime_type, fileSize: Number(r.file_size), visitId: r.visit_id,
           // AI state only: the processing status and how many suggestions a clinician has confirmed, never the suggestions themselves.
-          aiProcessingAllowed: r.ai_processing_allowed, aiStatus: r.ai_status ?? null, factsReviewed: r.facts_reviewed,
+          aiProcessingAllowed: r.ai_processing_allowed, aiStatus: r.ai_status ?? null, factsReviewed: r.facts_reviewed, docType: r.doc_type ?? null, providerName: r.provider_name ?? null,
         },
       });
     }
@@ -318,7 +318,7 @@ export async function buildTimeline(viewer: Viewer, options: TimelineOptions): P
   // ---- patient-reported symptom logs: the patient, and clinicians of the center the report was addressed to
   if (wants('symptom_report')) {
     const params: unknown[] = [scope.patientId];
-    let where = 's.patient_id = $1';
+    let where = 's.patient_id = $1 AND s.deleted_at IS NULL';
     if (viewer.kind === 'clinician') {
       params.push(viewer.orgId);
       const ext = externalFor('all');
@@ -328,7 +328,7 @@ export async function buildTimeline(viewer: Viewer, options: TimelineOptions): P
     const filters = applyFilters(options, params, 's.organization_id', 's.onset_date');
     params.push(limit);
     const rows = await query(
-      `SELECT s.id, s.organization_id, s.created_at, s.onset_date, s.symptom_description, s.severity, s.notes, o.name_ar org_ar, o.name_en org_en
+      `SELECT s.id, s.organization_id, s.created_at, s.onset_date, s.symptom_description, s.severity, s.notes, s.duration_text, s.frequency, s.better_factors, s.worse_factors, o.name_ar org_ar, o.name_en org_en
        FROM symptom_reports s LEFT JOIN organizations o ON o.id = s.organization_id
        WHERE ${where}${filters} ORDER BY s.onset_date DESC LIMIT $${params.length}`,
       params
@@ -345,7 +345,45 @@ export async function buildTimeline(viewer: Viewer, options: TimelineOptions): P
         reviewStatus: 'not_applicable',
         ...(r.organization_id ? mark(r.organization_id, 'all') : { isExternal: false, consentId: null }),
         source: { resource: 'symptom_reports', id: r.id },
-        data: { description: r.symptom_description, severityReportedByPatient: r.severity, notes: r.notes },
+        data: { description: r.symptom_description, severityReportedByPatient: r.severity, notes: r.notes, durationText: r.duration_text, frequency: r.frequency, betterFactors: r.better_factors, worseFactors: r.worse_factors },
+      });
+    }
+  }
+
+
+  // ---- events the patient recorded themselves (visits, procedures, measurements): the patient's own timeline only
+  // They belong to no center, so a center filter excludes them.
+  if (viewer.kind === 'patient' && wants('patient_entry') && !options.organizationId) {
+    const params: unknown[] = [scope.patientId];
+    let filters = '';
+    for (const [key, op] of [['from', '>='], ['to', '<='], ['before', '<']] as const) {
+      if (options[key]) {
+        params.push(options[key]);
+        filters += ` AND e.event_date::timestamptz ${op} $${params.length}`;
+      }
+    }
+    params.push(limit);
+    const rows = await query(
+      `SELECT e.id, e.kind, e.title, e.created_at, to_char(e.event_date, 'YYYY-MM-DD') AS event_date, e.value, e.unit, e.provider_name, e.notes, e.source, e.review_status
+       FROM health_entries e
+       WHERE e.patient_id = $1 AND e.deleted_at IS NULL AND e.kind IN ('visit', 'procedure', 'measurement') AND e.event_date IS NOT NULL${filters}
+       ORDER BY e.event_date DESC LIMIT $${params.length}`,
+      params
+    );
+    for (const r of rows.rows) {
+      items.push({
+        id: `patient_entry:${r.id}`,
+        type: 'patient_entry',
+        occurredAt: `${r.event_date}T00:00:00.000Z`,
+        recordedAt: iso(r.created_at),
+        organization: { id: '', name_ar: '', name_en: '' },
+        author: null,
+        provenance: r.source === 'patient' || r.source === 'assistant' ? 'patient_reported' : r.source === 'document' ? 'patient_uploaded' : 'clinician_uploaded',
+        reviewStatus: r.review_status,
+        isExternal: false,
+        consentId: null,
+        source: { resource: 'health_entries', id: r.id },
+        data: { kind: r.kind, title: r.title, value: r.value, unit: r.unit, providerName: r.provider_name, notes: r.notes },
       });
     }
   }

@@ -36,10 +36,19 @@ export const NAV: Record<AppRole, NavGroup[]> = {
     {
       id: 'myRecord',
       items: [
-        { route: 'patient/summary', label: 'patientSummary', icon: 'summary' },
+        { route: 'patient/profile', label: 'patientProfile', icon: 'user' },
         { route: 'patient/timeline', label: 'patientTimeline', icon: 'timeline' },
         { route: 'patient/documents', label: 'patientDocuments', icon: 'documents' },
-        { route: 'patient/medications', label: 'patientMedications', icon: 'pill' },
+        { route: 'patient/visits', label: 'patientVisits', icon: 'visit' },
+      ],
+    },
+    { id: 'assist', items: [{ route: 'patient/assistant', label: 'patientAssistant', icon: 'pulse' }] },
+    {
+      id: 'sharing',
+      items: [
+        { route: 'patient/sharing', label: 'patientSharing', icon: 'link' },
+        { route: 'patient/consents', label: 'patientConsents', icon: 'shield' },
+        { route: 'patient/caregivers', label: 'patientCaregivers', icon: 'users' },
       ],
     },
     {
@@ -47,8 +56,6 @@ export const NAV: Record<AppRole, NavGroup[]> = {
       items: [
         { route: 'patient/appointments', label: 'patientAppointments', icon: 'calendar' },
         { route: 'patient/messages', label: 'patientMessages', icon: 'message' },
-        { route: 'patient/consents', label: 'patientConsents', icon: 'shield' },
-        { route: 'patient/caregivers', label: 'patientCaregivers', icon: 'users' },
       ],
     },
     { id: 'account', items: [{ route: 'patient/notifications', label: 'notifications', icon: 'bell' }, { route: 'patient/settings', label: 'settings', icon: 'settings' }] },
