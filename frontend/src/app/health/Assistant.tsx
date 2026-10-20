@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useApiData, useMutation, useRequest } from '../api.js';
 import { fill, formatDate, todayIso, addDays } from '../format.js';
-import { Button, Card, Drawer, Field, Notice, PageHead, Pill } from '../ui.js';
+import { AppIcon } from '../AppIcons.js';
+import { Button, Drawer, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { SymptomForm, SYMPTOM_FREQ, type SymptomValue } from './forms.js';
 import { MicButton, OriginPill, SeverityPicker, Toast, UrgentNotice, routeForRef, useOnline, useSafetyCheck, useSpeech, useToast, type Origin } from './kit.js';
@@ -426,7 +427,7 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
   const [editing, setEditing] = useState<{ id: number | null; value: SymptomValue; origin: 'assistant' | 'form' | 'voice' } | null>(null);
   const [saved, setSaved] = useState<Set<number>>(new Set());
   const [discarded, setDiscarded] = useState<Set<number>>(new Set());
-  const [guided, setGuided] = useState(false);
+  const [mode, setMode] = useState<'ask' | 'symptom' | 'search'>('ask');
   const { toast, show, hide } = useToast();
   const end = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
@@ -491,12 +492,12 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
     notes: d.notes ?? null,
   });
 
-  const quick = [T.quick.lastTest, T.quick.meds];
+  const quick = [T.quick.lastTest, T.quick.meds, T.quick.prepare];
 
   return (
     <>
       <PageHead title={T.title} subtitle={T.subtitle} />
-      <div className="na-stack">
+      <div className="hp-stack">
         {status.state.status === 'ready' && !configured && (
           <Notice tone="info" icon="alert">
             <strong>{T.notConnectedTitle}</strong>
@@ -513,25 +514,31 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
           </Notice>
         )}
         {configured && !consented && (
-          <Card title={T.consentTitle}>
+          <section className="hp-consent" aria-labelledby="as-consent">
+            <h2 id="as-consent" className="hp-h2">
+              {T.consentTitle}
+            </h2>
             <p>{fill(T.consentBody, { provider: st?.provider ?? '' })}</p>
             <Button variant="primary" onClick={() => void setConsent(true)} disabled={consent.pending}>
               {T.consentOn}
             </Button>
-          </Card>
+          </section>
         )}
 
-        <Card
-          title={T.title}
-          actions={
-            ready && (
-              <Button small variant="quiet" onClick={() => void setConsent(false)} disabled={consent.pending}>
-                {T.consentOff}
-              </Button>
-            )
-          }
-        >
-          <div className="hp-chat">
+        <div className="hp-modes" role="tablist" aria-label={T.title}>
+          {(['ask', 'symptom', 'search'] as const).map((m) => (
+            <button key={m} type="button" role="tab" id={`as-tab-${m}`} aria-selected={mode === m} aria-controls={`as-panel-${m}`} className="hp-mode" onClick={() => setMode(m)}>
+              {T.modes[m]}
+            </button>
+          ))}
+        </div>
+
+        {mode === 'ask' && (
+          <section className="hp-panel" id="as-panel-ask" role="tabpanel" aria-labelledby="as-tab-ask">
+            <p className="hp-scope">
+              <AppIcon name="shield" size={16} className="hp-scope-icon" />
+              {T.scope}
+            </p>
             <ol className="hp-thread" aria-live="polite" aria-label={T.title}>
               {msgs.length === 0 && (
                 <li className="hp-msg">
@@ -547,7 +554,7 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
                   savedIds={saved}
                   discarded={discarded}
                   onDraft={(d, id) => setEditing({ id, value: draftToValue(d), origin: 'assistant' })}
-                  onDiscard={(id) => setDiscarded((s) => new Set(s).add(id))}
+                  onDiscard={(id) => setDiscarded((x) => new Set(x).add(id))}
                 />
               ))}
               {sending && (
@@ -575,19 +582,15 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
               </Notice>
             )}
 
-            <div className="hp-chips" role="group" aria-label={T.title}>
-              {quick.map((q) => (
-                <button key={q} type="button" className="na-chip" disabled={!ready || sending} onClick={() => void send(q)}>
-                  {q}
-                </button>
-              ))}
-              <button type="button" className="na-chip" onClick={() => setGuided(true)}>
-                {T.quick.symptom}
-              </button>
-              <button type="button" className="na-chip" onClick={() => navigate('patient/visits?new=1')}>
-                {T.quick.prepare}
-              </button>
-            </div>
+            {ready && (
+              <div className="hp-chips" role="group" aria-label={T.suggestions}>
+                {quick.map((q) => (
+                  <button key={q} type="button" className="na-chip" disabled={sending} onClick={() => void send(q)}>
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <form
               className="hp-composer"
@@ -617,36 +620,40 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
                   }
                 }}
               />
-              <div className="na-row">
-                {ready && <MicButton listening={speech.listening} supported={speech.supported} onStart={speech.start} onStop={speech.stop} error={speech.error} />}
+              <div className="hp-composer-row">
+                {ready ? <MicButton listening={speech.listening} supported={speech.supported} onStart={speech.start} onStop={speech.stop} error={speech.error} /> : <span />}
                 <Button type="submit" variant="primary" disabled={!ready || sending || !input.trim()}>
                   {T.send}
                 </Button>
               </div>
             </form>
-          </div>
-        </Card>
-
-        <div className="na-grid na-grid--2">
-          <Card title={T.search.title}>
-            <Search navigate={navigate} />
-          </Card>
-          <Card title={T.guided.title}>
-            {guided ? (
-              <Guided
-                onCancel={() => setGuided(false)}
-                onReview={(value, voiced) => {
-                  setGuided(false);
-                  setEditing({ id: null, value, origin: voiced ? 'voice' : 'form' });
-                }}
-              />
-            ) : (
-              <Button variant="primary" onClick={() => setGuided(true)}>
-                {T.guided.start}
-              </Button>
+            {ready && (
+              <div>
+                <Button small variant="quiet" onClick={() => void setConsent(false)} disabled={consent.pending}>
+                  {T.consentOff}
+                </Button>
+              </div>
             )}
-          </Card>
-        </div>
+          </section>
+        )}
+
+        {mode === 'symptom' && (
+          <section className="hp-panel" id="as-panel-symptom" role="tabpanel" aria-labelledby="as-tab-symptom">
+            <Guided
+              onCancel={() => setMode('ask')}
+              onReview={(value, voiced) => {
+                setMode('ask');
+                setEditing({ id: null, value, origin: voiced ? 'voice' : 'form' });
+              }}
+            />
+          </section>
+        )}
+
+        {mode === 'search' && (
+          <section className="hp-panel" id="as-panel-search" role="tabpanel" aria-labelledby="as-tab-search">
+            <Search navigate={navigate} />
+          </section>
+        )}
       </div>
 
       {editing && (

@@ -4,7 +4,7 @@ import { useDownload, useRequest, type ApiFailure } from '../api.js';
 import { fill, formatBytes, formatDate, nameOf } from '../format.js';
 import { Button, EmptyState, ErrorState, Loading, Notice, Pill } from '../ui.js';
 import { useA } from '../useA.js';
-import { ProvenancePill, ReviewPill } from './badges.js';
+import { ReviewPill } from './badges.js';
 
 export interface TimelineItem {
   id: string;
@@ -67,6 +67,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
   const [status, setStatus] = useState<'loading' | 'ready' | 'more' | 'error'>('loading');
   const [error, setError] = useState<ApiFailure | null>(null);
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
+  const [showFilters, setShowFilters] = useState(false);
   const [notice, setNotice] = useState('');
   const seq = useRef(0);
   const centers = useRef(new Map<string, { id: string; name_ar: string; name_en: string }>());
@@ -123,54 +124,62 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
     setTo('');
   };
 
-  const filtered = selected.length > 0 || org || from || to;
+  const filtered = selected.length > 0 || !!org || !!from || !!to;
+  const activeFilters = selected.length + (org ? 1 : 0) + (from ? 1 : 0) + (to ? 1 : 0);
 
   return (
     <div className="na-stack">
 
-      <section className="na-card" aria-label={A.common.filters.type}>
-        <div className="na-stack">
-          <div className="na-chips" role="group" aria-label={A.common.filters.type}>
-            {allowedTypes.map((t) => (
-              <button key={t} type="button" className="na-chip" aria-pressed={selected.includes(t)} onClick={() => toggleType(t)}>
-                {A.common.recordType[t]}
-              </button>
-            ))}
+      <div className="hp-filterbar">
+        <Button small variant="quiet" icon="search" aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
+          {filtered ? fill(A.health.common.filtersOn, { n: activeFilters }) : A.health.common.filters}
+        </Button>
+        {filtered && (
+          <Button small variant="quiet" onClick={reset}>
+            {A.common.filters.reset}
+          </Button>
+        )}
+      </div>
+      {showFilters && (
+        <section className="na-card hp-filters-panel" aria-label={A.common.filters.type}>
+          <div className="na-stack">
+            <div className="na-chips" role="group" aria-label={A.common.filters.type}>
+              {allowedTypes.map((t) => (
+                <button key={t} type="button" className="na-chip" aria-pressed={selected.includes(t)} onClick={() => toggleType(t)}>
+                  {A.common.recordType[t]}
+                </button>
+              ))}
+            </div>
+            <div className="na-form">
+              <div className="na-field">
+                <label className="na-label" htmlFor="tl-center">
+                  {A.common.filters.center}
+                </label>
+                <select id="tl-center" className="na-select" value={org} onChange={(e) => setOrg(e.target.value)}>
+                  <option value="">{A.common.filters.allCenters}</option>
+                  {[...centers.current.values()].map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {nameOf(A.lang, c)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="na-field">
+                <label className="na-label" htmlFor="tl-from">
+                  {A.common.filters.from}
+                </label>
+                <input id="tl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+              </div>
+              <div className="na-field">
+                <label className="na-label" htmlFor="tl-to">
+                  {A.common.filters.to}
+                </label>
+                <input id="tl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+              </div>
+            </div>
           </div>
-          <div className="na-form">
-            <div className="na-field">
-              <label className="na-label" htmlFor="tl-center">
-                {A.common.filters.center}
-              </label>
-              <select id="tl-center" className="na-select" value={org} onChange={(e) => setOrg(e.target.value)}>
-                <option value="">{A.common.filters.allCenters}</option>
-                {[...centers.current.values()].map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {nameOf(A.lang, c)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="na-field">
-              <label className="na-label" htmlFor="tl-from">
-                {A.common.filters.from}
-              </label>
-              <input id="tl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
-            </div>
-            <div className="na-field">
-              <label className="na-label" htmlFor="tl-to">
-                {A.common.filters.to}
-              </label>
-              <input id="tl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
-            </div>
-            {filtered && (
-              <Button variant="quiet" onClick={reset}>
-                {A.common.filters.reset}
-              </Button>
-            )}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {notice && (
         <Notice tone="danger" icon="alert" live>
@@ -203,11 +212,11 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                         : formatDate(A.lang, item.occurredAt, item.type === 'visit' || item.type === 'symptom_report')}
                     </time>
                   </div>
-                  <div className="na-tl-meta">
-                    <Pill>{A.common.recordType[item.type]}</Pill>
-                    <ProvenancePill provenance={item.provenance} />
-                    <ReviewPill status={item.reviewStatus} />
-                    {item.organization.id && <Pill tone="info">{nameOf(A.lang, item.organization)}</Pill>}
+                  <div className="na-tl-meta hp-meta">
+                    <span>{A.common.recordType[item.type]}</span>
+                    <span>{(A.common.provenance as Record<string, string>)[item.provenance]}</span>
+                    {['draft', 'unreviewed', 'needs_review'].includes(item.reviewStatus) && <ReviewPill status={item.reviewStatus} />}
+                    {item.organization.id && <span>{nameOf(A.lang, item.organization)}</span>}
                     {item.isExternal && <Pill tone="lilac">{A.common.record.external}</Pill>}
                   </div>
                   <button
@@ -267,7 +276,7 @@ export function titleOf(item: TimelineItem, A: ReturnType<typeof useA>): string 
     case 'document':
       return d.title || d.fileName;
     case 'appointment':
-      return d.reason || (A.common.appointmentStatus as Record<string, string>)[d.status] || d.status;
+      return d.reason || `${A.common.recordType.appointment} · ${(A.common.appointmentStatus as Record<string, string>)[d.status] || d.status}`;
     case 'symptom_report':
       return d.description;
     case 'patient_entry':

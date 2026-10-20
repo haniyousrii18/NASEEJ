@@ -16,81 +16,271 @@
   border: 0;
 }
 
-/* ------------------------------------------------------------------ Today: four plain actions */
-.hp-actions {
+/* ------------------------------------------------------------------ rhythm shared by every patient page */
+/* One vertical rhythm: sections 28px apart, items inside a section 12px. Headings sit closer to what they introduce than to what came before. */
+.hp-stack {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--na-gap, 16px);
-  margin-block-end: var(--na-gap, 16px);
+  gap: 28px;
 }
 
-.hp-action {
+.hp-section {
+  display: grid;
+  gap: 12px;
+}
+
+.hp-section-h {
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-block-size: 92px;
-  padding: 16px 18px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 24px;
-  background: var(--color-bg-elevated);
-  color: var(--color-ink);
-  text-align: start;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.hp-action:hover {
-  background: var(--color-cloud-card-hover, var(--color-bg-subtle));
-  border-color: var(--color-border-strong);
+.hp-h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 640;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
 }
 
-.hp-action:active {
-  transform: translateY(1px);
-}
-
-.hp-action-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  inline-size: 48px;
-  block-size: 48px;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  color: var(--color-accent-text, var(--color-accent));
-}
-
-.hp-action-text {
-  display: grid;
-  gap: 2px;
-  min-inline-size: 0;
-}
-
-.hp-action-text strong {
-  font-size: 16px;
+.hp-h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
   font-weight: 620;
 }
 
-.hp-action-text span {
-  font-size: 13px;
+/* ------------------------------------------------------------------ Today */
+.hp-hero {
+  display: grid;
+  gap: 14px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+  background: var(--color-bg-elevated);
+}
+
+.hp-hero-cta {
+  justify-self: start;
+  min-block-size: 52px;
+  padding-inline: 28px;
+  font-size: 16px;
+}
+
+.hp-rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-rows > li + li {
+  border-block-start: 1px solid var(--color-border-subtle);
+}
+
+.hp-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  inline-size: 100%;
+  min-block-size: 64px;
+  padding: 10px 4px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.hp-row:hover {
+  background: var(--color-bg-subtle);
+}
+
+.hp-row-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-accent) 11%, transparent);
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.hp-row-text {
+  display: grid;
+  flex: 1;
+  gap: 1px;
+  min-inline-size: 0;
+}
+
+.hp-row-text strong {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+.hp-row-text span {
+  font-size: 13.5px;
   color: var(--color-body-gray);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
-@media (max-width: 1100px) {
-  .hp-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.hp-row-go {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+[dir='rtl'] .hp-row-go,
+.na-app[dir='rtl'] .hp-row-go {
+  transform: scaleX(-1);
+}
+
+.hp-first {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: var(--color-bg-subtle);
+}
+
+.hp-first-title {
+  margin: 0;
+  font-weight: 640;
+}
+
+.hp-steps {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding-inline-start: 22px;
+}
+
+.hp-recent {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-recent > li {
+  display: grid;
+  gap: 2px;
+  padding: 12px 2px;
+}
+
+.hp-recent > li + li {
+  border-block-start: 1px solid var(--color-border-subtle);
+}
+
+.hp-recent-title {
+  font-weight: 560;
+}
+
+/* ------------------------------------------------------------------ lists of facts and documents: rows, not cards in cards */
+.hp-entries,
+.hp-docs,
+.hp-shares {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-entry,
+.hp-doc,
+.hp-share {
+  display: grid;
+  gap: 10px;
+  padding: 14px 2px;
+}
+
+.hp-entry + .hp-entry,
+.hp-doc + .hp-doc,
+.hp-share + .hp-share {
+  border-block-start: 1px solid var(--color-border-subtle);
+}
+
+.hp-entry-main,
+.hp-doc-main {
+  display: grid;
+  gap: 3px;
+  min-inline-size: 0;
+}
+
+.hp-entry-title {
+  font-size: 16px;
+  font-weight: 620;
+  overflow-wrap: anywhere;
+}
+
+.hp-entry-actions,
+.hp-doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (min-width: 720px) {
+  .hp-entry {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
   }
 }
 
-@media (max-width: 520px) {
-  .hp-actions {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-  }
-  .hp-action {
-    min-block-size: 76px;
-    padding: 12px 14px;
-  }
+.hp-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.hp-source-flag {
+  color: var(--color-status-draft-text);
+  font-weight: 600;
+}
+
+.hp-source-flag::before {
+  content: '○ ';
+}
+
+.hp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+
+.hp-prepitem {
+  gap: 6px;
+}
+
+.hp-missing {
+  margin: 0;
+  font-size: 13.5px;
+}
+
+/* ------------------------------------------------------------------ filters stay out of the way until asked for */
+.hp-filterbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-end: 10px;
+}
+
+.hp-filters-panel {
+  margin-block-end: 14px;
+}
+
+.hp-filterblock {
+  display: grid;
+  gap: 10px;
+  margin-block-end: 10px;
 }
 
 /* ------------------------------------------------------------------ small pieces */
@@ -571,5 +761,192 @@
   }
   .hp-qr {
     break-inside: avoid;
+  }
+}
+
+/* ------------------------------------------------------------------ assistant modes */
+.hp-modes {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--color-bg-subtle);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.hp-mode {
+  flex: 1 0 auto;
+  min-block-size: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-body-gray);
+  font-weight: 560;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.hp-mode[aria-selected='true'] {
+  background: var(--color-bg-elevated);
+  color: var(--color-ink);
+  font-weight: 640;
+}
+
+.hp-panel {
+  display: grid;
+  gap: 14px;
+  padding: clamp(14px, 2.4vw, 22px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+  background: var(--color-bg-elevated);
+}
+
+.hp-scope {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--color-body-gray);
+}
+
+.hp-scope-icon {
+  flex: none;
+  margin-block-start: 3px;
+  color: var(--color-accent-text, var(--color-accent));
+}
+
+.hp-consent {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-accent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-accent) 7%, var(--color-bg-elevated));
+}
+
+.hp-consent p {
+  margin: 0;
+}
+
+.hp-composer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* ------------------------------------------------------------------ sharing */
+.hp-willshare {
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 18px;
+  background: var(--color-bg-subtle);
+}
+
+.hp-willshare ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-inline-start: 20px;
+}
+
+/* ------------------------------------------------------------------ phone: a tab bar for the four common places */
+.hp-tabbar {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .hp-tabbar {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 6px 6px max(6px, env(safe-area-inset-bottom));
+    border-block-start: 1px solid var(--color-border-subtle);
+    background: var(--color-bg-elevated);
+  }
+
+  .hp-tab {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-block-size: 52px;
+    padding: 6px 2px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    min-inline-size: 0;
+    color: var(--color-body-gray);
+    font-size: 11px;
+    font-weight: 560;
+    cursor: pointer;
+  }
+
+  .hp-tab span {
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hp-tab[aria-current='page'] {
+    color: var(--color-accent-text, var(--color-accent));
+    font-weight: 700;
+  }
+
+  .hp-tab[aria-current='page'] svg {
+    stroke-width: 2.2;
+  }
+
+  /* the tab bar replaces the top-bar menu button, and keeps content and floating bars clear of itself */
+  .na-menu-btn {
+    display: none;
+  }
+
+  .na-content {
+    padding-block-end: 88px;
+  }
+
+  .hp-toast {
+    inset-block-end: 84px;
+  }
+
+  .hp-savebar {
+    inset-block-end: 72px;
+  }
+
+  .na-account-text {
+    display: none;
+  }
+
+  /* the page heading already names the page, so the top bar does not repeat it */
+  .na-top-title {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ browser surfaces and calm */
+.na-app {
+  accent-color: var(--color-accent);
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.na-app ::selection {
+  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+}
+
+.na-app .na-title {
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-row,
+  .hp-action {
+    transition: none;
   }
 }

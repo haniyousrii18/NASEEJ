@@ -61,7 +61,7 @@ Adapted from the reference in `docs/archive/accounts-design.reference.md`: large
 Deliberate differences from the reference: color comes from the Naseej tokens above, not the reference's monochrome; touch targets stay at 44px; the reference's Geist font is **not** used.
 
 ## 6. Layout (workspaces)
-Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top bar (64px) + content. Below 1024px the sidebar becomes a drawer. A faint animated line backdrop sits behind content (`AppBackdrop`) and is disabled for reduced motion.
+Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top bar (64px) + content. Below 1024px the sidebar becomes a drawer. The animated line backdrop was removed from the patient app: content sits on a plain canvas.
 
 - **Sidebar:** the patient navigation groups, then a pinned foot with the **Account** group (**Notifications** with its unread badge, then **Settings**) above **Sign out**. There is no public-site link in the sidebar.
 - **Top bar, start to end:** (mobile: drawer button) | the **collapse/expand toggle** (desktop only, between the sidebar and the page name) | page name | **notification bell** with unread count | theme | language | account menu.
@@ -70,6 +70,14 @@ Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top b
 
 ## 7. Components (workspaces)
 `PageHead`, `Card`, `Stat`, `Pill`, `Notice`, `Button`, `Field`, `EmptyState`, `Loading` (skeleton), `ErrorState`, `Async`, `Dialog`, `Drawer` in `app/ui.tsx`. Domain pieces: **Settings** (`app/pages/settings.tsx`, `.na-set-*`: a vertical tab list on the reading side beside one content card; tabs depend on the role; below 900px the tabs become a scrolling row inside their own strip; type is compact and fluid, 12.5 to 14px; every panel stays mounted so unsaved edits survive a tab switch; no instructional or explanatory text, only labels, values and feedback), **Notifications** (`app/notifications`, `.na-nt-*`: bell, panel and inbox; state is shown with a glyph and a word, never colour alone; quick actions are separate buttons from the item body), record `Timeline`, `ReviewPill`/`ProvenancePill`. The patient-record screens (`app/health`, `hp-` classes): Today action tiles, severity segmented control, undo toast, dictation button and check step, assistant thread with citations and a dashed draft card, visit-summary editor, QR panel, and the shared `SnapshotView` used for the preview, print and clinician page. An unconfirmed AI reading is always dashed and labelled; an urgent assistant message is bordered, tinted and prefixed with "!".
+
+## 7b. Patient screens (health.css)
+- **One rhythm:** sections 28px apart (`hp-stack`), items 12px; each page has one primary action (a filled button in the page head or the Today hero), everything else is quiet.
+- **Rows, not cards in cards:** lists of facts, documents and shares are hairline-separated rows (`hp-entry`, `hp-doc`, `hp-share`, `hp-row`); a card is used only for a single self-contained task (the assistant panel, the summary editor sections).
+- **Quiet provenance:** what the patient typed shows as a plain line (`hp-source`); only things that did not come from them (a document, a clinician, a machine reading) get a pill. Unconfirmed machine readings stay dashed.
+- **Filters on demand** (`hp-filterbar`, details disclosure); the assistant splits into Ask / Record a symptom / Search tabs (`hp-modes`).
+- **Phone:** a bottom tab bar (`hp-tabbar`: Today, Symptoms, Documents, Assistant, More) replaces the top-bar menu button; the top bar keeps only the bell and the account menu (language, theme, sign out live there).
+- **Sharing shows its consequences** (`hp-willshare`): items, documents, identity, end time and how to revoke, before the confirm dialog repeats them.
 
 ## 8. Clinical content rules (design-level)
 - Provenance (who or what the entry came from) and review state are visible on every record. "Not recorded" never reads as "absent".

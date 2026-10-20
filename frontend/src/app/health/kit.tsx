@@ -19,6 +19,23 @@ export const OriginPill: React.FC<{ origin: Origin; dashed?: boolean }> = ({ ori
   );
 };
 
+/**
+ * Where a fact came from, as a quiet line. What the patient typed themselves needs no label beyond the words;
+ * anything that did not come from them (a document, a clinician, a machine reading) is marked, and an unconfirmed
+ * machine reading is always dashed.
+ */
+export const SourceLine: React.FC<{ origin: Origin; confirmed?: boolean; date?: string }> = ({ origin, confirmed = true, date }) => {
+  const A = useA();
+  const label = A.health.common.source[origin] ?? origin;
+  return (
+    <span className="hp-source">
+      {origin === 'patient' || origin === 'upload' ? <span>{label}</span> : <OriginPill origin={origin} />}
+      {!confirmed && <span className="hp-source-flag">{A.health.common.reviewNeeds}</span>}
+      {date && <span>{date}</span>}
+    </span>
+  );
+};
+
 // ---------------------------------------------------------------- undo toast
 
 export interface ToastState {

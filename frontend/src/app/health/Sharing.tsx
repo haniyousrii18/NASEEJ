@@ -109,7 +109,7 @@ const Created: React.FC<{ token: string; expiresAt: string; shareId: string; onD
   );
 };
 
-const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate: (r: string) => void; onCreated: () => void }> = ({ presetPrep, maxHours, navigate, onCreated }) => {
+const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate: (r: string) => void; onCreated: () => void; onClose: () => void }> = ({ presetPrep, maxHours, navigate, onCreated, onClose }) => {
   const A = useA();
   const S = A.health.sharing;
   const preps = useApiData<Prep[]>('/api/prep?limit=50');
@@ -146,6 +146,10 @@ const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate
         allDocs.filter((d) => chosenDocs.includes(d.id)),
       )
     : null;
+
+  const itemCount = prep ? prep.content.sections.filter((x) => x.included && x.key !== 'documents').reduce((n, x) => n + x.items.length, 0) : 0;
+  const endsAt = new Date(Date.now() + hours * 3600_000);
+  const durationLabel = (DURATIONS.find((d) => d.hours === hours) ?? DURATIONS[2]).key;
 
   const create = async () => {
     setConfirming(false);
@@ -249,20 +253,37 @@ const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate
               )}
             </fieldset>
 
+            {prep && (
+              <section className="hp-willshare" aria-labelledby="sh-will">
+                <h3 id="sh-will" className="hp-h3">
+                  {S.willTitle}
+                </h3>
+                <ul>
+                  <li>{fill(S.willItems, { n: itemCount })}</li>
+                  <li>{chosenDocs.length > 0 ? fill(S.willDocs, { n: chosenDocs.length }) : S.docsNone}</li>
+                  <li>{identity ? S.willIdentityOn : S.willIdentityOff}</li>
+                  <li>{fill(S.willEnds, { date: formatDate(A.lang, endsAt, true) })}</li>
+                  <li>{S.willRevoke}</li>
+                </ul>
+              </section>
+            )}
             {error && (
               <Notice tone="danger" icon="alert" live>
                 {error}
               </Notice>
             )}
-            <div>
+            <div className="na-form-actions">
               <Button variant="primary" icon="link" onClick={() => setConfirming(true)} disabled={pending || !prep}>
                 {pending ? S.creating : S.create}
+              </Button>
+              <Button variant="quiet" onClick={onClose} disabled={pending}>
+                {A.health.common.cancel}
               </Button>
             </div>
           </div>
         )}
       </Async>
-      {confirming && <ConfirmDialog title={S.createTitle} body={S.createBody} confirmLabel={S.createConfirm} onConfirm={() => void create()} onClose={() => setConfirming(false)} />}
+      {confirming && <ConfirmDialog title={S.createTitle} body={fill(S.createBody, { docs: chosenDocs.length, duration: S.durations[durationLabel], date: formatDate(A.lang, endsAt, true) })} confirmLabel={S.createConfirm} onConfirm={() => void create()} onClose={() => setConfirming(false)} />}
     </Card>
   );
 };
@@ -296,7 +317,7 @@ const ShareRow: React.FC<{ s: Share; onRevoke: (s: Share) => void; onHistory: (s
   const A = useA();
   const S = A.health.sharing;
   return (
-    <li className="na-list-item">
+    <li className="hp-share">
       <div className="na-row na-row--between">
         <strong dir="auto">{s.label || formatDate(A.lang, s.createdAt, true)}</strong>
         <Pill tone={s.state === 'active' ? 'ok' : 'neutral'}>
@@ -330,6 +351,7 @@ export const PatientSharing: React.FC<{ navigate: (r: string) => void }> = ({ na
   const { run, pending } = useMutation();
   const { toast, show, hide } = useToast();
   const preset = hashParam('prep');
+  const [creating, setCreating] = useState(false);
 
   const revoke = async (s: Share) => {
     setRevoking(null);
@@ -342,31 +364,61 @@ export const PatientSharing: React.FC<{ navigate: (r: string) => void }> = ({ na
   const active = list.filter((s) => s.state === 'active');
   const past = list.filter((s) => s.state !== 'active');
 
+  const showForm = creating || !!preset;
+  const nothingYet = shares.state.status === 'ready' && list.length === 0;
+
   return (
     <>
-      <PageHead title={S.title} subtitle={S.subtitle} />
-      <div className="na-stack">
-        <NewShare presetPrep={preset} maxHours={shares.state.status === 'ready' ? Number(shares.state.meta?.maxHours) || 168 : 168} navigate={navigate} onCreated={() => setVersion((v) => v + 1)} />
-        <Card title={S.active}>
-          <Async state={shares.state} onRetry={shares.reload} isEmpty={() => active.length === 0} empty={<EmptyState title={S.none} body={S.noneBody} />}>
-            {() => (
-              <ul className="na-list">
-                {active.map((s) => (
-                  <ShareRow key={s.id} s={s} onRevoke={setRevoking} onHistory={setHistory} />
-                ))}
-              </ul>
-            )}
-          </Async>
-        </Card>
-        {past.length > 0 && (
-          <Card title={S.past}>
-            <ul className="na-list">
-              {past.map((s) => (
-                <ShareRow key={s.id} s={s} onRevoke={setRevoking} onHistory={setHistory} />
-              ))}
-            </ul>
-          </Card>
-        )}
+      <PageHead
+        title={S.title}
+        subtitle={S.subtitle}
+        actions={
+          !showForm && (
+            <Button variant="primary" icon="link" onClick={() => setCreating(true)}>
+              {S.newTitle}
+            </Button>
+          )
+        }
+      />
+      <div className="hp-stack">
+        {showForm && <NewShare presetPrep={preset} maxHours={shares.state.status === 'ready' ? Number(shares.state.meta?.maxHours) || 168 : 168} navigate={navigate} onCreated={() => setVersion((v) => v + 1)} onClose={() => setCreating(false)} />}
+        <Async state={shares.state} onRetry={shares.reload}>
+          {() =>
+            nothingYet && !showForm ? (
+              <EmptyState
+                title={S.none}
+                body={S.noneBody}
+              />
+            ) : (
+              <>
+                {active.length > 0 && (
+                  <section className="hp-section" aria-labelledby="sh-active">
+                    <h2 id="sh-active" className="hp-h2">
+                      {S.active}
+                    </h2>
+                    <ul className="hp-shares">
+                      {active.map((x) => (
+                        <ShareRow key={x.id} s={x} onRevoke={setRevoking} onHistory={setHistory} />
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                {past.length > 0 && (
+                  <section className="hp-section" aria-labelledby="sh-past">
+                    <h2 id="sh-past" className="hp-h2">
+                      {S.past}
+                    </h2>
+                    <ul className="hp-shares">
+                      {past.map((x) => (
+                        <ShareRow key={x.id} s={x} onRevoke={setRevoking} onHistory={setHistory} />
+                      ))}
+                    </ul>
+                  </section>
+                )}
+              </>
+            )
+          }
+        </Async>
       </div>
       {revoking && <ConfirmDialog title={S.revokeTitle} body={S.revokeBody} confirmLabel={S.revokeConfirm} danger pending={pending} onConfirm={() => void revoke(revoking)} onClose={() => setRevoking(null)} />}
       {history && <History share={history} onClose={() => setHistory(null)} />}

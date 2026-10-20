@@ -451,34 +451,37 @@ const DocCard: React.FC<{ doc: VaultDoc; ai: AiInfo; trash: boolean; onChanged: 
   const mine = doc.sourceType === 'patient_uploaded';
 
   return (
-    <li className="na-list-item hp-doc">
-      <div className="na-row na-row--between">
-        <strong dir="auto" className="na-item-title">
+    <li className="hp-doc">
+      <div className="hp-doc-main">
+        <strong dir="auto" className="hp-entry-title">
           {doc.title}
         </strong>
-        {doc.docType && <Pill tone="info">{(V.types as Record<string, string>)[doc.docType] ?? doc.docType}</Pill>}
+        <span className="na-muted" dir="auto">
+          {[doc.docType ? (V.types as Record<string, string>)[doc.docType] ?? doc.docType : null, doc.documentDate ? formatDate(A.lang, doc.documentDate) : formatDate(A.lang, doc.createdAt), doc.providerName, formatBytes(doc.fileSize)].filter(Boolean).join(' · ')}
+        </span>
+        <span className="hp-source">
+          {mine ? <span>{V.byMe}</span> : <OriginPill origin="clinician" />}
+          {doc.center && <span>{A.lang === 'ar' ? doc.center.name_ar : doc.center.name_en}</span>}
+          {doc.aiStatus && <Pill tone={AI_TONE[doc.aiStatus]}>{V.ai_states[doc.aiStatus]}</Pill>}
+        </span>
+        {doc.aiStatus === 'failed' && (
+          <Notice tone="danger" icon="alert" live>
+            {failedText}
+          </Notice>
+        )}
       </div>
-      <span className="na-muted" dir="auto">
-        {[doc.documentDate ? formatDate(A.lang, doc.documentDate) : formatDate(A.lang, doc.createdAt), doc.providerName, formatBytes(doc.fileSize)].filter(Boolean).join(' · ')}
-      </span>
-      <div className="na-row">
-        <OriginPill origin={mine ? 'upload' : 'clinician'} />
-        {doc.center && <Pill tone="info">{A.lang === 'ar' ? doc.center.name_ar : doc.center.name_en}</Pill>}
-        {doc.aiStatus && <Pill tone={AI_TONE[doc.aiStatus]}>{V.ai_states[doc.aiStatus]}</Pill>}
-        {doc.links.length > 0 && <Pill>{fill(`${V.links}: {n}`, { n: doc.links.length })}</Pill>}
-      </div>
-      {doc.aiStatus === 'failed' && (
-        <Notice tone="danger" icon="alert" live>
-          {failedText}
-        </Notice>
-      )}
-      <div className="na-row">
+      <div className="hp-doc-actions">
         {trash ? (
           <Button small variant="primary" onClick={() => void restore()} disabled={pending}>
             {A.health.common.restore}
           </Button>
         ) : (
           <>
+            {doc.openSuggestions > 0 && (
+              <Button small variant="primary" onClick={() => setPanel('suggestions')}>
+                {fill(V.reviewSuggestions, { n: doc.openSuggestions })}
+              </Button>
+            )}
             <Button small icon="download" onClick={() => void open()}>
               {V.original}
             </Button>
@@ -490,11 +493,6 @@ const DocCard: React.FC<{ doc: VaultDoc; ai: AiInfo; trash: boolean; onChanged: 
             {mine && ai.configured && (!doc.aiStatus || doc.aiStatus === 'failed') && (
               <Button small variant="quiet" onClick={() => setAskAi(true)} disabled={pending}>
                 {doc.aiStatus === 'failed' ? V.analyzeAgain : V.analyze}
-              </Button>
-            )}
-            {doc.openSuggestions > 0 && (
-              <Button small variant="primary" onClick={() => setPanel('suggestions')}>
-                {fill(V.reviewSuggestions, { n: doc.openSuggestions })}
               </Button>
             )}
             {mine && (
@@ -598,35 +596,33 @@ export const PatientVault: React.FC = () => {
             }}
           />
         )}
-        <Card
-          title={trash ? V.trash : undefined}
-          actions={
-            <Button small variant="quiet" onClick={() => setTrash((t) => !t)}>
-              {trash ? V.back : V.trash}
-            </Button>
-          }
-        >
+        <Card title={trash ? V.trash : undefined}>
           {!trash && (
-            <div className="na-form hp-filters">
+            <div className="hp-filterblock">
               <Field label={V.search} htmlFor="vl-q">
                 <input id="vl-q" type="search" className="na-input" dir="auto" value={q} onChange={(e) => setQ(e.target.value)} />
               </Field>
-              <Field label={V.type} htmlFor="vl-type">
-                <select id="vl-type" className="na-select" value={type} onChange={(e) => setType(e.target.value)}>
-                  <option value="">{V.allTypes}</option>
-                  {DOC_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {V.types[t]}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label={V.from} htmlFor="vl-from">
-                <input id="vl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
-              </Field>
-              <Field label={V.to} htmlFor="vl-to">
-                <input id="vl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
-              </Field>
+              <details className="hp-disclose">
+                <summary>{A.health.common.moreFilters}</summary>
+                <div className="na-form">
+                  <Field label={V.type} htmlFor="vl-type">
+                    <select id="vl-type" className="na-select" value={type} onChange={(e) => setType(e.target.value)}>
+                      <option value="">{V.allTypes}</option>
+                      {DOC_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {V.types[t]}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label={V.from} htmlFor="vl-from">
+                    <input id="vl-from" type="date" className="na-input" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+                  </Field>
+                  <Field label={V.to} htmlFor="vl-to">
+                    <input id="vl-to" type="date" className="na-input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+                  </Field>
+                </div>
+              </details>
             </div>
           )}
           <Async
@@ -639,12 +635,12 @@ export const PatientVault: React.FC = () => {
               ) : q || type || from || to ? (
                 <EmptyState title={V.noMatch} />
               ) : (
-                <EmptyState title={V.empty} body={V.emptyBody} action={<Button variant="primary" onClick={() => setAdding(true)}>{V.add}</Button>} />
+                <EmptyState title={V.empty} body={V.emptyBody} />
               )
             }
           >
             {(items) => (
-              <ul className="na-list">
+              <ul className="hp-docs">
                 {items.map((d) => (
                   <DocCard key={d.id} doc={d} ai={ai} trash={trash} onChanged={changed} toast={show} />
                 ))}
@@ -652,6 +648,11 @@ export const PatientVault: React.FC = () => {
             )}
           </Async>
         </Card>
+        <div>
+          <Button small variant="quiet" onClick={() => setTrash((t) => !t)}>
+            {trash ? V.back : V.trash}
+          </Button>
+        </div>
       </div>
       <Toast toast={toast} onClose={hide} />
     </>

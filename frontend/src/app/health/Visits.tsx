@@ -131,7 +131,36 @@ export const PatientVisits: React.FC<{ navigate: (r: string) => void }> = ({ nav
           </Button>
         }
       />
-      <div className="na-grid na-grid--2">
+      <div className="hp-stack">
+        <Card title={V.myPreps}>
+          <Async state={preps.state} onRetry={preps.reload} isEmpty={(d) => d.length === 0} empty={<EmptyState title={V.prepsEmpty} body={V.prepareBody} action={<Button variant="primary" onClick={() => setStarting({})}>{V.prepareTitle}</Button>} />}>
+            {(list) => (
+              <ul className="na-list">
+                {list.map((p) => (
+                  <li key={p.id} className="na-list-item hp-prepitem">
+                    <div className="na-row na-row--between">
+                      <strong dir="auto">{p.content.reason || (p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate)}</strong>
+                      <Pill tone={p.status === 'approved' ? 'ok' : 'warn'}>
+                        <span aria-hidden="true">{p.status === 'approved' ? '✓' : '○'}</span> {p.status === 'approved' ? V.approved : V.draft}
+                      </Pill>
+                    </div>
+                    <span className="na-muted">
+                      {[p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate, fill(V.updated, { date: formatDate(A.lang, p.updatedAt) })].join(' · ')}
+                    </span>
+                    <div className="na-row">
+                      <Button small variant="primary" onClick={() => navigate(`patient/visits/prep/${p.id}`)}>
+                        {V.open}
+                      </Button>
+                      <Button small variant="quiet" onClick={() => setAskDelete(p)}>
+                        {V.deletePrep}
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Async>
+        </Card>
         <Card
           title={V.upcoming}
           actions={
@@ -158,36 +187,6 @@ export const PatientVisits: React.FC<{ navigate: (r: string) => void }> = ({ nav
                     </li>
                   );
                 })}
-              </ul>
-            )}
-          </Async>
-        </Card>
-
-        <Card title={V.myPreps}>
-          <Async state={preps.state} onRetry={preps.reload} isEmpty={(d) => d.length === 0} empty={<EmptyState title={V.prepsEmpty} body={V.prepareBody} action={<Button variant="primary" onClick={() => setStarting({})}>{V.prepareTitle}</Button>} />}>
-            {(list) => (
-              <ul className="na-list">
-                {list.map((p) => (
-                  <li key={p.id} className="na-list-item">
-                    <div className="na-row na-row--between">
-                      <strong dir="auto">{p.content.reason || (p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate)}</strong>
-                      <Pill tone={p.status === 'approved' ? 'ok' : 'warn'}>
-                        <span aria-hidden="true">{p.status === 'approved' ? '✓' : '○'}</span> {p.status === 'approved' ? V.approved : V.draft}
-                      </Pill>
-                    </div>
-                    <span className="na-muted">
-                      {[p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate, fill(V.updated, { date: formatDate(A.lang, p.updatedAt) })].join(' · ')}
-                    </span>
-                    <div className="na-row">
-                      <Button small variant="primary" onClick={() => navigate(`patient/visits/prep/${p.id}`)}>
-                        {V.open}
-                      </Button>
-                      <Button small variant="quiet" onClick={() => setAskDelete(p)}>
-                        {V.deletePrep}
-                      </Button>
-                    </div>
-                  </li>
-                ))}
               </ul>
             )}
           </Async>

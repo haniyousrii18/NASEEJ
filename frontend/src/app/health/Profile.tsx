@@ -3,65 +3,52 @@ import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate } from '../format.js';
 import { Timeline } from '../record/Timeline.js';
 import { SummaryView, type PortalSummary } from '../pages/patient.js';
-import { Async, Button, Card, Drawer, EmptyState, PageHead, Pill } from '../ui.js';
+import { Async, Button, Card, Drawer, EmptyState, PageHead } from '../ui.js';
 import { useA } from '../useA.js';
 import { ENTRY_KINDS, EntryForm, type Entry, type EntryKind } from './forms.js';
-import { ConfirmDialog, OriginPill, Toast, useToast } from './kit.js';
+import { ConfirmDialog, SourceLine, Toast, useToast } from './kit.js';
 
 type Tab = EntryKind | 'clinicians';
 
-/** One health fact as a calm card: what it is, the few details, and where it came from. */
-const EntryCard: React.FC<{ e: Entry; onEdit: () => void; onDelete: () => void }> = ({ e, onEdit, onDelete }) => {
+/** One health fact: what it is, the few details that matter, and where it came from as a quiet line. */
+const EntryRow: React.FC<{ e: Entry; onEdit: () => void; onDelete: () => void }> = ({ e, onEdit, onDelete }) => {
   const A = useA();
   const H = A.health.profile;
   const date = e.kind === 'condition' || e.kind === 'medication' ? e.startDate : e.eventDate;
-  const details = [
-    e.dose,
-    e.frequency,
-    e.reaction,
-    e.severity ? H.fields.sev[e.severity] : null,
-    e.value ? `${e.value}${e.unit ? ` ${e.unit}` : ''}` : null,
-    e.providerName,
-    e.kind === 'condition' || e.kind === 'medication' ? (e.status === 'past' ? H.fields.past[e.kind] : H.fields.active[e.kind]) : null,
-  ].filter(Boolean) as string[];
+  const status = e.kind === 'condition' || e.kind === 'medication' ? (e.status === 'past' ? H.fields.past[e.kind] : H.fields.active[e.kind]) : null;
+  const details = [e.dose, e.frequency, e.reaction, e.severity ? H.fields.sev[e.severity] : null, e.value ? `${e.value}${e.unit ? ` ${e.unit}` : ''}` : null, e.providerName, status].filter(Boolean) as string[];
   return (
-    <li className="na-list-item hp-entry">
-      <div className="na-row na-row--between">
-        <strong dir="auto" className="na-item-title">
+    <li className="hp-entry">
+      <div className="hp-entry-main">
+        <strong dir="auto" className="hp-entry-title">
           {e.title}
         </strong>
-        <div className="na-row">
-          <Button small variant="quiet" onClick={onEdit}>
-            {A.health.common.edit}
-          </Button>
-          <Button small variant="quiet" onClick={onDelete}>
-            {A.health.common.remove}
-          </Button>
-        </div>
+        {details.length > 0 && <span dir="auto">{details.join(' · ')}</span>}
+        {e.notes && (
+          <span className="na-muted" dir="auto">
+            {e.notes}
+          </span>
+        )}
+        <SourceLine origin={e.source} confirmed={e.reviewStatus === 'confirmed'} date={date ? (e.kind === 'condition' ? fill(H.since, { date: formatDate(A.lang, date) }) : formatDate(A.lang, date)) : undefined} />
       </div>
-      {details.length > 0 && <p dir="auto">{details.join(' · ')}</p>}
-      {e.notes && (
-        <p className="na-muted" dir="auto">
-          {e.notes}
-        </p>
-      )}
-      <div className="na-row">
-        <OriginPill origin={e.source} />
-        <Pill tone={e.reviewStatus === 'confirmed' ? 'ok' : 'warn'}>
-          <span aria-hidden="true">{e.reviewStatus === 'confirmed' ? '✓' : '○'}</span> {e.reviewStatus === 'confirmed' ? A.health.common.reviewConfirmed : A.health.common.reviewNeeds}
-        </Pill>
-        {date && <span className="na-muted">{e.kind === 'condition' ? fill(H.since, { date: formatDate(A.lang, date) }) : formatDate(A.lang, date)}</span>}
+      <div className="hp-entry-actions">
+        <Button small variant="quiet" onClick={onEdit} aria-label={`${A.health.common.edit}: ${e.title}`}>
+          {A.health.common.edit}
+        </Button>
+        <Button small variant="quiet" onClick={onDelete} aria-label={`${A.health.common.remove}: ${e.title}`}>
+          {A.health.common.remove}
+        </Button>
       </div>
     </li>
   );
 };
 
-export const EntryList: React.FC<{ kind: EntryKind; version: number; onChanged: () => void; toast: ReturnType<typeof useToast>['show'] }> = ({ kind, version, onChanged, toast }) => {
+export const EntryList: React.FC<{ kind: EntryKind; version: number; adding: boolean; onAddClose: () => void; onAdd: () => void; onChanged: () => void; toast: ReturnType<typeof useToast>['show'] }> = ({ kind, version, adding, onAddClose, onAdd, onChanged, toast }) => {
   const A = useA();
   const H = A.health.profile;
   const list = useApiData<Entry[]>(`/api/record/entries?kind=${kind}&v=${version}`);
   const { run } = useMutation();
-  const [editing, setEditing] = useState<Entry | 'new' | null>(null);
+  const [editing, setEditing] = useState<Entry | null>(null);
   const [asking, setAsking] = useState<Entry | null>(null);
 
   const doDelete = async (e: Entry) => {
@@ -80,32 +67,36 @@ export const EntryList: React.FC<{ kind: EntryKind; version: number; onChanged: 
 
   return (
     <>
-      <Card
-        title={H.tabs[kind]}
-        actions={
-          <Button small variant="primary" icon="plus" onClick={() => setEditing('new')}>
-            {H.add[kind]}
-          </Button>
+      <Async
+        state={list.state}
+        onRetry={list.reload}
+        isEmpty={(d) => d.length === 0}
+        empty={
+          <EmptyState
+            title={H.empty[kind]}
+            body={H.emptyBody}
+          />
         }
       >
-        <Async state={list.state} onRetry={list.reload} isEmpty={(d) => d.length === 0} empty={<EmptyState title={H.empty[kind]} body={H.emptyBody} action={<Button variant="primary" onClick={() => setEditing('new')}>{H.add[kind]}</Button>} />}>
-          {(items) => (
-            <ul className="na-list">
+        {(items) => (
+          <Card flat>
+            <ul className="hp-entries">
               {items.map((e) => (
-                <EntryCard key={e.id} e={e} onEdit={() => setEditing(e)} onDelete={() => setAsking(e)} />
+                <EntryRow key={e.id} e={e} onEdit={() => setEditing(e)} onDelete={() => setAsking(e)} />
               ))}
             </ul>
-          )}
-        </Async>
-      </Card>
-      {editing && (
-        <Drawer title={editing === 'new' ? H.newTitle[kind] : H.editTitle[kind]} onClose={() => setEditing(null)}>
+          </Card>
+        )}
+      </Async>
+      {(adding || editing) && (
+        <Drawer title={editing ? H.editTitle[kind] : H.newTitle[kind]} onClose={() => (editing ? setEditing(null) : onAddClose())}>
           <EntryForm
             kind={kind}
-            initial={editing === 'new' ? undefined : editing}
-            onCancel={() => setEditing(null)}
+            initial={editing ?? undefined}
+            onCancel={() => (editing ? setEditing(null) : onAddClose())}
             onSaved={() => {
               setEditing(null);
+              onAddClose();
               onChanged();
               toast({ text: A.health.common.saved });
             }}
@@ -122,21 +113,32 @@ export const PatientProfile: React.FC<{ navigate: (r: string) => void }> = () =>
   const H = A.health.profile;
   const [tab, setTab] = useState<Tab>('condition');
   const [version, setVersion] = useState(0);
+  const [adding, setAdding] = useState(false);
   const { toast, show, hide } = useToast();
   const summary = useApiData<PortalSummary>(tab === 'clinicians' ? '/api/portal/summary' : null);
 
   return (
     <>
-      <PageHead title={H.title} subtitle={H.subtitle} />
+      <PageHead
+        title={H.title}
+        subtitle={H.subtitle}
+        actions={
+          tab !== 'clinicians' && (
+            <Button variant="primary" icon="plus" onClick={() => setAdding(true)}>
+              {H.add[tab]}
+            </Button>
+          )
+        }
+      />
       <nav className="na-tabs" aria-label={H.title}>
         {[...ENTRY_KINDS, 'clinicians' as const].map((t) => (
-          <button key={t} type="button" className="na-tab" aria-current={tab === t ? 'page' : undefined} onClick={() => setTab(t)}>
+          <button key={t} type="button" className="na-tab" aria-current={tab === t ? 'page' : undefined} onClick={() => { setTab(t); setAdding(false); }}>
             {H.tabs[t]}
           </button>
         ))}
       </nav>
       {tab === 'clinicians' ? (
-        <div className="na-stack">
+        <div className="hp-stack">
           <p className="na-muted">{H.clinicianNote}</p>
           <Async state={summary.state} onRetry={summary.reload}>
             {(s) => <SummaryView s={s} />}
@@ -146,7 +148,7 @@ export const PatientProfile: React.FC<{ navigate: (r: string) => void }> = () =>
           </Card>
         </div>
       ) : (
-        <EntryList key={tab} kind={tab} version={version} onChanged={() => setVersion((v) => v + 1)} toast={show} />
+        <EntryList key={tab} kind={tab} version={version} adding={adding} onAdd={() => setAdding(true)} onAddClose={() => setAdding(false)} onChanged={() => setVersion((v) => v + 1)} toast={show} />
       )}
       <Toast toast={toast} onClose={hide} />
     </>

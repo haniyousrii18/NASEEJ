@@ -57,6 +57,7 @@ const Section: React.FC<{
         </label>
       }
       className={section.included ? undefined : 'hp-off'}
+      flat
     >
       {section.items.length === 0 && !isFree ? <p className="na-muted">{E.emptySection}</p> : null}
       <ul className="na-list">
@@ -366,9 +367,16 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
                 </div>
               )}
             </Card>
-            {ordered.map((s) => (
-              <Section key={s.key} section={s} onChange={setSection} onPickDocs={() => setPicking(true)} />
-            ))}
+            {ordered
+              .filter((x) => x.items.length > 0 || FREE_TEXT.has(x.key) || x.key === 'documents')
+              .map((x) => (
+                <Section key={x.key} section={x} onChange={setSection} onPickDocs={() => setPicking(true)} />
+              ))}
+            {ordered.some((x) => x.items.length === 0 && !FREE_TEXT.has(x.key) && x.key !== 'documents') && (
+              <p className="na-muted hp-missing">
+                {E.notInRecord}: {ordered.filter((x) => x.items.length === 0 && !FREE_TEXT.has(x.key) && x.key !== 'documents').map((x) => (E.sections as Record<string, string>)[x.key]).join('، ')}
+              </p>
+            )}
           </>
         )}
 

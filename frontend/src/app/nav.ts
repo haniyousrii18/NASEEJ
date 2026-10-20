@@ -26,18 +26,18 @@ export interface NavGroup {
 
 export const NAV: Record<AppRole, NavGroup[]> = {
   patient: [
-    { id: 'overview', items: [{ route: 'patient/home', label: 'patientHome', icon: 'home' }] },
     {
-      id: 'myRecord',
+      id: 'overview',
       items: [
+        { route: 'patient/home', label: 'patientHome', icon: 'home' },
         { route: 'patient/profile', label: 'patientProfile', icon: 'user' },
         { route: 'patient/timeline', label: 'patientTimeline', icon: 'timeline' },
         { route: 'patient/documents', label: 'patientDocuments', icon: 'documents' },
         { route: 'patient/visits', label: 'patientVisits', icon: 'visit' },
+        { route: 'patient/assistant', label: 'patientAssistant', icon: 'pulse' },
+        { route: 'patient/sharing', label: 'patientSharing', icon: 'link' },
       ],
     },
-    { id: 'assist', items: [{ route: 'patient/assistant', label: 'patientAssistant', icon: 'pulse' }] },
-    { id: 'sharing', items: [{ route: 'patient/sharing', label: 'patientSharing', icon: 'link' }] },
     { id: 'account', items: [{ route: 'patient/notifications', label: 'notifications', icon: 'bell' }, { route: 'patient/settings', label: 'settings', icon: 'settings' }] },
   ],
 };
