@@ -11,6 +11,8 @@ import { rateLimit, SlidingWindow } from '../services/rateLimit.js';
 import { fileExists, resolveStoredPath } from '../services/storageService.js';
 import { apiError, clampInt, isUuid, serverError } from '../services/validation.js';
 import { apiLimiter } from '../services/apiLimit.js';
+import { parseTarget, parseTexts, stringsIn, translateTexts } from '../services/health/translate.js';
+import { allUnavailable, patientHasConsented } from './translateRoutes.js';
 
 /**
  * Temporary, revocable, read-only sharing.
@@ -221,6 +223,30 @@ publicShareRouter.post('/view', async (req: Request, res: Response): Promise<voi
     await query('UPDATE record_shares SET view_count = view_count + 1, last_viewed_at = NOW() WHERE id = $1', [s.id]);
     await record(req, s.id, 'view');
     res.json({ success: true, data: { snapshot: s.snapshot, expiresAt: s.expires_at } });
+  } catch (err) {
+    res.status(500).json(serverError(err));
+  }
+});
+
+// POST /api/share-view/translate  { token, texts, target }  translates wording that is inside THIS share, for the clinician reading it.
+// Only strings the frozen summary actually contains are accepted, so a link cannot be used as a general translator.
+const translateBurst = rateLimit({ windowMs: 60_000, max: 20, code: 'RATE_LIMITED', message: 'Too many requests. Please wait a minute and try again.' });
+publicShareRouter.post('/translate', translateBurst, async (req: Request, res: Response): Promise<void> => {
+  if (guessBlocked(req, res)) return;
+  const texts = parseTexts(req.body?.texts);
+  const target = parseTarget(req.body?.target);
+  if (!texts || !target) return void res.status(400).json(apiError('VALIDATION_ERROR', 'Send 1 to 20 texts and a target language (ar or en).'));
+  try {
+    const found = await lookup(req.body?.token);
+    if (!('share' in found)) return deny(req, res, found);
+    // The patient's permission for AI reading of their text covers this too; without it the clinician sees the original.
+    if (!(await patientHasConsented(found.share.patient_id))) return void res.json({ success: true, data: { items: allUnavailable(texts.length, 'consent') } });
+    const inside = stringsIn(found.share.snapshot);
+    const allowed = texts.filter((t) => inside.has(t));
+    const done = allowed.length ? await translateTexts(allowed, target) : [];
+    let k = 0;
+    const items = texts.map((t) => (inside.has(t) ? done[k++] : { status: 'unavailable' as const, reason: 'not_allowed' as const }));
+    res.json({ success: true, data: { items } });
   } catch (err) {
     res.status(500).json(serverError(err));
   }

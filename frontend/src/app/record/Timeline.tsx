@@ -7,6 +7,7 @@ import { FilterBar } from '../health/filters.js';
 import { useA } from '../useA.js';
 import { ReviewPill } from './badges.js';
 import { DatePicker } from '../DatePicker.js';
+import { UserText } from '../translate/UserText.js';
 
 export interface TimelineItem {
   id: string;
@@ -200,7 +201,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                 </span>
                 <div className="na-tl-body">
                   <div className="na-tl-head">
-                    <span className="na-tl-title">{titleOf(item, A)}</span>
+                    <span className="na-tl-title"><UserText text={titleOf(item, A)} /></span>
                     <time className="na-tl-date" dateTime={item.occurredAt}>
                       {item.type === 'appointment'
                         ? `${formatDate(A.lang, String(item.data.date))} ${item.data.startTime}`
@@ -288,7 +289,9 @@ const Details: React.FC<{ item: TimelineItem; onDownload?: () => void }> = ({ it
     value === null || value === undefined || value === '' ? null : (
       <>
         <dt>{label}</dt>
-        <dd>{String(value)}</dd>
+        <dd>
+          <UserText text={String(value)} />
+        </dd>
       </>
     );
 

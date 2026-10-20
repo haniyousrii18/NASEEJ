@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { UserText } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate, todayIso } from '../format.js';
 import type { TimelineItem } from '../record/Timeline.js';
@@ -140,7 +141,7 @@ export const PatientVisits: React.FC<{ navigate: (r: string) => void }> = ({ nav
                 {list.map((p) => (
                   <li key={p.id} className="na-list-item hp-prepitem">
                     <div className="na-row na-row--between">
-                      <strong dir="auto">{p.content.reason || (p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate)}</strong>
+                      <strong>{p.content.reason ? <UserText text={p.content.reason} /> : p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate}</strong>
                       <Pill tone={p.status === 'approved' ? 'ok' : 'warn'}>
                         <span aria-hidden="true">{p.status === 'approved' ? '✓' : '○'}</span> {p.status === 'approved' ? V.approved : V.draft}
                       </Pill>
@@ -177,7 +178,7 @@ export const PatientVisits: React.FC<{ navigate: (r: string) => void }> = ({ nav
                   const date = i.type === 'appointment' ? String(i.data.date) : i.occurredAt.slice(0, 10);
                   return (
                     <li key={i.id} className="na-list-item">
-                      <strong dir="auto">{i.type === 'appointment' ? i.data.reason || V.appointment : i.data.title}</strong>
+                      <strong><UserText text={i.type === 'appointment' ? i.data.reason || V.appointment : i.data.title} /></strong>
                       <span className="na-muted">{[formatDate(A.lang, date), i.type === 'appointment' ? i.data.startTime : ''].filter(Boolean).join(' · ')}</span>
                       <div className="na-row">
                         <Pill>{i.type === 'appointment' ? V.appointment : V.myVisit}</Pill>

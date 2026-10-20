@@ -11,6 +11,7 @@ import { vaultRouter } from './routes/vaultRoutes.js';
 import { prepRouter } from './routes/prepRoutes.js';
 import { patientShareRouter, publicShareRouter } from './routes/shareRoutes.js';
 import { assistantRouter } from './routes/assistantRoutes.js';
+import { translateRouter } from './routes/translateRoutes.js';
 import { ENV } from './config/env.js';
 
 export const app: Express = express();
@@ -47,6 +48,8 @@ app.use('/api/prep', prepRouter);
 app.use('/api/shares', patientShareRouter);
 app.use('/api/share-view', publicShareRouter);
 app.use('/api/assistant', assistantRouter);
+app.use('/api/translate', translateRouter);
+app.use('/api/translate', translateRouter);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {

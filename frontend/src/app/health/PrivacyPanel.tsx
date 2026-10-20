@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useApiData, useMutation } from '../api.js';
 import { Button, Notice, Pill } from '../ui.js';
 import { useA } from '../useA.js';
+import { useTranslator } from '../translate/TranslationContext.js';
 
 /** Privacy controls for the patient-owned record: the assistant switch, a way to the share list and the deleted documents. */
 export const PrivacySection: React.FC<{ navigate: (route: string) => void }> = ({ navigate }) => {
   const A = useA();
+  const translator = useTranslator();
   const P = A.health.privacy;
   const status = useApiData<{ configured: boolean; consent: boolean; provider: string | null }>('/api/assistant/status');
   const { run, pending } = useMutation();
@@ -18,7 +20,10 @@ export const PrivacySection: React.FC<{ navigate: (route: string) => void }> = (
   const toggle = async () => {
     setFailed(false);
     const res = await run('/api/assistant/consent', 'POST', { allowed: !on });
-    if (res.ok) setOverride(!on);
+    if (res.ok) {
+      setOverride(!on);
+      translator?.reset();
+    }
     else setFailed(true);
   };
 

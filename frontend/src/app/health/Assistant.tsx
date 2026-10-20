@@ -4,6 +4,7 @@ import { fill, formatDate, todayIso, addDays } from '../format.js';
 import { AppIcon } from '../AppIcons.js';
 import { Button, Drawer, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
+import { useTranslator } from '../translate/TranslationContext.js';
 import { SymptomForm, SYMPTOM_FREQ, type SymptomValue } from './forms.js';
 import { MicButton, OriginPill, SeverityPicker, Toast, UrgentNotice, routeForRef, useOnline, useSafetyCheck, useSpeech, useToast, type Origin } from './kit.js';
 import { DatePicker } from '../DatePicker.js';
@@ -418,6 +419,7 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
   const T = A.health.assistant;
   const status = useApiData<Status>('/api/assistant/status');
   const consent = useMutation();
+  const translator = useTranslator();
   const request = useRequest();
   const online = useOnline();
   const [consentOverride, setConsentOverride] = useState<boolean | null>(null);
@@ -449,7 +451,10 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
 
   const setConsent = async (allowed: boolean) => {
     const res = await consent.run('/api/assistant/consent', 'POST', { allowed });
-    if (res.ok) setConsentOverride(allowed);
+    if (res.ok) {
+      setConsentOverride(allowed);
+      translator?.reset();
+    }
     else show({ text: T.consentFailed, tone: 'danger' });
   };
 

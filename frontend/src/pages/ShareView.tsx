@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SnapshotView, type Snapshot } from '../app/health/SnapshotView.js';
 import { appT } from '../app/i18n/index.js';
+import { ShareTranslationProvider } from '../app/translate/TranslationContext.js';
 import { formatDate, fill } from '../app/format.js';
 import '../styles/share.css';
 
@@ -120,7 +121,9 @@ export const ShareView: React.FC = () => {
                 {T.print}
               </button>
             </div>
-            <SnapshotView snapshot={state.snapshot} onOpenDoc={(id) => void openDoc(id)} docError={docError} />
+            <ShareTranslationProvider token={token}>
+              <SnapshotView snapshot={state.snapshot} onOpenDoc={(id) => void openDoc(id)} docError={docError} />
+            </ShareTranslationProvider>
           </>
         )}
       </main>

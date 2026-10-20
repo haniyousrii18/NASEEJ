@@ -1,4 +1,5 @@
 import React from 'react';
+import { UserText } from '../translate/UserText.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { useApiData } from '../api.js';
 import { fill, formatDate } from '../format.js';
@@ -129,8 +130,8 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
                 <ul className="hp-recent">
                   {items.map((i) => (
                     <li key={i.id}>
-                      <span dir="auto" className="hp-recent-title">
-                        {titleOf(i, A)}
+                      <span className="hp-recent-title">
+                        <UserText text={titleOf(i, A)} />
                       </span>
                       <span className="na-muted">
                         {A.common.recordType[i.type]} · {formatDate(A.lang, i.occurredAt)}
