@@ -54,7 +54,7 @@ Adapted from the reference in `docs/archive/accounts-design.reference.md`: large
 | Buttons | capsule (radius 999px), min height 44px (36px small), primary = orange fill with white text, quiet = transparent, danger = status-danger tint |
 | Pills / badges | capsule, 12.5px / 560, tinted background + border + text from the status tokens |
 | Notices | radius 18px, tinted status background |
-| Drawers, dialogs | slide in from the reading-end edge, focus trapped, Escape closes, focus returns to the opener |
+| Modals, dialogs | rise in at the centre of the window, focus trapped, Escape closes, focus returns to the opener |
 | Spacing | 4px base; gaps `clamp(14px, 2vw, 22px)`; max content width follows the page |
 | Shadows | none on the public site and buttons; only the faint card ring in workspaces |
 
@@ -96,8 +96,8 @@ One scale for the whole patient app; change a token, not a screen.
 
 ## 8. Clinical content rules (design-level)
 - Provenance (who or what the entry came from) and review state are visible on every record. "Not recorded" never reads as "absent".
-- AI-derived content is dashed-bordered, labelled "AI-generated", carries its source page and passage, and is never styled like confirmed data until a clinician accepts it.
-- Drafts and unreviewed items never appear in patient or caregiver views.
+- AI-derived content is dashed-bordered, labelled "AI-generated", carries its source page and passage, and is never styled like confirmed data until the patient confirms it.
+- Unconfirmed AI readings stay separate from confirmed entries, and a shared snapshot contains only what the patient selected.
 - The assistant and symptom forms show the fixed emergency message when the server flags emergency wording; apart from that the interface carries no instructional or warning banners, only errors, validation and confirmations.
 
 ## 9. Accessibility and language
