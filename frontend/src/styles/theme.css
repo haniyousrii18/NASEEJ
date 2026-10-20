@@ -74,8 +74,8 @@
   --color-status-lilac-border: rgba(15, 62, 23, 0.22);
 
   /* Fonts */
-  --font-arabic: 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-latin: -apple-system, BlinkMacSystemFont, 'Inter', "Segoe UI", Roboto, sans-serif;
+  --font-arabic: 'Cairo', sans-serif;
+  --font-latin: 'Inter', 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Spacing Scale */
   --spacing-8: 8px;
@@ -454,13 +454,15 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-[dir="ltr"] {
+html[dir="ltr"],
+html[lang="en"] {
   font-family: var(--font-latin);
 }
 
 body {
   min-height: 100vh;
   min-height: 100dvh;
+  font-family: inherit;
   background-color: var(--color-paper-white);
   color: var(--color-ink);
   overflow-x: clip;
@@ -469,6 +471,10 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button, input, textarea, select, optgroup {
+  font-family: inherit;
 }
 
 button {
@@ -1074,6 +1080,7 @@ strong, b {
 .app-shell {
   min-height: 100vh;
   min-height: 100dvh;
+  font-family: inherit;
 }
 
 .page-shell {
