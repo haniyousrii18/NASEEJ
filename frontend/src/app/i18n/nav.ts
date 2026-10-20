@@ -19,7 +19,7 @@ const ar = {
     account: 'الحساب',
   },
   items: {
-    patientHome: 'اليوم',
+    patientHome: 'لوحة التحكم',
     patientProfile: 'ملفي الصحي',
     patientVisits: 'الزيارات وتجهيزها',
     patientAssistant: 'المساعد',
@@ -92,7 +92,7 @@ const en: typeof ar = {
     account: 'Account',
   },
   items: {
-    patientHome: 'Today',
+    patientHome: 'Dashboard',
     patientProfile: 'My health profile',
     patientVisits: 'Visits & preparation',
     patientAssistant: 'Assistant',
