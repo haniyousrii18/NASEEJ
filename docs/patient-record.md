@@ -27,7 +27,7 @@ Frontend: `frontend/src/app/health/*` (Today, Profile, Symptoms, Vault, Visits, 
 
 ## Demo data
 
-`npm --prefix backend run seed` empties every table and loads one synthetic patient (Mohammed Al-Mansoor, `patient@naseej.health`) with two or three examples per page, so the screens are easy to read. It also creates two visit summaries and one active share through the same tables the app uses; the share link cannot be shown again because only its hash is stored. Demo files are written under `STORAGE_DIR/demo/`. All data is synthetic.
+`npm --prefix backend run seed` empties every table and loads one synthetic patient (Mohammed Al-Mansoor, `patient@naseej.health`) with two or three examples per page, so the screens are easy to read. It also creates two visit summaries and one active share through the same tables the app uses; the share link cannot be shown again because only its hash is stored. Demo files are written under `STORAGE_DIR/demo/`. It contains no clinic, staff or center data. All data is synthetic.
 
 ## Configuration
 
