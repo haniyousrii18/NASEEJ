@@ -719,3 +719,13 @@
     transition: none;
   }
 }
+
+/* The page heading (and the main region) receive focus programmatically when a page opens, so screen readers start at
+   the right place. They are not controls, so they never draw a focus ring. */
+.na-app [data-page-title]:focus,
+.na-app [data-page-title]:focus-visible,
+.na-app .na-content:focus,
+.na-app .na-content:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
