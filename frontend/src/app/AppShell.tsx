@@ -285,7 +285,9 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
               .map((group) => (
                 <div key={group.id}>
                   <ul>
-                    {group.items.map((item) => (
+                    {group.items
+                      .filter((item) => item.label !== 'settings')
+                      .map((item) => (
                       <li key={item.route}>
                         <button
                           type="button"
@@ -395,6 +397,19 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                 <button type="button" role="menuitem" className="na-menu-item" onClick={() => { workspace.setTheme(wsTheme === 'dark' ? 'light' : 'dark'); setMenuOpen(false); }}>
                   <AppIcon name={wsTheme === 'dark' ? 'sun' : 'moon'} size={18} />
                   {themeLabel}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="na-menu-item"
+                  aria-current={route === 'patient/settings' || route.startsWith('patient/settings/') ? 'page' : undefined}
+                  onClick={() => {
+                    navigate('patient/settings');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <AppIcon name="settings" size={18} />
+                  {A.nav.items.settings}
                 </button>
                 <button type="button" role="menuitem" className="na-menu-item" onClick={signOut}>
                   <AppIcon name="logout" size={18} />
