@@ -48,7 +48,7 @@ const MainContent: React.FC = () => {
     }
     // A signed-in user reloading an authenticated deep link (e.g. "#/doctor/appointments") returns to their workspace.
     try {
-      if (window.location.hash.startsWith('#/') && localStorage.getItem('naseej_token')) return 'workspace';
+      if (window.location.hash.startsWith('#/') && (localStorage.getItem('naseej_token') || sessionStorage.getItem('naseej_token'))) return 'workspace';
     } catch {
       /* ignore */
     }

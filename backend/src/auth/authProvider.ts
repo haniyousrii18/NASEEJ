@@ -6,7 +6,7 @@ import { AuthTokenPayload, SystemRole } from '../types/index.js';
 export interface IAuthProvider {
   hashPassword(password: string): Promise<string>;
   verifyPassword(password: string, hash: string): Promise<boolean>;
-  generateToken(payload: AuthTokenPayload): string;
+  generateToken(payload: AuthTokenPayload, options?: { remember?: boolean }): string;
   verifyToken(token: string): AuthTokenPayload;
 }
 
@@ -27,9 +27,9 @@ export class LocalAuthProvider implements IAuthProvider {
     }
   }
 
-  generateToken(payload: AuthTokenPayload): string {
+  generateToken(payload: AuthTokenPayload, options?: { remember?: boolean }): string {
     return jwt.sign(payload, ENV.JWT_SECRET, {
-      expiresIn: ENV.JWT_EXPIRES_IN as any,
+      expiresIn: (options?.remember ? ENV.JWT_REMEMBER_EXPIRES_IN : ENV.JWT_EXPIRES_IN) as any,
     });
   }
 

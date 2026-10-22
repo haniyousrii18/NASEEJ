@@ -77,25 +77,26 @@ export const AuthField: React.FC<{
   onChange: (v: string) => void;
   type?: 'text' | 'email' | 'password';
   autoComplete?: string;
-  placeholder?: string;
   hint?: string;
   error?: string;
   maxLength?: number;
   autoFocus?: boolean;
-}> = ({ id, label, icon, value, onChange, type = 'text', autoComplete, placeholder, hint, error, maxLength, autoFocus }) => {
+}> = ({ id, label, icon, value, onChange, type = 'text', autoComplete, hint, error, maxLength, autoFocus }) => {
   const { t } = useLang();
   const [shown, setShown] = useState(false);
+  const [caps, setCaps] = useState(false);
   const Icon = icon === 'mail' ? MailIcon : icon === 'lock' ? LockIcon : UserIcon;
   const describedBy = [error ? `${id}-err` : '', hint ? `${id}-hint` : ''].filter(Boolean).join(' ') || undefined;
+  const watchCaps = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (type === 'password') setCaps(e.getModifierState('CapsLock'));
+  };
   return (
     <div className="auth-field">
-      <label className="auth-label" htmlFor={id}>
-        {label}
-      </label>
       <div className="auth-input-wrap">
         <span className="auth-input-icon">
           <Icon />
         </span>
+        {/* the label floats inside the field, so the placeholder stays a single space: it only drives :placeholder-shown */}
         <input
           id={id}
           className={`auth-input${type === 'password' ? ' auth-input--toggle' : ''}`}
@@ -103,19 +104,31 @@ export const AuthField: React.FC<{
           value={value}
           required
           autoComplete={autoComplete}
-          placeholder={placeholder}
+          placeholder=" "
           maxLength={maxLength}
           autoFocus={autoFocus}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={watchCaps}
+          onKeyUp={watchCaps}
+          onBlur={() => setCaps(false)}
         />
+        <label className="auth-label" htmlFor={id}>
+          {label}
+        </label>
         {type === 'password' && (
           <button type="button" className="auth-eye" aria-label={shown ? t.auth.hidePassword : t.auth.showPassword} aria-pressed={shown} onClick={() => setShown((v) => !v)}>
             <EyeIcon off={shown} />
           </button>
         )}
       </div>
+      {caps && (
+        <p className="auth-caps" role="status">
+          <AlertIcon size={14} />
+          {t.auth.capsOn}
+        </p>
+      )}
       {error && (
         <p id={`${id}-err`} className="auth-hint" role="alert" style={{ color: 'var(--auth-danger-ink)' }}>
           {error}
@@ -203,7 +216,7 @@ export const RegisterForm: React.FC<{ onSent: (email: string) => void; onLogin: 
       <ErrorBox message={error} />
       <form className="auth-form" onSubmit={submit} noValidate>
         <AuthField id="reg-name" label={A.fullName} icon="user" value={name} onChange={setName} autoComplete="name" maxLength={120} error={fields.name} autoFocus />
-        <AuthField id="reg-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="email" placeholder="name@example.com" error={fields.email} />
+        <AuthField id="reg-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="email" error={fields.email} />
         <AuthField id="reg-pw" label={A.password} icon="lock" type="password" value={pw} onChange={setPw} autoComplete="new-password" hint={A.passwordRule} error={fields.pw} />
         <AuthField id="reg-pw2" label={A.confirmPassword} icon="lock" type="password" value={pw2} onChange={setPw2} autoComplete="new-password" error={fields.pw2} />
         <button type="submit" disabled={busy} className="auth-submit">
@@ -244,7 +257,7 @@ export const ForgotForm: React.FC<{ onSent: (email: string) => void; onLogin: ()
       <MailBanner />
       <ErrorBox message={error} />
       <form className="auth-form" onSubmit={submit} noValidate>
-        <AuthField id="fp-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="email" placeholder="name@example.com" autoFocus />
+        <AuthField id="fp-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="email" autoFocus />
         <button type="submit" disabled={busy} className="auth-submit">
           {busy ? t.common.loading : A.sendLink}
         </button>

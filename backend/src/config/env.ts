@@ -18,6 +18,8 @@ export const ENV = {
   DB_SSL: process.env.DB_SSL === 'true',
   JWT_SECRET: process.env.JWT_SECRET || 'naseej_academic_prototype_jwt_secret_key_2026_secure',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
+  /** Lifetime of a sign-in the person asked to keep on this device ("keep me signed in"). */
+  JWT_REMEMBER_EXPIRES_IN: process.env.JWT_REMEMBER_EXPIRES_IN || '30d',
   STORAGE_DIR: process.env.STORAGE_DIR || path.resolve(process.cwd(), '../storage/protected'),
   // Optional AI document analysis. Off unless AI_PROVIDER and the matching key are set. Never commit a real key.
   AI_PROVIDER: (process.env.AI_PROVIDER || '').toLowerCase(),
