@@ -45,7 +45,7 @@ const QrImage: React.FC<{ value: string; label: string }> = ({ value, label }) =
   useEffect(() => {
     let alive = true;
     void import('qrcode').then(async (mod) => {
-      const url = await mod.toDataURL(value, { errorCorrectionLevel: 'M', margin: 2, width: 288, color: { dark: '#1f1a17', light: '#ffffff' } });
+      const url = await mod.toDataURL(value, { errorCorrectionLevel: 'M', margin: 2, width: 288, color: { dark: '#182b36', light: '#ffffff' } });
       if (alive) setSrc(url);
     });
     return () => {

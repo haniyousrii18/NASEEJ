@@ -59,7 +59,7 @@ Design and rules: `docs/patient-record.md`.
 
 - Name: **Naseej | نَسيج** (weave / fabric).
 - Logo: approved asset `logo.png`. Do not redraw it.
-- Visual language: calm clinical warmth. Warm ivory (light) and warm onyx (dark) with one orange action color, defined in `DESIGN.md`.
+- Visual language: calm clinical teal. A pale mist canvas (light) and deep slate (dark) with one teal brand and action color, defined in `DESIGN.md`.
 
 ## Evidence on Hand
 

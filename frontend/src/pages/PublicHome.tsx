@@ -1,9 +1,8 @@
 import React from 'react';
 import { useLang } from '../context/LangContext.js';
 import { HeroVisual } from '../components/HeroVisual.js';
-import { LandingBackdrop } from '../components/LandingBackdrop.js';
-import { ArrowIcon, CheckIcon, LeafIcon, LockIcon } from '../components/LineIcon.js';
-import { Reveal } from '../components/motion.js';
+import { ArrowIcon, CheckIcon, LeafIcon } from '../components/LineIcon.js';
+import { DrawLine, Pop, Reveal } from '../components/motion.js';
 
 interface Props {
   setCurrentView: (view: string) => void;
@@ -11,17 +10,6 @@ interface Props {
 
 /** Workflow titles carry their own "1." / "١." numbering; the step badge shows the number instead. */
 const stripNumber = (s: string) => s.replace(/^[\d٠-٩]+[.)\s]+/, '').trim();
-
-const SectionHead: React.FC<{ eyebrow: string; title: string; lead?: string }> = ({ eyebrow, title, lead }) => (
-  <div className="l-head">
-    <span className="l-eyebrow">
-      <LeafIcon />
-      {eyebrow}
-    </span>
-    <h2 className="l-h2">{title}</h2>
-    {lead && <p className="l-lead">{lead}</p>}
-  </div>
-);
 
 /**
  * Landing page. Narrative: hero, why Naseej, how it works, who it serves, privacy and trust,
@@ -39,6 +27,7 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
     { title: L.v3_title, desc: L.v3_desc },
   ];
   const trustPoints = [L.t1, L.t2, L.t3, L.t4];
+  const num = (i: number) => (i + 1).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-GB');
 
   return (
     <div className="landing">
@@ -79,85 +68,101 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
       </section>
 
       <div className="landing-body">
-        <LandingBackdrop />
-
-      {/* ------------------------------------------------------------ why Naseej */}
-      <Reveal as="section" className="l-section" aria-labelledby="value-title">
-        <div className="l-container">
-          <SectionHead eyebrow={L.valueEyebrow} title={L.valueTitle} lead={L.valueLead} />
-          <div className="l-grid l-grid--3">
-            {values.map((v, i) => (
-              <Reveal key={v.title} i={i} className="cloud-feature-card l-card">
-                <span className="l-card-index num" aria-hidden="true">{(i + 1).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-GB')}</span>
-                <h3 className="l-card-title">{v.title}</h3>
-                <p className="l-card-text">{v.desc}</p>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </Reveal>
-
-      {/* ------------------------------------------------------------ how it works */}
-      <Reveal as="section" className="l-section l-section--tint" aria-labelledby="steps-title">
-        <div className="l-container">
-          <SectionHead eyebrow={t.workflow.eyebrow} title={t.workflow.title} />
-          <ol className="l-steps">
-            {steps.map((title, i) => (
-              <Reveal as="li" key={title} i={i} className="l-step">
-                <span className="l-step-badge num" aria-hidden="true">{(i + 1).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-GB')}</span>
-                <h3 className="l-card-title">{title}</h3>
-                <p className="l-card-text">{stepDescs[i]}</p>
-              </Reveal>
-            ))}
-          </ol>
-        </div>
-      </Reveal>
-
-      {/* ------------------------------------------------------------ privacy and trust */}
-      <Reveal as="section" className="l-section" aria-labelledby="trust-title">
-        <div className="l-container">
-          <div className="l-trust">
-            <div className="l-trust-copy">
-              <span className="l-eyebrow l-eyebrow--inverse">
-                <LockIcon />
-                {L.trustEyebrow}
-              </span>
-              <h2 className="l-h2 l-h2--inverse">{L.trustTitle}</h2>
-              <p className="l-lead l-lead--inverse">{L.trustBody}</p>
-              <button type="button" className="btn-pill btn-pill-cloud l-trust-link" onClick={() => setCurrentView('workflow')}>
-                {t.nav.workflow}
-                <ArrowIcon />
-              </button>
-            </div>
-            <ul className="l-trust-list">
-              {trustPoints.map((p) => (
-                <li key={p}>
-                  <CheckIcon />
-                  <span>{p}</span>
-                </li>
+        {/* ---------------------------------------------------------- why Naseej: three values on one thread */}
+        <section className="l-section" aria-labelledby="value-title">
+          <div className="l-container l-split">
+            <Reveal className="l-head l-head--sticky">
+              <h2 id="value-title" className="l-h2">
+                {L.valueTitle}
+              </h2>
+              <p className="l-lead">{L.valueLead}</p>
+            </Reveal>
+            <ol className="l-thread">
+              <DrawLine axis="y" className="l-thread-line" />
+              {values.map((v, i) => (
+                <Reveal as="li" key={v.title} i={i} className="l-thread-item">
+                  <Pop className="l-node num" i={i}>
+                    {num(i)}
+                  </Pop>
+                  <div className="l-thread-text">
+                    <h3 className="l-card-title">{v.title}</h3>
+                    <p className="l-card-text">{v.desc}</p>
+                  </div>
+                </Reveal>
               ))}
-            </ul>
+            </ol>
           </div>
-        </div>
-      </Reveal>
+        </section>
 
-      {/* ------------------------------------------------------------ final call to action */}
-      <Reveal as="section" className="l-section l-section--last" aria-labelledby="cta-title">
-        <div className="l-container">
-          <div className="l-cta cloud-feature-card">
-            <div>
-              <h2 className="l-h2">{L.ctaTitle}</h2>
+        {/* ---------------------------------------------------------- how it works: five steps on one thread */}
+        <section className="l-section l-section--tint" aria-labelledby="steps-title">
+          <div className="l-container">
+            <Reveal className="l-head">
+              <h2 id="steps-title" className="l-h2">
+                {t.workflow.title}
+              </h2>
+            </Reveal>
+            <ol className="l-steps">
+              <DrawLine axis="y" className="l-thread-line" />
+              <DrawLine axis="x" className="l-steps-line" />
+              {steps.map((title, i) => (
+                <Reveal as="li" key={title} i={i} className="l-step">
+                  <Pop className="l-node num" i={i}>
+                    {num(i)}
+                  </Pop>
+                  <div className="l-thread-text">
+                    <h3 className="l-card-title">{title}</h3>
+                    <p className="l-card-text">{stepDescs[i]}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------------- privacy and trust */}
+        <section className="l-section" aria-labelledby="trust-title">
+          <div className="l-container">
+            <Reveal className="l-trust">
+              <div className="l-trust-copy">
+                <h2 id="trust-title" className="l-h2 l-h2--inverse">
+                  {L.trustTitle}
+                </h2>
+                <p className="l-lead l-lead--inverse">{L.trustBody}</p>
+                <button type="button" className="btn-pill btn-pill-cloud l-trust-link" onClick={() => setCurrentView('workflow')}>
+                  {t.nav.workflow}
+                  <ArrowIcon />
+                </button>
+              </div>
+              <ul className="l-trust-list">
+                {trustPoints.map((p, i) => (
+                  <Reveal as="li" key={p} i={i}>
+                    <Pop className="l-check" i={i}>
+                      <CheckIcon />
+                    </Pop>
+                    <span>{p}</span>
+                  </Reveal>
+                ))}
+              </ul>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------------- final call to action */}
+        <section className="l-section l-section--last" aria-labelledby="cta-title">
+          <div className="l-container">
+            <Reveal className="l-cta">
+              <h2 id="cta-title" className="l-h2">
+                {L.ctaTitle}
+              </h2>
               <p className="l-lead">{L.ctaBody}</p>
-            </div>
-            <div className="hero-actions">
               <button type="button" className="btn-pill btn-pill-charcoal hero-cta" onClick={() => setCurrentView('login')}>
                 {t.hero.ctaLogin}
                 <ArrowIcon />
               </button>
-            </div>
+            </Reveal>
           </div>
-        </div>
-      </Reveal>
+        </section>
       </div>
     </div>
   );

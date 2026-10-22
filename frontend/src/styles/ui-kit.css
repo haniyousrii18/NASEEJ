@@ -18,7 +18,7 @@
   --na-ring: 0 0 0 3px color-mix(in srgb, var(--color-accent) 30%, transparent);
   /* elevation: cards sit on a hairline, popovers and dialogs lift */
   --na-elev-card: 0 0 0 1px color-mix(in srgb, var(--color-ink) 4%, transparent), 0 1px 3px color-mix(in srgb, var(--color-ink) 8%, transparent);
-  --na-elev-pop: 0 14px 34px -10px rgba(26, 18, 12, 0.28), 0 0 0 1px var(--color-border-subtle);
+  --na-elev-pop: 0 14px 34px -10px rgba(var(--shadow-color), 0.28), 0 0 0 1px var(--color-border-subtle);
   --na-radius: var(--na-r-card);
   --na-field-radius: var(--na-r-control);
   color-scheme: light;
@@ -26,7 +26,7 @@
 
 :root[data-theme='dark'] .na-app {
   color-scheme: dark;
-  --na-elev-pop: 0 14px 34px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--color-border-subtle);
+  --na-elev-pop: 0 14px 34px -10px rgba(var(--shadow-color), 0.6), 0 0 0 1px var(--color-border-subtle);
 }
 
 /* ------------------------------------------------------------------ text controls */
@@ -144,7 +144,7 @@
   appearance: none;
   -webkit-appearance: none;
   padding-inline-end: 44px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236e655e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2361717a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px;
@@ -156,7 +156,7 @@
 }
 
 :root[data-theme='dark'] .na-app .na-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23cdbfb4' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8b7b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 }
 
 .na-app .na-select option {
@@ -447,7 +447,7 @@
   padding-inline: 6px;
   border-radius: 999px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 12.5px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -848,7 +848,7 @@
   position: fixed;
   inset: 0;
   z-index: 390;
-  background: var(--color-overlay, rgba(26, 18, 12, 0.4));
+  background: var(--color-overlay);
 }
 
 .na-app .sel-sheet {

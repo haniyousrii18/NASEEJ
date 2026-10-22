@@ -88,7 +88,7 @@ const MainContent: React.FC = () => {
       <main id="main" tabIndex={-1} className="app-main" style={{ flex: 1, outline: 'none' }}>
         <PageTransition key={currentView} style={{ minHeight: '100%' }}>
           {currentView === 'home' && <PublicHome setCurrentView={setCurrentView} />}
-          {currentView === 'workflow' && <WorkflowPage />}
+          {currentView === 'workflow' && <WorkflowPage setCurrentView={setCurrentView} />}
           {currentView === 'login' && (
             <LoginPage
               key={linkSeq}

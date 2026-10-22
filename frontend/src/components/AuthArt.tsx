@@ -48,8 +48,8 @@ const Mark: React.FC = () => (
   <svg className="auth-mark" viewBox="-8 14 436 432" fill="none" role="presentation">
     <defs>
       <linearGradient id="auth-thread-o" gradientUnits="userSpaceOnUse" x1="-200" y1="0" x2="200" y2="0">
-        <stop offset="0" stopColor="#c2410c" />
-        <stop offset="1" stopColor="#ea6a2a" />
+        <stop offset="0" stopColor="var(--primary-hover)" />
+        <stop offset="1" stopColor="var(--primary)" />
       </linearGradient>
       <radialGradient id="auth-halo" cx="210" cy="230" r="230" gradientUnits="userSpaceOnUse">
         <stop offset="0" stopColor="var(--auth-halo)" />

@@ -298,7 +298,7 @@
   border-radius: 50%;
   font-size: 14px;
   font-weight: 620;
-  color: #fff;
+  color: var(--on-primary);
   background: var(--color-accent);
 }
 
@@ -691,13 +691,13 @@
 
 /* Drawer scrim and shadow, defined once per theme and read only by the site bar's drawer. */
 .site-bar {
-  --drawer-dim: rgba(26, 18, 12, 0.34);
-  --drawer-shadow: rgba(26, 18, 12, 0.2);
+  --drawer-dim: color-mix(in srgb, var(--overlay) 70%, transparent);
+  --drawer-shadow: rgba(var(--shadow-color), 0.2);
 }
 
 :root[data-theme='dark'] .site-bar {
-  --drawer-dim: rgba(0, 0, 0, 0.5);
-  --drawer-shadow: rgba(0, 0, 0, 0.5);
+  --drawer-dim: var(--overlay);
+  --drawer-shadow: rgba(var(--shadow-color), 0.5);
 }
 
 @keyframes siteDrawerDrift {

@@ -452,19 +452,19 @@
   background: var(--color-bg-subtle);
   color: var(--color-accent-text);
   border: 1px solid var(--color-border-strong);
-  box-shadow: 0 6px 20px rgba(26, 18, 12, 0.18);
+  box-shadow: 0 6px 20px rgba(var(--shadow-color), 0.18);
   font-size: 13px;
   font-weight: 560;
   line-height: 1.4;
   animation: hp-toast-in 0.18s ease-out;
 }
 
-/* night: brown with white text */
+/* night: a raised surface with the primary text colour */
 :root[data-theme='dark'] .hp-toast {
-  background: var(--color-bg-surface);
-  color: #ffffff;
+  background: var(--surface-raised);
+  color: var(--text-primary);
   border-color: var(--color-border-strong);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 6px 22px rgba(var(--shadow-color), 0.45);
 }
 
 @keyframes hp-toast-in {
@@ -482,13 +482,13 @@
 
 .hp-toast[data-tone='danger'] {
   background: var(--color-status-danger-text);
-  color: #ffffff;
+  color: var(--background);
   border-color: transparent;
 }
 
 :root[data-theme='dark'] .hp-toast[data-tone='danger'] {
   background: var(--color-status-danger-text);
-  color: #ffffff;
+  color: var(--background);
 }
 
 .hp-toast > span {
@@ -554,8 +554,8 @@
   padding: 16px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 20px;
-  background: #fff;
-  color: #1f1a17;
+  background: var(--paper);
+  color: var(--paper-ink);
 }
 
 /* ------------------------------------------------------------------ assistant */
@@ -672,7 +672,7 @@
   max-inline-size: 100%;
   border: 1px solid var(--color-border-subtle);
   border-radius: 20px;
-  background: #fff;
+  background: var(--paper);
 }
 
 .hp-qr--wait {
@@ -768,7 +768,7 @@
   }
   .na-app {
     display: block !important;
-    background: #fff !important;
+    background: var(--paper) !important;
   }
   .hp-preview {
     border: 0;

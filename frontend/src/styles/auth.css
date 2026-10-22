@@ -7,13 +7,14 @@
   --auth-divider: var(--color-border-subtle);
   --auth-halo: color-mix(in srgb, var(--color-accent) 32%, transparent);
   --auth-glow: radial-gradient(48% 56% at 50% 46%, color-mix(in srgb, var(--color-accent) 20%, transparent) 0%, color-mix(in srgb, var(--color-accent) 7%, transparent) 48%, transparent 74%);
-  --auth-plate: #1a1411;
-  --auth-phone-line: rgba(31, 26, 23, 0.4);
-  --auth-screen: #ffffff;
+  --auth-plate: var(--text-primary);
+  --auth-plate-line: var(--background);
+  --auth-phone-line: color-mix(in srgb, var(--text-primary) 40%, transparent);
+  --auth-screen: var(--surface);
   --auth-screen-card: var(--color-bg-subtle);
-  --auth-skel: rgba(31, 26, 23, 0.12);
-  --auth-skel-strong: rgba(31, 26, 23, 0.28);
-  --auth-thread-ivory: #cdbfb4;
+  --auth-skel: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  --auth-skel-strong: color-mix(in srgb, var(--text-primary) 28%, transparent);
+  --auth-thread-ivory: var(--text-secondary);
   --auth-chip-bg: var(--color-bg-elevated);
   --auth-chip-line: color-mix(in srgb, var(--color-accent) 50%, transparent);
   --auth-chip-ink: var(--color-accent-text);
@@ -22,13 +23,13 @@
   --auth-link: var(--color-accent-text);
   --auth-card-bg: var(--color-bg-elevated);
   --auth-card-border: var(--color-border-subtle);
-  --auth-card-shadow: 0 24px 60px rgba(31, 26, 23, 0.12);
+  --auth-card-shadow: 0 24px 60px rgba(var(--shadow-color), 0.12);
   --auth-field-bg: var(--color-bg-subtle);
   --auth-field-border: var(--color-border-strong);
   --auth-icon: var(--color-text-muted);
   --auth-btn-bg: var(--color-accent);
   --auth-btn-hover: var(--color-accent-hover);
-  --auth-btn-ink: #ffffff;
+  --auth-btn-ink: var(--on-primary);
   --auth-soft-bg: var(--color-bg-subtle);
   --auth-danger-bg: var(--color-status-danger-bg);
   --auth-danger-ink: var(--color-status-danger-text);
@@ -49,14 +50,16 @@
 }
 
 :root[data-theme='dark'] .auth {
-  --auth-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  --auth-card-shadow: 0 24px 70px rgba(var(--shadow-color), 0.45);
   --auth-dot: var(--color-accent-text);
-  --auth-phone-line: rgba(243, 235, 227, 0.28);
+  --auth-phone-line: color-mix(in srgb, var(--text-primary) 28%, transparent);
+  --auth-plate: var(--background);
+  --auth-plate-line: var(--text-primary);
   --auth-screen: var(--color-bg-elevated);
-  --auth-screen-card: #2e2420;
-  --auth-skel: rgba(243, 235, 227, 0.14);
-  --auth-skel-strong: rgba(243, 235, 227, 0.3);
-  --auth-thread-ivory: #f3ebe3;
+  --auth-screen-card: var(--surface-hover);
+  --auth-skel: color-mix(in srgb, var(--text-primary) 14%, transparent);
+  --auth-skel-strong: color-mix(in srgb, var(--text-primary) 30%, transparent);
+  --auth-thread-ivory: var(--text-primary);
   --auth-chip-line: color-mix(in srgb, var(--color-accent-text) 50%, transparent);
 }
 
@@ -108,7 +111,7 @@
 }
 
 .auth-phone-float {
-  filter: drop-shadow(0 24px 36px rgba(31, 26, 23, 0.28));
+  filter: drop-shadow(0 24px 36px rgba(var(--shadow-color), 0.28));
   animation: authFloat 7s ease-in-out 1.6s infinite;
 }
 
@@ -143,7 +146,7 @@
 }
 
 .auth-avatar-glyph {
-  fill: #fff;
+  fill: var(--on-primary);
 }
 
 .auth-dot-soft {
@@ -156,7 +159,7 @@
 
 .auth-tick {
   fill: none;
-  stroke: #fff;
+  stroke: var(--on-primary);
   stroke-width: 1.9;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -187,15 +190,15 @@
   fill: var(--auth-screen);
   stroke: var(--auth-skel-strong);
   stroke-width: 1.2;
-  filter: drop-shadow(0 -6px 14px rgba(31, 26, 23, 0.12));
+  filter: drop-shadow(0 -6px 14px rgba(var(--shadow-color), 0.12));
 }
 
 .auth-qr-paper {
-  fill: #faf7f4;
+  fill: var(--paper);
 }
 
 .auth-qr-ink {
-  fill: #1f1a17;
+  fill: var(--paper-ink);
 }
 
 .auth-scan {
@@ -232,7 +235,7 @@
 }
 
 .auth-qr-btn-line {
-  fill: rgba(255, 255, 255, 0.85);
+  fill: color-mix(in srgb, var(--on-primary) 85%, transparent);
 }
 
 /* the threads wrapped around the phone */
@@ -253,7 +256,7 @@
 
 .auth-orbit-flow {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.85);
+  stroke: color-mix(in srgb, var(--auth-plate-line) 85%, transparent);
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-dasharray: 1.5 18;
@@ -273,7 +276,7 @@
   fill: var(--auth-chip-bg);
   stroke: var(--auth-chip-line);
   stroke-width: 1.5;
-  filter: drop-shadow(0 6px 10px rgba(31, 26, 23, 0.18));
+  filter: drop-shadow(0 6px 10px rgba(var(--shadow-color), 0.18));
 }
 
 .auth-chip-icon {
@@ -695,7 +698,7 @@
   color: var(--auth-btn-ink);
   background: var(--auth-btn-bg);
   border-radius: 14px;
-  box-shadow: 0 8px 22px rgba(194, 65, 12, 0.3);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 30%, transparent);
   transition: background 0.2s ease, transform 0.2s var(--ease, ease-out), box-shadow 0.2s ease;
 }
 
@@ -706,7 +709,7 @@
   inset-inline-start: 0;
   width: 38%;
   z-index: -1;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--on-primary) 45%, transparent), transparent);
   transform: translateX(-130%) skewX(-18deg);
   pointer-events: none;
 }
@@ -714,7 +717,7 @@
 .auth-submit:hover:not(:disabled) {
   background: var(--auth-btn-hover);
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(194, 65, 12, 0.4);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 .auth-submit:hover:not(:disabled)::after {
@@ -723,7 +726,7 @@
 
 .auth-submit:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: 0 4px 12px rgba(194, 65, 12, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .auth-submit:disabled {

@@ -1,85 +1,67 @@
 import React from 'react';
-import { Reveal } from '../components/motion.js';
-import { LandingBackdrop } from '../components/LandingBackdrop.js';
-import { LeafIcon } from '../components/LineIcon.js';
+import { ArrowIcon } from '../components/LineIcon.js';
+import { DrawLine, Pop, Reveal } from '../components/motion.js';
 import { useLang } from '../context/LangContext.js';
 
-export const WorkflowPage: React.FC = () => {
-  const { t, isRtl } = useLang();
+interface Props {
+  setCurrentView: (view: string) => void;
+}
+
+/** Step titles carry their own "1." / "١." numbering; the node shows the number instead. */
+const stripNumber = (s: string) => s.replace(/^[\d٠-٩]+[.)\s]+/, '').trim();
+
+/**
+ * The journey page: the five steps of the product on one thread, in the same language as the home page
+ * (a sticky heading beside a thread that draws itself, with numbered nodes). Every line comes from existing copy.
+ */
+export const WorkflowPage: React.FC<Props> = ({ setCurrentView }) => {
+  const { t, lang, isRtl } = useLang();
+  const W = t.workflow;
 
   const steps = [
-    { num: '01', title: t.workflow.step1_title, desc: t.workflow.step1_desc, icon: '📝', accent: 'var(--color-metric-accent)' },
-    { num: '02', title: t.workflow.step2_title, desc: t.workflow.step2_desc, icon: '🗂️', accent: 'var(--color-sleep-lilac)' },
-    { num: '03', title: t.workflow.step3_title, desc: t.workflow.step3_desc, icon: '🧭', accent: 'var(--color-recovery-green)' },
-    { num: '04', title: t.workflow.step4_title, desc: t.workflow.step4_desc, icon: '✅', accent: 'var(--color-coral-signal)' },
-    { num: '05', title: t.workflow.step5_title, desc: t.workflow.step5_desc, icon: '🔗', accent: 'var(--color-signal-gold)' },
+    { title: W.step1_title, desc: W.step1_desc },
+    { title: W.step2_title, desc: W.step2_desc },
+    { title: W.step3_title, desc: W.step3_desc },
+    { title: W.step4_title, desc: W.step4_desc },
+    { title: W.step5_title, desc: W.step5_desc },
   ];
+  const num = (i: number) => (i + 1).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-GB');
 
   return (
-    <div className="landing-body">
-      <LandingBackdrop />
-      <div className="page-shell" style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px 80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
-          <div className="recognition-laurel-pair">
-            <div className="recognition-laurel-item">
-              <LeafIcon />
-              <span>{isRtl ? 'رحلتك مع نسيج' : 'Your journey'}</span>
-              <LeafIcon />
-            </div>
-          </div>
-          <h1 className="text-display" style={{ fontSize: 'clamp(2.2rem, 4vw, 3.5rem)', margin: '14px 0' }}>
-            {t.workflow.title}
-          </h1>
-          <p className="text-subhead" style={{ maxWidth: 640, margin: '0 auto' }}>
-            {isRtl
-              ? 'خمس خطوات تُبقي القرار بيدك في كل مرحلة: ما تسجّله، وما تعتمده، وما تشاركه.'
-              : 'Five steps that keep the decision in your hands at every stage: what you record, what you approve, and what you share.'}
-          </p>
-        </div>
+    <div className="landing wf">
+      <section className="l-section wf-section" aria-labelledby="wf-title">
+        <div className="l-container l-split">
+          <Reveal className="l-head l-head--sticky">
+            <h1 id="wf-title" className="wf-title">
+              {W.title}
+            </h1>
+            <p className="l-lead">
+              {isRtl
+                ? 'خمس خطوات تُبقي القرار بيدك في كل مرحلة: ما تسجّله، وما تعتمده، وما تشاركه.'
+                : 'Five steps that keep the decision in your hands at every stage: what you record, what you approve, and what you share.'}
+            </p>
+            <button type="button" className="btn-pill btn-pill-charcoal hero-cta wf-cta" onClick={() => setCurrentView('login')}>
+              {t.hero.ctaLogin}
+              <ArrowIcon />
+            </button>
+          </Reveal>
 
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {steps.map((s, idx) => (
-            <Reveal key={idx} i={idx} className="cloud-feature-card" style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 24,
-              padding: '28px 32px',
-            }}>
-              <div style={{
-                minWidth: 54,
-                height: 54,
-                borderRadius: '50%',
-                background: 'var(--color-paper-white)',
-                boxShadow: 'var(--shadow-sm)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.4rem',
-              }}>
-                <span className="emoji-quiet" aria-hidden="true">{s.icon}</span>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                  <span style={{
-                    fontSize: 13,
-                    fontWeight: 560,
-                    color: s.accent,
-                    background: 'var(--color-paper-white)',
-                    padding: '3px 10px',
-                    borderRadius: 128,
-                  }}>
-                    {s.num}
-                  </span>
-                  <h3 className="text-card-heading" style={{ fontSize: 22, margin: 0 }}>{s.title}</h3>
+          <ol className="l-thread wf-thread">
+            <DrawLine axis="y" className="l-thread-line" />
+            {steps.map((s, i) => (
+              <Reveal as="li" key={s.title} i={i} className="l-thread-item">
+                <Pop className="l-node num" i={i}>
+                  {num(i)}
+                </Pop>
+                <div className="l-thread-text">
+                  <h2 className="l-card-title">{stripNumber(s.title)}</h2>
+                  <p className="l-card-text">{s.desc}</p>
                 </div>
-                <p className="text-body" style={{ fontSize: 15, lineHeight: 1.6, margin: 0 }}>
-                  {s.desc}
-                </p>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            ))}
+          </ol>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

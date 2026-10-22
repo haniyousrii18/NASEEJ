@@ -1,81 +1,237 @@
 /* =============================================================================
-   Naseej | نَسيج — palette adapted from the Ease Health botanical reference.
-   Color values only; existing typography, spacing, shapes, and layout remain intact.
+   Naseej | نَسيج — theme tokens. The single source of truth for colour.
+
+   Layer 1  semantic tokens (--background, --surface, --primary, --text-*, --border, ...)
+            hold the raw values, once for light and once for dark.
+   Layer 2  the long-standing component names (--color-bg-canvas, --color-ink,
+            --color-accent, --color-status-*, ...) are aliases of layer 1, so every
+            existing rule follows the theme with no per-component colour.
+
+   Light is set on :root, dark on :root[data-theme='dark']. The theme is chosen by
+   src/context/ThemeContext.tsx (light | dark | system) and applied before first
+   paint by the inline script in index.html. Add a colour here, in both themes;
+   do not write a colour literal in a component rule.
    ============================================================================= */
 
 :root {
-  /* Colors */
-  --color-forest-ink: #0f3e17;
-  --color-forest-shadow: #0c2f10;
-  --color-sage-mist: #b1dbb8;
-  --color-keylime-wash: #e1f4df;
-  --color-mint-veil: #cfe7d3;
-  --color-slate-hush: #b6ced5;
-  --color-cream-paper: #fffefc;
-  --color-charcoal-ink: #222222;
-  --color-border-mist: #efeeeb;
+  /* ---- layer 1: light ---- */
+  --background: #f7f9f8;
+  --surface: #ffffff;
+  --surface-muted: #eff4f2;
+  --surface-raised: #ffffff; /* menus, dialogs, popovers */
+  --surface-hover: #edf3f1;
+  --surface-inverse: #182b36; /* always-dark callouts and prompts */
+  --accent-on-inverse: #8fe0d2; /* accent text on an inverse panel */
+  --text-inverse: #f0f5f3;
+  --primary: #137c72;
+  --primary-hover: #0f665e;
+  --on-primary: #ffffff;
+  --text-primary: #182b36;
+  --text-secondary: #61717a;
+  --text-muted: #5b6b74;
+  --text-on-accent-surface: #0f665e;
+  --border: #e1e8e6;
+  --border-strong: #728585; /* control edges: 3:1 on surface (WCAG 1.4.11) */
+  --accent-surface: #bfe9df;
+  --focus-ring: #137c72;
+  --focus-halo: rgba(19, 124, 114, 0.22);
+  --disabled-bg: #eaf0ee;
+  --disabled-text: #7d8b92;
+  --overlay: rgba(24, 43, 54, 0.5);
+  --selection: rgba(19, 124, 114, 0.22);
+  --shadow-color: 24, 43, 54;
+  --paper: #ffffff; /* printed sheet and QR code: fixed in both themes so a scan or a print never inverts */
+  --paper-ink: #182b36;
 
-  /* Existing component aliases, now backed by the reference palette */
-  --color-paper-white: var(--color-cream-paper);
-  --color-charcoal: var(--color-forest-ink);
-  --color-ink: var(--color-charcoal-ink);
-  --color-cloud-card: var(--color-keylime-wash);
-  --color-cloud-card-hover: var(--color-mint-veil);
-  --color-body-gray: #46534a;
-  --color-signal-gold: var(--color-sage-mist);
-  --color-coral-signal: #53686d;
-  --color-recovery-green: var(--color-forest-ink);
-  --color-metric-accent: #395a63;
-  --color-sleep-lilac: #405d47;
-  --color-hero-sky: var(--color-slate-hush);
-  --gradient-hero-sky: linear-gradient(180deg, var(--color-slate-hush) 0%, var(--color-cream-paper) 100%);
-  --gradient-brand: linear-gradient(135deg, var(--color-forest-ink) 0%, var(--color-forest-shadow) 100%);
+  /* Status. Each one is shown with a word or glyph as well; colour never carries meaning alone.
+     warning = amber (draft, needs review), success = green (confirmed), danger = red,
+     info = brand teal, neutral = grey. Red, amber and green are for clinical or system state only. */
+  --warning-bg: #fbf0d9;
+  --warning-text: #7a4b00;
+  --warning-border: #e3c27e;
+  --success-bg: #e3f3e8;
+  --success-text: #1c6a3c;
+  --success-border: #9bd0ad;
+  --danger-bg: #fbe9e7;
+  --danger-text: #a42318;
+  --danger-border: #eba9a2;
+  --info-bg: #e4f3f0;
+  --info-text: #0f665e;
+  --info-border: #9fd3ca;
+  --neutral-bg: #edf1f1;
+  --neutral-text: #3f525c;
+  --neutral-border: #c7d2d2;
 
-  /* System Semantics */
-  --color-bg-canvas: var(--color-cream-paper);
-  --color-bg-surface: var(--color-keylime-wash);
-  --color-bg-elevated: var(--color-cream-paper);
-  --color-bg-subtle: #f5f8f3;
+  /* Charts and data marks: brand first, then hues that stay apart by value too. */
+  --chart-1: #137c72;
+  --chart-2: #2f6fa3;
+  --chart-3: #b4690e;
+  --chart-4: #7a5aa6;
+  --chart-grid: #e1e8e6;
+  --chart-axis: #61717a;
 
-  /* Typography Colors */
-  --color-text-primary: var(--color-charcoal-ink);
-  --color-text-secondary: #46534a;
-  --color-text-muted: #56645a;
+  color-scheme: light;
+}
 
-  /* Borders & Dividers */
-  --color-border-subtle: var(--color-border-mist);
-  --color-border-strong: rgba(15, 62, 23, 0.22);
-  --color-border-focus: var(--color-forest-ink);
+:root[data-theme='dark'] {
+  /* ---- layer 1: dark. Surfaces separate by value (background < surface < raised), not by shadow. ---- */
+  --background: #101b22;
+  --surface: #182830;
+  --surface-muted: #131f26;
+  --surface-raised: #1f3540;
+  --surface-hover: #20353e;
+  --surface-inverse: #1f3540;
+  --text-inverse: #f0f5f3;
+  --primary: #59c3b2;
+  --primary-hover: #79d4c5;
+  --on-primary: #0a1a1e;
+  --text-primary: #f0f5f3;
+  --text-secondary: #a8b7b8;
+  --text-muted: #9bacad;
+  --text-on-accent-surface: #8fe0d2;
+  --border: #2b3d43;
+  --border-strong: #6c8486;
+  --accent-surface: #203f3a;
+  --focus-ring: #79d4c5;
+  --focus-halo: rgba(121, 212, 197, 0.28);
+  --disabled-bg: #1b2d34;
+  --disabled-text: #70838a;
+  --overlay: rgba(4, 10, 13, 0.7);
+  --selection: rgba(89, 195, 178, 0.34);
+  --shadow-color: 0, 0, 0;
 
-  /* Brand Accents */
-  --color-brand-primary: var(--color-forest-ink);
-  --color-brand-accent: var(--color-sage-mist);
-  --color-brand-light: var(--color-keylime-wash);
+  --warning-bg: rgba(240, 192, 99, 0.13);
+  --warning-text: #f2c978;
+  --warning-border: rgba(240, 192, 99, 0.4);
+  --success-bg: rgba(127, 214, 160, 0.13);
+  --success-text: #8fdcab;
+  --success-border: rgba(127, 214, 160, 0.38);
+  --danger-bg: rgba(255, 156, 147, 0.13);
+  --danger-text: #ffaaa1;
+  --danger-border: rgba(255, 156, 147, 0.42);
+  --info-bg: rgba(89, 195, 178, 0.14);
+  --info-text: #8fe0d2;
+  --info-border: rgba(89, 195, 178, 0.4);
+  --neutral-bg: rgba(168, 183, 184, 0.1);
+  --neutral-text: #c3cfd0;
+  --neutral-border: rgba(168, 183, 184, 0.3);
 
-  /* Healthcare Status Badges */
-  --color-status-draft-bg: rgba(255, 171, 148, 0.22);
-  --color-status-draft-text: #a83d23;
-  --color-status-draft-border: rgba(255, 171, 148, 0.5);
+  --chart-1: #59c3b2;
+  --chart-2: #7fb2e0;
+  --chart-3: #e3a85a;
+  --chart-4: #b79ae0;
+  --chart-grid: #2b3d43;
+  --chart-axis: #a8b7b8;
 
-  --color-status-approved-bg: rgba(177, 219, 184, 0.38);
-  --color-status-approved-text: var(--color-forest-ink);
-  --color-status-approved-border: rgba(15, 62, 23, 0.28);
+  color-scheme: dark;
+}
 
-  --color-status-info-bg: rgba(182, 206, 213, 0.35);
-  --color-status-info-text: #30484f;
-  --color-status-info-border: rgba(48, 72, 79, 0.3);
-
-  --color-status-danger-bg: rgba(255, 171, 148, 0.25);
-  --color-status-danger-text: #b82d1c;
-  --color-status-danger-border: rgba(255, 171, 148, 0.55);
-
-  --color-status-lilac-bg: rgba(207, 231, 211, 0.55);
-  --color-status-lilac-text: var(--color-forest-ink);
-  --color-status-lilac-border: rgba(15, 62, 23, 0.22);
-
+/* ---- layer 2: component names, aliases of layer 1 (identical in both themes) ---- */
+:root {
   /* Fonts */
   --font-arabic: 'Cairo', sans-serif;
   --font-latin: 'Inter', 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Surfaces */
+  --color-bg-canvas: var(--background);
+  --color-bg-surface: var(--surface);
+  --color-bg-elevated: var(--surface);
+  --color-bg-subtle: var(--surface-muted);
+  --color-bg-raised: var(--surface-raised);
+  --color-paper-white: var(--background);
+  --color-cloud-card: var(--surface);
+  --color-cloud-card-hover: var(--surface-hover);
+  --surface-paper-white: var(--background);
+  --surface-cloud-card: var(--surface);
+
+  /* Text */
+  --color-ink: var(--text-primary);
+  --color-ivory: var(--text-primary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-body-gray: var(--text-secondary);
+  --color-ash: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+  --color-on-accent: var(--on-primary);
+
+  /* Raw surface names still read by a few rules */
+  --color-onyx: var(--background);
+  --color-graphite: var(--surface);
+  --color-obsidian: var(--surface-hover);
+
+  /* Brand and action */
+  --color-accent: var(--primary);
+  --color-accent-hover: var(--primary-hover);
+  --color-accent-text: var(--text-on-accent-surface);
+  --color-accent-surface: var(--accent-surface);
+  --color-brand-primary: var(--primary);
+  --color-brand-accent: var(--primary);
+  --color-brand-light: var(--accent-surface);
+  --color-charcoal: var(--primary); /* primary pills */
+  --color-charcoal-hover: var(--primary-hover);
+  --surface-charcoal: var(--primary);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-on-dark-ink: var(--on-primary);
+
+  /* Borders and focus */
+  --color-border-subtle: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-focus: var(--focus-ring);
+  --color-focus-ring: var(--focus-ring);
+  --color-focus-halo: var(--focus-halo);
+  --color-selection: var(--selection);
+  --color-overlay: var(--overlay);
+  --color-disabled-bg: var(--disabled-bg);
+  --color-disabled-text: var(--disabled-text);
+  --color-glass: color-mix(in srgb, var(--background) 88%, transparent);
+  --color-glass-soft: color-mix(in srgb, var(--surface) 72%, transparent);
+  --color-glass-border: var(--border);
+
+  /* Marks */
+  --color-metric-accent: var(--primary);
+  --color-recovery-green: var(--success-text);
+  --color-signal-gold: var(--warning-text);
+  --color-coral-signal: var(--danger-text);
+  --color-sleep-lilac: var(--text-secondary);
+  --color-hero-sky: var(--accent-surface);
+  --gradient-hero-sky: linear-gradient(180deg, color-mix(in srgb, var(--accent-surface) 70%, var(--background)) 0%, var(--background) 100%);
+  --gradient-brand: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+
+  /* Status badges: draft = warning, approved = success, info = brand, danger = red, lilac = neutral */
+  --color-status-draft-bg: var(--warning-bg);
+  --color-status-draft-text: var(--warning-text);
+  --color-status-draft-border: var(--warning-border);
+  --color-status-approved-bg: var(--success-bg);
+  --color-status-approved-text: var(--success-text);
+  --color-status-approved-border: var(--success-border);
+  --color-status-info-bg: var(--info-bg);
+  --color-status-info-text: var(--info-text);
+  --color-status-info-border: var(--info-border);
+  --color-status-danger-bg: var(--danger-bg);
+  --color-status-danger-text: var(--danger-text);
+  --color-status-danger-border: var(--danger-border);
+  --color-status-lilac-bg: var(--neutral-bg);
+  --color-status-lilac-text: var(--neutral-text);
+  --color-status-lilac-border: var(--neutral-border);
+  --color-danger-bg-strong: color-mix(in srgb, var(--danger-border) 45%, var(--danger-bg));
+
+  /* Elevation: cards sit on a hairline; only floating layers lift. */
+  --shadow-md: none;
+  --shadow-subtle: none;
+  --shadow-lg: none;
+  --shadow-md-2: none;
+  --shadow-subtle-2: none;
+  --shadow-card: none;
+  --shadow-nav: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-hover: none;
+  --shadow-raised: none;
+  --shadow-float: 0 14px 34px -10px rgba(var(--shadow-color), 0.28);
+  --shadow-modal: 0 12px 32px rgba(var(--shadow-color), 0.18);
+  --shadow-button: none;
+  --shadow-button-hover: none;
 
   /* Spacing Scale */
   --spacing-8: 8px;
@@ -108,42 +264,6 @@
   --radius-navigation: 40px;
   --radius-pill: 128px;
 
-  /* Shadows */
-  --shadow-md: none;
-  --shadow-subtle: rgb(255, 255, 255) 0px 1px 0px 0px inset, rgba(255, 254, 252, 0.25) 0px 0px 4px 0px inset;
-  --shadow-lg: rgb(255, 255, 255) 0px 0px 24px 0px inset;
-  --shadow-md-2: none;
-  --shadow-subtle-2: rgba(255, 254, 252, 0.36) 0px 1px 0px 0px inset;
-  --shadow-card: none;
-  --shadow-nav: none;
-
-  /* Surfaces */
-  --surface-paper-white: var(--color-cream-paper);
-  --surface-cloud-card: var(--color-keylime-wash);
-  --surface-charcoal: var(--color-forest-ink);
-
-  /* Theme-aware roles (redefined in the dark block below) */
-  --color-charcoal-hover: var(--color-forest-shadow);
-  --color-surface-inverse: var(--color-forest-ink); /* always-dark callout panels */
-  --color-text-inverse: var(--color-cream-paper);
-  --color-on-dark-ink: var(--color-forest-ink); /* text on fixed light colors such as signal gold */
-  --color-glass: rgba(255, 254, 252, 0.94);
-  --color-glass-soft: rgba(255, 254, 252, 0.6);
-  --color-glass-border: rgba(255, 254, 252, 0.8);
-  --color-overlay: rgba(15, 62, 23, 0.4);
-  --color-focus-ring: var(--color-forest-ink);
-  --color-focus-halo: rgba(15, 62, 23, 0.1);
-  --color-selection: rgba(177, 219, 184, 0.55);
-  --color-danger-bg-strong: rgba(255, 171, 148, 0.4);
-  --shadow-xs: none;
-  --shadow-sm: none;
-  --shadow-hover: none;
-  --shadow-raised: none;
-  --shadow-float: none;
-  --shadow-modal: 0 12px 32px rgba(15, 62, 23, 0.14);
-  --shadow-button: none;
-  --shadow-button-hover: none;
-
   /* Motion Tokens */
   --motion-duration-instant: 100ms;
   --motion-duration-fast: 160ms;
@@ -160,255 +280,47 @@
   --ease: var(--motion-ease-out);
   --t-fast: 120ms;
   --t: 200ms;
-
-  color-scheme: light;
 }
 
-/* =============================================================================
-   Light theme: the same system on a warm ivory canvas.
-   White cards sit one step above a pale canvas, ink is onyx, and the single
-   chromatic action is orange. These declarations replace the earlier botanical
-   values for every shared token name.
-   ============================================================================= */
-:root {
-  --color-onyx: #1f1a17;
-  --color-graphite: #ffffff;
-  --color-obsidian: #f1ebe6;
-  --color-ivory: #1f1a17;
-  --color-ash: #5e5650;
-  --color-accent: #c2410c;
-  --color-accent-hover: #9a3412;
-  --color-accent-text: #b4380a;
-
-  --color-paper-white: #faf7f4;
-  --color-charcoal: #1f1a17;
-  --color-ink: #1f1a17;
-  --color-cloud-card: #ffffff;
-  --color-cloud-card-hover: #f1ebe6;
-  --color-body-gray: #5e5650;
-  --color-signal-gold: #7a5f10;
-  --color-coral-signal: #a24e37;
-  --color-recovery-green: #26784a;
-  --color-metric-accent: var(--color-accent-text);
-  --color-sleep-lilac: #5e5650;
-  --color-hero-sky: #fdeee0;
-  --gradient-hero-sky: linear-gradient(180deg, #fdeee0 0%, #faf7f4 100%);
-  --gradient-brand: linear-gradient(135deg, #1f1a17 0%, #2e2420 100%);
-
-  --color-bg-canvas: #faf7f4;
-  --color-bg-surface: #ffffff;
-  --color-bg-elevated: #ffffff;
-  --color-bg-subtle: #f3eee9;
-
-  --color-text-primary: #1f1a17;
-  --color-text-secondary: #5e5650;
-  --color-text-muted: #6e655e;
-
-  --color-border-subtle: rgba(31, 26, 23, 0.1);
-  --color-border-strong: rgba(31, 26, 23, 0.3);
-  --color-border-focus: #1f1a17;
-
-  --color-brand-primary: #1f1a17;
-  --color-brand-accent: var(--color-accent-text);
-  --color-brand-light: #ffffff;
-
-  --color-status-draft-bg: rgba(184, 93, 69, 0.1);
-  --color-status-draft-text: #8f432f;
-  --color-status-draft-border: rgba(184, 93, 69, 0.34);
-
-  --color-status-approved-bg: rgba(38, 120, 74, 0.1);
-  --color-status-approved-text: #1d6a41;
-  --color-status-approved-border: rgba(38, 120, 74, 0.32);
-
-  --color-status-info-bg: rgba(194, 65, 12, 0.1);
-  --color-status-info-text: #b4380a;
-  --color-status-info-border: rgba(194, 65, 12, 0.3);
-
-  --color-status-danger-bg: rgba(184, 93, 69, 0.1);
-  --color-status-danger-text: #8f3a28;
-  --color-status-danger-border: rgba(184, 93, 69, 0.36);
-
-  --color-status-lilac-bg: rgba(31, 26, 23, 0.06);
-  --color-status-lilac-text: #4f463f;
-  --color-status-lilac-border: rgba(31, 26, 23, 0.2);
-
-  --surface-paper-white: #faf7f4;
-  --surface-cloud-card: #ffffff;
-  --surface-charcoal: #1f1a17;
-
-  --color-charcoal-hover: #3a312c;
-  --color-surface-inverse: #1f1a17;
-  --color-text-inverse: #f3ebe3;
-  --color-on-dark-ink: #1f1a17;
-  --color-glass: rgba(250, 247, 244, 0.86);
-  --color-glass-soft: rgba(255, 255, 255, 0.7);
-  --color-glass-border: rgba(31, 26, 23, 0.08);
-  --color-overlay: rgba(31, 26, 23, 0.5);
-  --color-focus-ring: #b4380a;
-  --color-focus-halo: rgba(180, 56, 10, 0.2);
-  --color-selection: rgba(194, 65, 12, 0.24);
-  --color-danger-bg-strong: rgba(184, 93, 69, 0.2);
-  --shadow-modal: 0 12px 32px rgba(31, 26, 23, 0.16);
-}
-
-
-
-/* =============================================================================
-   Dark theme
-   Applied by <html data-theme="dark"> (set before first paint by the inline
-   script in index.html, then kept in sync by src/context/ThemeContext.tsx).
-   The existing token names keep their role, so components need no changes:
-   paper-white = page canvas, cloud-card = raised surface, ink = primary text,
-   charcoal = strong/primary (inverts to a light pill with dark text).
-   ============================================================================= */
-:root[data-theme='dark'] {
-  /* Onyx and graphite (adapted from the Mercury reference). Surfaces separate by value, not by shadow. */
-  --color-onyx: #1a1411;
-  --color-graphite: #241c18;
-  --color-obsidian: #2e2420;
-  --color-slate: #7a6d65;
-  --color-mist: #eadfd6;
-  --color-ash: #cdbfb4;
-  --color-ivory: #f3ebe3;
-  --color-accent: #c2410c;
-  --color-accent-hover: #d9480f;
-  --color-accent-text: #fdba74; /* orange tint that reads on the brown canvas at text sizes */
-
-  --color-paper-white: var(--color-onyx);
-  --color-charcoal: var(--color-ivory);
-  --color-ink: var(--color-ivory);
-  --color-cloud-card: var(--color-graphite);
-  --color-cloud-card-hover: var(--color-obsidian);
-  --color-body-gray: var(--color-ash);
-  --color-signal-gold: #d9c27a;
-  --color-coral-signal: #e9a894;
-  --color-recovery-green: #86d0a2;
-  --color-metric-accent: var(--color-accent-text);
-  --color-sleep-lilac: #b3b3c9;
-  --color-hero-sky: var(--color-graphite);
-  --gradient-hero-sky: linear-gradient(180deg, #241c18 0%, #1a1411 100%);
-  --gradient-brand: linear-gradient(135deg, #2e2420 0%, #241c18 100%);
-
-  --color-bg-canvas: var(--color-onyx);
-  --color-bg-surface: var(--color-graphite);
-  --color-bg-elevated: var(--color-graphite);
-  --color-bg-subtle: #1d1612;
-
-  --color-text-primary: var(--color-ivory);
-  --color-text-secondary: var(--color-ash);
-  --color-text-muted: #b3a498;
-
-  --color-border-subtle: rgba(243, 235, 227, 0.1);
-  --color-border-strong: rgba(243, 235, 227, 0.34);
-  --color-border-focus: var(--color-ivory);
-
-  --color-brand-primary: var(--color-ivory);
-  --color-brand-accent: var(--color-accent-text);
-  --color-brand-light: var(--color-graphite);
-
-  /* Clinical status tokens stay readable and are always paired with an icon and a word. Muted, not saturated. */
-  --color-status-draft-bg: rgba(233, 168, 148, 0.14);
-  --color-status-draft-text: #f0b5a3;
-  --color-status-draft-border: rgba(233, 168, 148, 0.38);
-
-  --color-status-approved-bg: rgba(134, 208, 162, 0.13);
-  --color-status-approved-text: #9edbb5;
-  --color-status-approved-border: rgba(134, 208, 162, 0.36);
-
-  --color-status-info-bg: rgba(253, 186, 116, 0.13);
-  --color-status-info-text: #fdba74;
-  --color-status-info-border: rgba(253, 186, 116, 0.36);
-
-  --color-status-danger-bg: rgba(233, 168, 148, 0.14);
-  --color-status-danger-text: #f2b9a8;
-  --color-status-danger-border: rgba(233, 168, 148, 0.4);
-
-  --color-status-lilac-bg: rgba(205, 191, 180, 0.1);
-  --color-status-lilac-text: #e0d3c8;
-  --color-status-lilac-border: rgba(205, 191, 180, 0.3);
-
-  /* Flat: no decorative shadows */
-  --shadow-md: none;
-  --shadow-subtle: none;
-  --shadow-lg: none;
-  --shadow-md-2: none;
-  --shadow-subtle-2: none;
-  --shadow-card: none;
-  --shadow-nav: none;
-
-  --surface-paper-white: var(--color-onyx);
-  --surface-cloud-card: var(--color-graphite);
-  --surface-charcoal: var(--color-ivory);
-
-  --color-charcoal-hover: #ffffff;
-  --color-surface-inverse: var(--color-obsidian);
-  --color-text-inverse: var(--color-ivory);
-  --color-glass: rgba(26, 20, 17, 0.82);
-  --color-glass-soft: rgba(36, 28, 24, 0.7);
-  --color-glass-border: rgba(243, 235, 227, 0.1);
-  --color-overlay: rgba(12, 8, 6, 0.66);
-  --color-focus-ring: #fed7aa;
-  --color-focus-halo: rgba(254, 215, 170, 0.26);
-  --color-selection: rgba(234, 88, 12, 0.45);
-  --color-danger-bg-strong: rgba(233, 168, 148, 0.24);
-  --shadow-xs: none;
-  --shadow-sm: none;
-  --shadow-hover: none;
-  --shadow-raised: none;
-  --shadow-float: none;
-  --shadow-modal: none;
-  --shadow-button: none;
-  --shadow-button-hover: none;
-
-  color-scheme: dark;
-}
-
-/* Dark: the one chromatic action is orange. Everything else is warm ivory on brown. */
-:root[data-theme='dark'] .btn-pill-charcoal,
-:root[data-theme='dark'] .btn-pill-brand {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #ffffff;
-}
-
-:root[data-theme='dark'] .btn-pill-charcoal:hover:not(:disabled),
-:root[data-theme='dark'] .btn-pill-brand:hover:not(:disabled) {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
+/* Primary pills are the brand colour in both themes; the label colour flips for contrast. */
+.btn-pill-charcoal,
+.btn-pill-brand {
+  color: var(--on-primary);
 }
 
 :root[data-theme='dark'] .btn-pill-cloud {
-  background: var(--color-obsidian);
-  color: var(--color-ivory);
+  background: var(--accent-surface);
+  color: var(--text-on-accent-surface);
+  box-shadow: inset 0 0 0 1px var(--info-border);
 }
 
 :root[data-theme='dark'] .btn-pill-cloud:hover:not(:disabled) {
-  background: #3a2e28;
+  background: color-mix(in srgb, var(--primary) 26%, var(--accent-surface));
 }
 
 :root[data-theme='dark'] .btn-pill-ghost {
-  border-color: color-mix(in srgb, var(--color-ivory) 70%, transparent);
-  color: var(--color-ivory);
+  border-color: color-mix(in srgb, var(--text-primary) 70%, transparent);
+  color: var(--text-primary);
 }
 
 :root[data-theme='dark'] .btn-pill-ghost:hover:not(:disabled) {
-  background: var(--color-obsidian);
-  border-color: var(--color-ivory);
+  background: var(--surface-hover);
+  border-color: var(--text-primary);
 }
 
 :root[data-theme='dark'] .modal-content {
-  background: var(--color-graphite);
-  border: 1px solid var(--color-border-subtle);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
 }
 
 :root[data-theme='dark'] .form-input,
 :root[data-theme='dark'] .form-select,
 :root[data-theme='dark'] .form-textarea {
-  background: var(--color-onyx);
+  background: var(--background);
 }
 
 :root[data-theme='dark'] .data-table th {
-  background: var(--color-obsidian);
+  background: var(--surface-hover);
 }
 
 /* Theme switches are instant: transitions are suspended for one frame so surfaces
@@ -1308,12 +1220,12 @@ svg {
 }
 
 /* Placed after the base button rules so it wins in both themes. */
-/* The one chromatic action is orange in both themes. */
+/* The one chromatic action is the brand colour in both themes. */
 .btn-pill-charcoal,
 .btn-pill-brand {
   background: var(--color-accent);
   border-color: var(--color-accent);
-  color: #ffffff;
+  color: var(--on-primary);
 }
 
 .btn-pill-charcoal:hover:not(:disabled),
@@ -1338,8 +1250,8 @@ svg {
 
 .btn-pill-charcoal .status-badge,
 .btn-pill-brand .status-badge {
-  background: rgba(26, 20, 17, 0.34) !important;
-  color: #ffffff !important;
+  background: color-mix(in srgb, var(--on-primary) 20%, transparent) !important;
+  color: var(--on-primary) !important;
 }
 
 /* The decorative motion of the public site (landing, login) always runs. The signed-in workspace still honours the
