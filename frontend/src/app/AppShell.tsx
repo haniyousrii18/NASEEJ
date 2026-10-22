@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PatientTranslationProvider } from './translate/TranslationContext.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
 import { useTheme } from '../context/ThemeContext.js';
@@ -462,6 +463,7 @@ export const AppShell: React.FC<Props> = (props) => {
   const { currentRole } = useAuth();
   const role = appRoleOf(currentRole);
   return (
+    <PatientTranslationProvider>
     <WorkspaceMotion>
       {role ? (
         <NotificationsProvider role={role}>
@@ -471,6 +473,7 @@ export const AppShell: React.FC<Props> = (props) => {
         <AppShellInner {...props} />
       )}
     </WorkspaceMotion>
+    </PatientTranslationProvider>
   );
 };
 

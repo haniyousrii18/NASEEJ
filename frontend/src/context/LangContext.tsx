@@ -8,6 +8,9 @@ interface LangContextType {
   isRtl: boolean;
 }
 
+/** Arabic reads right-to-left, English left-to-right. The one place that decides it. */
+export const directionOf = (lang: Language): 'rtl' | 'ltr' => (lang === 'ar' ? 'rtl' : 'ltr');
+
 const LangContext = createContext<LangContextType | undefined>(undefined);
 
 export const LangProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -19,14 +22,14 @@ export const LangProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('naseej_lang', lang);
     const html = document.documentElement;
     html.lang = lang;
-    html.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    html.dir = directionOf(lang);
   }, [lang]);
 
   const value = {
     lang,
     setLang,
     t: translations[lang],
-    isRtl: lang === 'ar',
+    isRtl: directionOf(lang) === 'rtl',
   };
 
   return <LangContext.Provider value={value}>{children}</LangContext.Provider>;

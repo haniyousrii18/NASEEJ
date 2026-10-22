@@ -20,3 +20,6 @@ backend/storage/protected/*
 # Vite temp config files
 *.timestamp-*.mjs
 dev-dist/
+
+# Local translation models (downloaded by `npm run translate:models`, hundreds of MB)
+backend/models/

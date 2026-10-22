@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { validationMessage } from '../errors.js';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate } from '../format.js';
 import type { PortalSummary } from '../pages/patient.js';
@@ -213,7 +214,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
     setError('');
     const res = await run<Prep>(`/api/prep/${id}`, 'PUT', { content, visit_date: visitDate });
     if (!res.ok) {
-      setError(res.error.status === 0 ? A.health.common.offline : res.error.code === 'INVALID_SOURCE' ? E.outdated : res.error.status === 400 ? res.error.message : A.health.common.failed);
+      setError(res.error.status === 0 ? A.health.common.offline : res.error.code === 'INVALID_SOURCE' ? E.outdated : res.error.status === 400 ? validationMessage(A, res.error) : A.health.common.failed);
       return false;
     }
     setDirty(false);
@@ -226,7 +227,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
     setApproving(false);
     if (dirty && !(await save())) return;
     const res = await run<Prep>(`/api/prep/${id}/approve`, 'POST', { confirm: true });
-    if (!res.ok) return setError(res.error.code === 'PREP_OUTDATED' ? E.outdated : res.error.status === 400 ? res.error.message : E.approveFailed);
+    if (!res.ok) return setError(res.error.code === 'PREP_OUTDATED' ? E.outdated : res.error.status === 400 ? validationMessage(A, res.error) : E.approveFailed);
     setStatus('approved');
     setVersion((v) => v + 1);
   };
@@ -256,7 +257,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
     setSuggestion('');
     const res = await run<{ overview: string }>('/api/assistant/overview', 'POST', { prep_id: id });
     setSuggesting(false);
-    if (!res.ok) return setError((A.health.assistant.errors as Record<string, string>)[res.error.code] ?? res.error.message ?? A.health.common.failed);
+    if (!res.ok) return setError((A.health.assistant.errors as Record<string, string>)[res.error.code] ?? A.health.common.failed);
     setSuggestion(res.data.overview);
   };
 

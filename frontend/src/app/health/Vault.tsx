@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { validationMessage } from '../errors.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { useApiData, useDownload, useMutation } from '../api.js';
 import { fill, formatBytes, formatDate, todayIso } from '../format.js';
@@ -265,7 +266,7 @@ const FactRow: React.FC<{ docId: string; fact: Fact; onDone: (msg: string) => vo
     if (kind === 'measurement') Object.assign(body, { value: v.value.trim() || undefined, unit: v.unit.trim() || undefined });
     if (kind === 'medication' && v.value.trim()) body.dose = `${v.value.trim()}${v.unit.trim() ? ` ${v.unit.trim()}` : ''}`;
     const res = await run(`/api/vault/documents/${docId}/suggestions/${fact.id}/confirm`, 'POST', body);
-    if (!res.ok) return setError(res.error.status === 400 ? res.error.message : A.health.common.failed);
+    if (!res.ok) return setError(res.error.status === 400 ? validationMessage(A, res.error) : A.health.common.failed);
     onDone(V.sugAdded);
   };
   const dismiss = async () => {

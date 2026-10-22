@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { validationMessage } from '../errors.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { useLang } from '../../context/LangContext.js';
 import { useTheme } from '../../context/ThemeContext.js';
@@ -122,8 +123,8 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
       onSaved();
     } else {
       const field = res.error.details?.field as string | undefined;
-      if (field) setErrors({ [field]: res.error.message });
-      setFlash({ tone: 'danger', text: res.error.message });
+      if (field) setErrors({ [field]: validationMessage(A, res.error) });
+      setFlash({ tone: 'danger', text: validationMessage(A, res.error) });
     }
   };
 
@@ -205,7 +206,7 @@ const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }
       setFlash({ tone: 'ok', text: S.contact.saved });
       onSaved();
     } else {
-      setFlash({ tone: 'danger', text: res.error.message });
+      setFlash({ tone: 'danger', text: validationMessage(A, res.error) });
     }
   };
 
@@ -304,7 +305,7 @@ const SecuritySection: React.FC = () => {
     } else if (res.error.code === 'CURRENT_PASSWORD_INCORRECT') {
       setErrors({ current: S.security.wrongCurrent });
     } else {
-      setFlash({ tone: 'danger', text: res.error.message });
+      setFlash({ tone: 'danger', text: validationMessage(A, res.error) });
     }
   };
 
