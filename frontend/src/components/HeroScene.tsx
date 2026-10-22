@@ -101,31 +101,31 @@ export const HeroScene: React.FC = () => {
         <div className="scene-node" style={{ left: '13%', top: '22%' }}>
           <div className="scene-node-in scene-in scene-float" style={{ ['--d' as string]: '0.35s', ['--fd' as string]: '7s' }}>
             <span className="scene-node-disc"><NodeIcon kind="user" /></span>
-            <span className="scene-node-label">{L.nodePatients}</span>
+            <span className="scene-node-label">{L.nodeYou}</span>
           </div>
         </div>
         <div className="scene-node" style={{ left: '87%', top: '16%' }}>
           <div className="scene-node-in scene-in scene-float" style={{ ['--d' as string]: '0.5s', ['--fd' as string]: '6s', ['--fdl' as string]: '-2s' }}>
             <span className="scene-node-disc"><NodeIcon kind="steth" /></span>
-            <span className="scene-node-label">{L.nodeClinicians}</span>
+            <span className="scene-node-label">{L.nodeDoctor}</span>
           </div>
         </div>
         <div className="scene-node" style={{ left: '84%', top: '80%' }}>
           <div className="scene-node-in scene-in scene-float" style={{ ['--d' as string]: '0.65s', ['--fd' as string]: '8s', ['--fdl' as string]: '-4s' }}>
             <span className="scene-node-disc"><NodeIcon kind="building" /></span>
-            <span className="scene-node-label">{L.nodeCenters}</span>
+            <span className="scene-node-label">{L.nodeAnyCenter}</span>
           </div>
         </div>
       </div>
 
       <div className="scene-group scene-front" aria-hidden="true">
         <div className="scene-card scene-card--record scene-in scene-float" dir={dir} style={{ ['--d' as string]: '0.25s', ['--fd' as string]: '7.5s' }}>
-          <div className="scene-card-label">{L.cardPatient}</div>
+          <div className="scene-card-label">{L.cardRecord}</div>
           <div className="scene-card-head">
             <span className="scene-avatar" />
             <span className="scene-card-id">
               <span className="scene-card-name" dir="auto">{isRtl ? 'محمد المنصور' : 'Mohammed Al-Mansoor'}</span>
-              <span className="scene-card-meta num">MRN-NOOR-1001</span>
+              <span className="scene-card-meta">{L.cardOwner}</span>
             </span>
           </div>
           <span className="scene-bar" style={{ width: '88%' }} />
@@ -137,14 +137,14 @@ export const HeroScene: React.FC = () => {
         </div>
 
         <div className="scene-card scene-card--lab scene-in scene-float" dir={dir} style={{ ['--d' as string]: '0.45s', ['--fd' as string]: '6.5s', ['--fdl' as string]: '-3s' }}>
-          <div className="scene-card-label">{L.cardLab}</div>
+          <div className="scene-card-label">{L.cardShare}</div>
           <span className="scene-badge scene-badge--ok">
             <CheckIcon />
-            <span>{L.cardApproved}</span>
+            <span>{L.cardShareOnly}</span>
           </span>
           <span className="scene-badge scene-badge--info">
             <LockIcon />
-            <span>{L.cardDraft}</span>
+            <span>{L.cardShareExpires}</span>
           </span>
         </div>
 

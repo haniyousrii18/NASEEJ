@@ -10,7 +10,8 @@ import { appT } from '../i18n/index.js';
  */
 export interface Snapshot {
   lang: 'ar' | 'en';
-  patient: { name: string; dateOfBirth: string } | null;
+  /** dateOfBirth is null for a patient who registered by email and has not entered one. */
+  patient: { name: string; dateOfBirth: string | null } | null;
   visitDate: string | null;
   reason: string;
   overview: string;
@@ -32,8 +33,12 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
             <>
               <dt>{T.patient}</dt>
               <dd dir="auto">{snapshot.patient.name}</dd>
-              <dt>{T.dob}</dt>
-              <dd>{formatDate(snapshot.lang, snapshot.patient.dateOfBirth)}</dd>
+              {snapshot.patient.dateOfBirth && (
+                <>
+                  <dt>{T.dob}</dt>
+                  <dd>{formatDate(snapshot.lang, snapshot.patient.dateOfBirth)}</dd>
+                </>
+              )}
             </>
           )}
           {snapshot.visitDate && (

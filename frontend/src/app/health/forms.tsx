@@ -211,7 +211,8 @@ export const SymptomForm: React.FC<{
   initial?: SymptomValue;
   /** 'assistant' when the fields came from an assistant draft the person is now reviewing. */
   origin?: 'form' | 'assistant' | 'voice';
-  onSaved: () => void;
+  /** Called with the saved symptom (its id), so the list can show it. */
+  onSaved: (saved?: { id: string }) => void;
   onCancel: () => void;
 }> = ({ initial, origin = 'form', onSaved, onCancel }) => {
   const A = useA();
@@ -279,7 +280,7 @@ export const SymptomForm: React.FC<{
     if (!editing) body.captured_via = origin === 'assistant' ? 'assistant' : voiced ? 'voice' : 'form';
     const res = await run(editing ? `/api/record/symptoms/${initial!.id}` : '/api/record/symptoms', editing ? 'PATCH' : 'POST', body);
     if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : res.error.status === 400 ? validationMessage(A, res.error) : A.health.common.failed);
-    onSaved();
+    onSaved(res.data as { id: string } | undefined);
   };
 
   const toggleDoc = (id: string) => setDocIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));

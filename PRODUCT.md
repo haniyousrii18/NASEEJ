@@ -49,8 +49,9 @@ Unlike clinic EHRs that keep a patient's information inside one provider, Naseej
 - **QR sharing:** hashed 256-bit token shown once, frozen snapshot, expiry, instant revoke, access history, read-only no-account page, printable.
 - **Audit and privacy:** ids and kinds only in the audit log; assistant conversation text is not stored; expired shares are scrubbed after a day.
 - **Account settings, in-app notifications, installable PWA** (`docs/notifications.md`, `docs/pwa.md`).
-- **Not implemented:** email and push, server-side transcription, clinician accounts, FHIR import/export, external identity provider, clinical review of the safety wording, regulatory compliance claims.
-- **Synthetic data only:** real patient data is forbidden.
+- **Accounts:** sign-up with an email and a password, a confirmation link, "forgot password" with a one-hour reset link, and sign-out of other devices after a reset (`docs/accounts.md`). It needs an SMTP server to send real email; without one, development prints the links in the API console and production says email is not configured.
+- **Not implemented:** push notifications, email for anything but account access, server-side transcription, clinician accounts, FHIR import/export, external identity provider, clinical review of the safety wording, regulatory compliance claims.
+- **Synthetic data only:** real patient data is forbidden. Email sign-up stores real email addresses and names, which are personal data: before real people use it, the project needs a privacy notice, a deletion path and a review of what the server logs.
 
 Design and rules: `docs/patient-record.md`.
 

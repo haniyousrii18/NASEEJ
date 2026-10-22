@@ -20,7 +20,7 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
 
   try {
     const userRes = await query(
-      'SELECT id, auth_provider_id, email, password_hash, full_name_ar, full_name_en, phone, national_id, system_role, is_active FROM users WHERE LOWER(email) = LOWER($1)',
+      'SELECT id, auth_provider_id, email, password_hash, full_name_ar, full_name_en, phone, national_id, system_role, is_active, email_verified_at FROM users WHERE LOWER(email) = LOWER($1)',
       [email.trim()]
     );
 
@@ -55,6 +55,13 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
         success: false,
         error: { code: 'AUTH_FAILED', message: 'Invalid email or password.' },
       });
+      return;
+    }
+
+    // A self-registered account signs in only after its email address has been confirmed. Checked after the password, so this
+    // never tells a stranger whether an address is registered.
+    if (!user.email_verified_at) {
+      res.status(403).json({ success: false, error: { code: 'EMAIL_NOT_VERIFIED', message: 'Confirm your email address first. We sent you a link.' } });
       return;
     }
 
