@@ -8,10 +8,6 @@
   --auth-halo: color-mix(in srgb, var(--color-accent) 32%, transparent);
   --auth-glow: radial-gradient(48% 56% at 50% 46%, color-mix(in srgb, var(--color-accent) 20%, transparent) 0%, color-mix(in srgb, var(--color-accent) 7%, transparent) 48%, transparent 74%);
   --auth-plate: #1a1411;
-  --auth-ring: color-mix(in srgb, var(--color-accent) 45%, transparent);
-  --auth-chip-bg: var(--color-bg-elevated);
-  --auth-chip-line: color-mix(in srgb, var(--color-accent) 50%, transparent);
-  --auth-chip-ink: var(--color-accent-text);
   --auth-pulse: #fdba74;
   --auth-ink: var(--color-text-primary);
   --auth-muted: var(--color-body-gray);
@@ -46,8 +42,6 @@
 
 :root[data-theme='dark'] .auth {
   --auth-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
-  --auth-ring: color-mix(in srgb, var(--color-accent-text) 40%, transparent);
-  --auth-chip-line: color-mix(in srgb, var(--color-accent-text) 50%, transparent);
   --auth-dot: var(--color-accent-text);
 }
 
@@ -84,21 +78,6 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-}
-
-.auth-mark-ring {
-  fill: none;
-  stroke: var(--auth-ring);
-  stroke-width: 1;
-  opacity: 0.5;
-}
-
-.auth-mark-ring--dash {
-  stroke-dasharray: 2 10;
-  stroke-linecap: round;
-  opacity: 0.9;
-  transform-origin: 200px 200px;
-  animation: authSpin 90s linear infinite;
 }
 
 .auth-mark-halo {
@@ -145,7 +124,7 @@
 .auth-knot {
   transform-box: fill-box;
   transform-origin: center;
-  animation: authKnot 3.6s ease-in-out infinite;
+  animation: authKnot 3.6s ease-in-out 1.4s infinite;
 }
 
 .auth-knot-dot {
@@ -153,76 +132,7 @@
 }
 
 .auth-knot-ring {
-  fill: none;
-  stroke: var(--auth-plate);
-  stroke-width: 3;
-}
-
-/* heartbeat laced through the weave */
-.auth-mark-ecg-under,
-.auth-mark-ecg {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-}
-
-.auth-mark-ecg-under {
-  stroke: var(--auth-plate);
-  stroke-width: 9;
-  opacity: 0.85;
-  animation: authEcg 5.2s ease-in-out 1.6s infinite both;
-}
-
-.auth-mark-ecg {
-  stroke: var(--auth-pulse);
-  stroke-width: 3.5;
-  filter: drop-shadow(0 0 5px rgba(253, 186, 116, 0.7));
-  animation: authEcg 5.2s ease-in-out 1.6s infinite both;
-}
-
-/* satellites */
-.auth-chip-in {
-  animation: authFloat 6s ease-in-out infinite;
-}
-
-.auth-chip--a .auth-chip-in {
-  animation-delay: -1s;
-}
-
-.auth-chip--b .auth-chip-in {
-  animation-delay: -3.2s;
-}
-
-.auth-chip--c .auth-chip-in {
-  animation-delay: -4.6s;
-}
-
-.auth-chip {
-  animation: authFadeIn 0.6s ease both;
-}
-
-.auth-chip--a { animation-delay: 1.1s; }
-.auth-chip--b { animation-delay: 1.3s; }
-.auth-chip--c { animation-delay: 1.5s; }
-
-.auth-chip-bg {
-  fill: var(--auth-chip-bg);
-  stroke: var(--auth-chip-line);
-  stroke-width: 1.5;
-}
-
-.auth-chip-icon {
-  fill: none;
-  stroke: var(--auth-chip-ink);
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.auth-spark circle {
-  fill: var(--auth-dot);
-  animation: authTwinkle 3.4s ease-in-out infinite;
+  fill: var(--auth-plate);
 }
 
 .auth-hero-copy {
@@ -286,11 +196,6 @@
   animation-duration: 0.9s;
 }
 
-.auth[data-busy] .auth-mark-ecg,
-.auth[data-busy] .auth-mark-ecg-under {
-  animation-duration: 1.6s;
-}
-
 @keyframes authDraw {
   from { stroke-dashoffset: 1; }
   to { stroke-dashoffset: 0; }
@@ -311,31 +216,14 @@
   50% { transform: translateY(-9px); }
 }
 
-@keyframes authSpin {
-  to { transform: rotate(360deg); }
-}
-
 @keyframes authBreathe {
   0%, 100% { opacity: 0.75; transform: scale(0.97); }
   50% { opacity: 1; transform: scale(1.03); }
 }
 
 @keyframes authKnot {
-  0%, 62%, 100% { transform: scale(1); opacity: 0.55; }
-  30% { transform: scale(1.5); opacity: 1; }
-}
-
-@keyframes authEcg {
-  0% { stroke-dashoffset: 1; opacity: 0; }
-  8% { opacity: 1; }
-  48% { stroke-dashoffset: 0; opacity: 1; }
-  82% { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
-}
-
-@keyframes authTwinkle {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.9; }
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.25); }
 }
 
 @keyframes authShake {
@@ -911,9 +799,4 @@
     transition: none !important;
   }
 
-  .auth-mark-ecg-under,
-  .auth-mark-ecg {
-    opacity: 1;
-    stroke-dashoffset: 0;
-  }
 }
