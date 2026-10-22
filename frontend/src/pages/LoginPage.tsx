@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuthArt } from '../components/AuthArt.js';
-import { MailIcon, LockIcon, UserIcon } from '../components/LineIcon.js';
+import { ShieldIcon, UserIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
 import { AuthField, ForgotForm, InboxPanel, RegisterForm, ResetForm, VerifyPanel, authErrorText, authPost } from './AccessForms.js';
@@ -112,22 +112,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
       <div className="auth-stage">
         <div className="auth-card motion-stagger" dir={isRtl ? 'rtl' : 'ltr'}>
           <div className="auth-head">
-            <div className="auth-title-row">
-              <h1 className="auth-title">{head.title}</h1>
-              {mode === 'login' && (
-                <button
-                  type="button"
-                  className="auth-quick"
-                  disabled={loading}
-                  aria-busy={loading || undefined}
-                  aria-label={`${A.quickLogin}: ${demoName}`}
-                  title={`${demoName}\n${loading ? A.signingIn : demoDesc}`}
-                  onClick={handleQuickLogin}
-                >
-                  <UserIcon />
-                </button>
-              )}
-            </div>
+            <span className="auth-eyebrow">
+              <ShieldIcon />
+              {A.portalLabel}
+            </span>
+            <h1 className="auth-title">{head.title}</h1>
             {head.sub && <p className="auth-sub">{head.sub}</p>}
           </div>
 
@@ -153,26 +142,37 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
               )}
 
               <form className="auth-form" onSubmit={handleLoginSubmit}>
-                <AuthField id="login-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="username" placeholder="name@example.com" />
+                <AuthField id="login-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="username" />
                 <AuthField id="login-password" label={A.password} icon="lock" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
-                <label className="auth-check">
-                  <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-                  <span className="auth-check-box" aria-hidden="true">
-                    <svg viewBox="0 0 16 16" fill="none">
-                      <path d="M3.5 8.5l3 3 6-7" />
-                    </svg>
-                  </span>
-                  {A.rememberMe}
-                </label>
+                <div className="auth-options">
+                  <label className="auth-check">
+                    <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                    <span className="auth-check-box" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" fill="none">
+                        <path d="M3.5 8.5l3 3 6-7" />
+                      </svg>
+                    </span>
+                    {A.rememberMe}
+                  </label>
+                  <button type="button" className="auth-linkbtn" onClick={() => go('forgot')}>
+                    {A.forgotLink}
+                  </button>
+                </div>
                 <button type="submit" disabled={loading} className="auth-submit">
                   {loading ? t.common.loading : A.loginBtn}
+                  <svg className="auth-submit-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
                 </button>
               </form>
 
-              <div className="auth-switch">
-                <button type="button" className="auth-linkbtn" onClick={() => go('forgot')}>
-                  {A.forgotLink}
-                </button>
+              <div className="auth-or">{A.orLabel}</div>
+              <button type="button" className="auth-demo" disabled={loading} aria-busy={loading || undefined} title={`${demoName}\n${loading ? A.signingIn : demoDesc}`} onClick={handleQuickLogin}>
+                <UserIcon />
+                {A.quickLogin}
+              </button>
+
+              <div className="auth-switch auth-switch--center">
                 <button type="button" className="auth-linkbtn" onClick={() => go('register')}>
                   {A.createAccount}
                 </button>
