@@ -100,6 +100,11 @@
   --sc-soft: rgba(194, 65, 12, 0.1);
   --sc-line: rgba(194, 65, 12, 0.6);
   --sc-helix: #b8703c;
+  --sc-braid-1: #c2410c;
+  --sc-braid-2: #3b2314;
+  --sc-braid-3: #f2a65a;
+  --sc-braid-edge: rgba(48, 22, 8, 0.9);
+  --sc-braid-bead: #fffaf5;
   --sc-glow: transparent;
   --sc-node-bg: #ffffff;
   --sc-node-ink: #c2410c;
@@ -148,6 +153,11 @@
   --sc-soft: rgba(253, 186, 116, 0.12);
   --sc-line: rgba(253, 186, 116, 0.75);
   --sc-helix: #e3a86f;
+  --sc-braid-1: #e3a86f;
+  --sc-braid-2: #f6e9dc;
+  --sc-braid-3: #c2410c;
+  --sc-braid-edge: rgba(10, 6, 3, 0.92);
+  --sc-braid-bead: #fdba74;
   --sc-glow: rgba(227, 168, 111, 0.55);
   --sc-node-bg: rgba(32, 21, 14, 0.9);
   --sc-node-ink: #fdba74;
@@ -357,6 +367,19 @@
   animation: sceneBreathe 6s ease-in-out infinite;
 }
 
+.scene-disc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0 2px, transparent 2px 15px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0 2px, transparent 2px 15px);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 46%, transparent 74%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 46%, transparent 74%);
+  pointer-events: none;
+}
+
 .scene-disc::after {
   content: '';
   position: absolute;
@@ -374,19 +397,35 @@
   aspect-ratio: 300 / 900;
   filter: drop-shadow(0 0 8px var(--sc-glow));
   transform-origin: 50% 50%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
   animation: sceneSway 9s ease-in-out infinite alternate;
 }
 
-.scene-helix-strand {
-  stroke: var(--sc-helix);
+.scene-braid-edge {
+  stroke: var(--sc-braid-edge);
 }
 
-.scene-helix-rungs line {
-  stroke: var(--sc-helix);
+.scene-braid-s0 {
+  stroke: var(--sc-braid-1);
 }
 
-.scene-helix-rungs circle {
-  fill: var(--sc-helix);
+.scene-braid-s1 {
+  stroke: var(--sc-braid-2);
+}
+
+.scene-braid-s2 {
+  stroke: var(--sc-braid-3);
+}
+
+.scene-braid-bead {
+  fill: var(--sc-braid-bead);
+}
+
+.scene-braid-bead-ring {
+  fill: var(--sc-braid-edge);
+  stroke: var(--sc-braid-bead);
+  stroke-width: 1.5;
 }
 
 .scene-links {
@@ -478,6 +517,27 @@
   left: 6%;
   top: 66%;
   width: 40%;
+}
+
+.scene-qr {
+  position: absolute;
+  inset-block-start: -4cqw;
+  inset-inline-end: -2.4cqw;
+  width: 9.5cqw;
+  aspect-ratio: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
+}
+
+.scene-qr-paper {
+  fill: #fffaf5;
+}
+
+.scene-qr-ink {
+  fill: #2a1a10;
+}
+
+.scene-qr-hole {
+  fill: #fffaf5;
 }
 
 .scene-card-label {

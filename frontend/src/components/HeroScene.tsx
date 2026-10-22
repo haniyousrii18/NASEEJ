@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useLang } from '../context/LangContext.js';
 import { AlertIcon, CheckIcon, LockIcon } from './LineIcon.js';
-import { HELIX_VIEWBOX, RUNGS, STRAND_A, STRAND_B } from './helix.js';
+import { BRAID_BEADS, BRAID_BINS, BRAID_VIEWBOX } from './braid.js';
 
 const ECG =
   'M0 60 H120 L136 60 L148 48 L160 60 H250 L262 60 L274 12 L288 108 L300 30 L310 72 L318 60 H430 L446 60 L458 46 L470 60 H600';
@@ -76,18 +76,25 @@ export const HeroScene: React.FC = () => {
     <div ref={ref} className="scene" role="img" aria-label={L.sceneAlt}>
       <div className="scene-group scene-back" aria-hidden="true">
         <div className="scene-disc" />
-        <svg className="scene-helix scene-in" style={{ ['--d' as string]: '0.1s' }} viewBox={HELIX_VIEWBOX} fill="none">
-          <g className="scene-helix-rungs" strokeLinecap="round">
-            {RUNGS.map((r) => (
-              <g key={r.y} opacity={0.2 + r.depth * 0.6}>
-                <line x1={r.ax} y1={r.y} x2={r.bx} y2={r.y} strokeWidth={2 + r.depth * 2} />
-                <circle cx={r.ax} cy={r.y} r={2 + r.depth * 2.5} />
-                <circle cx={r.bx} cy={r.y} r={2 + r.depth * 2.5} />
+        <svg className="scene-helix scene-in" style={{ ['--d' as string]: '0.1s' }} viewBox={BRAID_VIEWBOX} fill="none">
+          <g fill="none" strokeLinecap="round">
+            {BRAID_BINS.map((bin, b) => (
+              <g key={b}>
+                {bin.map((seg, n) => (
+                  <path key={`e${n}`} className="scene-braid-edge" d={seg.d} strokeWidth={15} />
+                ))}
+                {bin.map((seg, n) => (
+                  <path key={`f${n}`} className={`scene-braid-fill scene-braid-s${seg.strand}`} d={seg.d} strokeWidth={13} opacity={0.62 + seg.depth * 0.38} />
+                ))}
               </g>
             ))}
           </g>
-          <path className="scene-helix-strand" d={STRAND_A} strokeWidth="5" strokeLinecap="round" />
-          <path className="scene-helix-strand" d={STRAND_B} strokeWidth="5" strokeLinecap="round" opacity="0.8" />
+          {BRAID_BEADS.map((b) => (
+            <g key={`${b.strand}-${b.y}`}>
+              <circle className="scene-braid-bead-ring" cx={b.x} cy={b.y} r={13} />
+              <circle className="scene-braid-bead" cx={b.x} cy={b.y} r={7.5} />
+            </g>
+          ))}
         </svg>
       </div>
 
@@ -137,6 +144,11 @@ export const HeroScene: React.FC = () => {
         </div>
 
         <div className="scene-card scene-card--lab scene-in scene-float" dir={dir} style={{ ['--d' as string]: '0.45s', ['--fd' as string]: '6.5s', ['--fdl' as string]: '-3s' }}>
+          <svg className="scene-qr" viewBox="0 0 9 9" aria-hidden="true">
+            <rect width="9" height="9" rx="1.2" className="scene-qr-paper" />
+            <path className="scene-qr-ink" d="M1 1h3v3H1zM5 1h3v3H5zM1 5h3v3H1zM5.2 5.2h1v1h-1zM7 5.2h1v1H7zM6.1 6.1h1v1h-1zM5.2 7h1v1h-1zM7 7h1v1H7z" />
+            <path className="scene-qr-hole" d="M2 2h1v1H2zM6 2h1v1H6zM2 6h1v1H2z" />
+          </svg>
           <div className="scene-card-label">{L.cardShare}</div>
           <span className="scene-badge scene-badge--ok">
             <CheckIcon />
