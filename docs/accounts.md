@@ -77,6 +77,19 @@ set the same `SMTP_*` values.
 
 Until this is done the sign-up and forgot-password screens show a notice that email is not switched on, and no real message is sent.
 
+## Deleting an account
+
+The site has no delete button yet. A developer or administrator can remove an account that was created with "Create an account":
+
+```
+npm run account:delete --prefix backend -- someone@example.com          # shows what would be deleted, deletes nothing
+npm run account:delete --prefix backend -- someone@example.com --yes    # deletes it
+```
+
+It removes the account, its profile and everything stored under it (symptoms, record entries, documents and their files, visit summaries,
+shares, translations, sign-in links). It **cannot be undone**. It refuses the demo patient and any account not made by the sign-up screen.
+Afterwards the same email can register again.
+
 ## Before real people use it
 
 Email sign-up stores real email addresses and names. PRODUCT.md still limits the project to synthetic data; a privacy notice, an
