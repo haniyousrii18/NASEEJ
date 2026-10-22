@@ -897,6 +897,55 @@
   animation: sceneSpin 80s linear infinite;
 }
 
+/* ------------------------------------------------------------------ journey page */
+.wf {
+  position: relative;
+  isolation: isolate;
+}
+
+/* one soft orange light behind the heading, the only decoration */
+.wf::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: -1;
+  width: min(80%, 900px);
+  aspect-ratio: 1;
+  translate: -20% -35%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 10%, transparent) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+[dir='rtl'] .wf::before {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  translate: 20% -35%;
+}
+
+.wf-section {
+  padding-block-start: clamp(48px, 8vw, 96px);
+  padding-block-end: clamp(72px, 10vw, 128px);
+}
+
+.wf-title {
+  margin: 0;
+  font-size: clamp(2rem, 4.4vw, 3.4rem);
+  line-height: 1.12;
+  font-weight: 520;
+  letter-spacing: 0;
+  text-wrap: balance;
+  color: var(--color-ink);
+}
+
+.wf-cta {
+  margin-top: 12px;
+}
+
+.wf-thread {
+  gap: clamp(36px, 5vw, 56px);
+}
+
 /* Arrows follow the reading direction. */
 [dir='rtl'] .flip-rtl {
   transform: scaleX(-1);
