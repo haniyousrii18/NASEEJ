@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useLang } from '../context/LangContext.js';
-import { AlertIcon, CheckIcon, LockIcon } from './LineIcon.js';
-import { HELIX_VIEWBOX, RUNGS, STRAND_A, STRAND_B } from './helix.js';
+import { CheckIcon, LockIcon } from './LineIcon.js';
 
 const ECG =
   'M0 60 H120 L136 60 L148 48 L160 60 H250 L262 60 L274 12 L288 108 L300 30 L310 72 L318 60 H430 L446 60 L458 46 L470 60 H600';
@@ -32,9 +31,10 @@ const NodeIcon: React.FC<{ kind: 'user' | 'steth' | 'building' }> = ({ kind }) =
 );
 
 /**
- * Hero illustration: one record connecting patients, clinicians and medical centers.
- * Drawn from HTML and SVG (no raster asset), so it follows the theme and the language.
- * All patient data shown is synthetic and labelled as such. Nothing here is a metric or a claim.
+ * Hero illustration: one record in the middle of a circle of care. The patient sits on the circle with their doctor and any
+ * clinic or hospital, and only the record joins them. Drawn from HTML and SVG (no raster asset), so it follows the theme
+ * tokens and the language (the picture mirrors in RTL). All patient data shown is synthetic and labelled as such.
+ * Nothing here is a metric or a claim.
  */
 export const HeroScene: React.FC = () => {
   const { t, isRtl } = useLang();
@@ -73,44 +73,31 @@ export const HeroScene: React.FC = () => {
   const dir = isRtl ? 'rtl' : 'ltr';
 
   return (
-    <div ref={ref} className="scene" role="img" aria-label={L.sceneAlt}>
+    <div ref={ref} className="scene" role="img" aria-label={L.sceneAlt} dir={dir}>
       <div className="scene-group scene-back" aria-hidden="true">
         <div className="scene-disc" />
-        <svg className="scene-helix scene-in" style={{ ['--d' as string]: '0.1s' }} viewBox={HELIX_VIEWBOX} fill="none">
-          <g className="scene-helix-rungs" strokeLinecap="round">
-            {RUNGS.map((r) => (
-              <g key={r.y} opacity={0.2 + r.depth * 0.6}>
-                <line x1={r.ax} y1={r.y} x2={r.bx} y2={r.y} strokeWidth={2 + r.depth * 2} />
-                <circle cx={r.ax} cy={r.y} r={2 + r.depth * 2.5} />
-                <circle cx={r.bx} cy={r.y} r={2 + r.depth * 2.5} />
-              </g>
-            ))}
-          </g>
-          <path className="scene-helix-strand" d={STRAND_A} strokeWidth="5" strokeLinecap="round" />
-          <path className="scene-helix-strand" d={STRAND_B} strokeWidth="5" strokeLinecap="round" opacity="0.8" />
-        </svg>
       </div>
 
       <div className="scene-group scene-mid" aria-hidden="true">
         <svg className="scene-links" viewBox="0 0 100 100" preserveAspectRatio="none" fill="none">
-          <path d="M13 22 L40 40" />
-          <path d="M87 16 L62 34" />
-          <path d="M84 80 L62 62" />
+          <path d="M27 50 L32 50" />
+          <path d="M69 42 L74 29" />
+          <path d="M69 58 L74 71" />
         </svg>
 
-        <div className="scene-node" style={{ left: '13%', top: '22%' }}>
+        <div className="scene-node" style={{ insetInlineStart: '21%', top: '50%' }}>
           <div className="scene-node-in scene-in scene-float" style={{ ['--d' as string]: '0.35s', ['--fd' as string]: '7s' }}>
             <span className="scene-node-disc"><NodeIcon kind="user" /></span>
             <span className="scene-node-label">{L.nodeYou}</span>
           </div>
         </div>
-        <div className="scene-node" style={{ left: '87%', top: '16%' }}>
+        <div className="scene-node" style={{ insetInlineStart: '80%', top: '22%' }}>
           <div className="scene-node-in scene-in scene-float" style={{ ['--d' as string]: '0.5s', ['--fd' as string]: '6s', ['--fdl' as string]: '-2s' }}>
             <span className="scene-node-disc"><NodeIcon kind="steth" /></span>
             <span className="scene-node-label">{L.nodeDoctor}</span>
           </div>
         </div>
-        <div className="scene-node" style={{ left: '84%', top: '80%' }}>
+        <div className="scene-node" style={{ insetInlineStart: '80%', top: '77%' }}>
           <div className="scene-node-in scene-in scene-float" style={{ ['--d' as string]: '0.65s', ['--fd' as string]: '8s', ['--fdl' as string]: '-4s' }}>
             <span className="scene-node-disc"><NodeIcon kind="building" /></span>
             <span className="scene-node-label">{L.nodeAnyCenter}</span>
@@ -119,7 +106,7 @@ export const HeroScene: React.FC = () => {
       </div>
 
       <div className="scene-group scene-front" aria-hidden="true">
-        <div className="scene-card scene-card--record scene-in scene-float" dir={dir} style={{ ['--d' as string]: '0.25s', ['--fd' as string]: '7.5s' }}>
+        <div className="scene-card scene-in scene-float" dir={dir} style={{ ['--d' as string]: '0.25s', ['--fd' as string]: '7.5s' }}>
           <div className="scene-card-label">{L.cardRecord}</div>
           <div className="scene-card-head">
             <span className="scene-avatar" />
@@ -128,32 +115,15 @@ export const HeroScene: React.FC = () => {
               <span className="scene-card-meta">{L.cardOwner}</span>
             </span>
           </div>
-          <span className="scene-bar" style={{ width: '88%' }} />
-          <span className="scene-bar" style={{ width: '64%' }} />
-          <span className="scene-badge scene-badge--warn">
-            <AlertIcon size={14} />
-            <span>{L.cardAllergy}</span>
-          </span>
-        </div>
-
-        <div className="scene-card scene-card--lab scene-in scene-float" dir={dir} style={{ ['--d' as string]: '0.45s', ['--fd' as string]: '6.5s', ['--fdl' as string]: '-3s' }}>
-          <div className="scene-card-label">{L.cardShare}</div>
-          <span className="scene-badge scene-badge--ok">
+          <span className="scene-badge">
             <CheckIcon />
             <span>{L.cardShareOnly}</span>
           </span>
-          <span className="scene-badge scene-badge--info">
+          <span className="scene-badge scene-badge--soft">
             <LockIcon />
             <span>{L.cardShareExpires}</span>
           </span>
         </div>
-
-        <span className="scene-chip scene-in scene-float" style={{ left: '60%', top: '6%', ['--d' as string]: '0.8s', ['--fd' as string]: '5s' }}>
-          <LockIcon />
-        </span>
-        <span className="scene-chip scene-in scene-float" style={{ left: '4%', top: '54%', ['--d' as string]: '0.9s', ['--fd' as string]: '5.5s', ['--fdl' as string]: '-1.5s' }}>
-          <CheckIcon />
-        </span>
 
         <svg className="scene-ecg scene-in" style={{ ['--d' as string]: '1s' }} viewBox="0 0 600 120" preserveAspectRatio="none" fill="none">
           <path className="scene-ecg-base" d={ECG} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
