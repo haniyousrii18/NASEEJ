@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEXT_SLOT, UserText, withText } from '../translate/UserText.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { useApiData } from '../api.js';
 import { fill, formatDate } from '../format.js';
@@ -18,7 +19,7 @@ interface HomeData {
 }
 
 /** A quiet row that leads somewhere. Used for the secondary actions and for things that need the patient's attention. */
-const Row: React.FC<{ icon: IconName; title: string; body?: string; onClick: () => void }> = ({ icon, title, body, onClick }) => (
+const Row: React.FC<{ icon: IconName; title: React.ReactNode; body?: string; onClick: () => void }> = ({ icon, title, body, onClick }) => (
   <li>
     <button type="button" className="hp-row" onClick={onClick}>
       <span className="hp-row-icon" aria-hidden="true">
@@ -80,7 +81,7 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
                     <ul className="hp-rows">
                       <Row
                         icon="calendar"
-                        title={d.upcoming.kind === 'appointment' ? fill(H.appointment, { date: formatDate(A.lang, d.upcoming.date), time: d.upcoming.time }) : fill(H.visit, { title: d.upcoming.title, date: formatDate(A.lang, d.upcoming.date) })}
+                        title={d.upcoming.kind === 'appointment' ? fill(H.appointment, { date: formatDate(A.lang, d.upcoming.date), time: d.upcoming.time }) : withText(fill(H.visit, { title: TEXT_SLOT, date: formatDate(A.lang, d.upcoming.date) }), d.upcoming.title)}
                         body={H.prepareThis}
                         onClick={() => navigate('patient/visits?new=1')}
                       />
@@ -129,8 +130,8 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
                 <ul className="hp-recent">
                   {items.map((i) => (
                     <li key={i.id}>
-                      <span dir="auto" className="hp-recent-title">
-                        {titleOf(i, A)}
+                      <span className="hp-recent-title">
+                        <UserText text={titleOf(i, A)} />
                       </span>
                       <span className="na-muted">
                         {A.common.recordType[i.type]} · {formatDate(A.lang, i.occurredAt)}

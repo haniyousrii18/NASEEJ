@@ -3475,3 +3475,57 @@ th[data-today] .na-sched-daybtn {
 .na-nt-chip--status {
   font-weight: 560;
 }
+
+/* ------------------------------------------------------------------ typed text shown in the page language */
+.na-ut {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  max-inline-size: 100%;
+  vertical-align: top;
+}
+.na-ut-tr,
+.na-ut-orig,
+.na-ut-note {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.na-ut-orig {
+  padding-inline-start: 8px;
+  border-inline-start: 2px solid var(--color-border-strong);
+  font-size: 0.9em;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+.na-ut-note {
+  font-size: 0.82em;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+.na-ut-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 0.8em;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+.na-ut-tag,
+.na-ut-label {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.na-ut-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.na-ut-auto {
+  font-style: italic;
+}

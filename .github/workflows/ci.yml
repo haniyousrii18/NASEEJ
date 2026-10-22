@@ -17,6 +17,9 @@ permissions:
 
 env:
   NODE_VERSION: 20
+  # onnxruntime-node (the local translation engine) would download optional GPU binaries at install time. Naseej runs it on the
+  # CPU only, so skip that download: `npm ci` then needs no access to the NuGet feed (it timed out here and failed the audit job).
+  ONNXRUNTIME_NODE_INSTALL: skip
 
 jobs:
   frontend:

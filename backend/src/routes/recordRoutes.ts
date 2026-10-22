@@ -90,7 +90,7 @@ recordRouter.get('/entries', async (req: Request, res: Response): Promise<void> 
 // POST /api/record/entries  { kind, title, ... , captured_via?: 'assistant' }
 recordRouter.post('/entries', async (req: Request, res: Response): Promise<void> => {
   const parsed = parseEntry(req.body, { partial: false });
-  if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message));
+  if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message, { rule: parsed.rule, ...parsed.params }));
   const v = parsed.value;
   const kind = req.body.kind as EntryKind;
   const source = req.body.captured_via === 'assistant' ? 'assistant' : 'patient';
@@ -116,7 +116,7 @@ recordRouter.patch('/entries/:id', async (req: Request, res: Response): Promise<
     const cur = await query('SELECT kind FROM health_entries WHERE id = $1 AND patient_id = $2 AND deleted_at IS NULL', [id, pid(req)]);
     if (cur.rowCount === 0) return void res.status(404).json(apiError('ENTRY_NOT_FOUND', 'Entry not found.'));
     const parsed = parseEntry(req.body, { partial: true, kind: cur.rows[0].kind });
-    if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message));
+    if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message, { rule: parsed.rule, ...parsed.params }));
     const keys = Object.keys(parsed.value);
     if (keys.length === 0) return void res.status(400).json(apiError('VALIDATION_ERROR', 'Nothing to change.'));
     const sets = keys.map((k, i) => `${k} = $${i + 3}`);
@@ -226,7 +226,7 @@ recordRouter.get('/symptoms', async (req: Request, res: Response): Promise<void>
 // POST /api/record/symptoms
 recordRouter.post('/symptoms', async (req: Request, res: Response): Promise<void> => {
   const parsed = parseSymptom(req.body, { partial: false });
-  if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message));
+  if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message, { rule: parsed.rule, ...parsed.params }));
   const via = ['form', 'assistant', 'voice'].includes(req.body.captured_via) ? req.body.captured_via : 'form';
   try {
     const docs = await ownDocumentIds(pid(req), req.body.document_ids);
@@ -253,7 +253,7 @@ recordRouter.patch('/symptoms/:id', async (req: Request, res: Response): Promise
   const id = String(req.params.id);
   if (!isUuid(id)) return void res.status(404).json(apiError('SYMPTOM_NOT_FOUND', 'Symptom not found.'));
   const parsed = parseSymptom(req.body, { partial: true });
-  if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message));
+  if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message, { rule: parsed.rule, ...parsed.params }));
   try {
     const docs = req.body.document_ids === undefined ? null : await ownDocumentIds(pid(req), req.body.document_ids);
     if (req.body.document_ids !== undefined && !docs) return void res.status(400).json(apiError('VALIDATION_ERROR', 'document_ids must be documents from your own vault.'));

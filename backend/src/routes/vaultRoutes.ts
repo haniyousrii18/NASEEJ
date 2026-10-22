@@ -322,7 +322,7 @@ vaultRouter.post('/documents/:id/suggestions/:factId/confirm', async (req: Reque
     // Keep only what is defined so partial strings do not collide with the strict parser.
     const clean = Object.fromEntries(Object.entries(merged).filter(([, v]) => v !== undefined && v !== null && v !== ''));
     const parsed = parseEntry({ ...clean, kind }, { partial: false, kind });
-    if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message));
+    if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message, { rule: parsed.rule, ...parsed.params }));
     const entry = await withTransaction(async (client) => {
       const cols = ['patient_id', 'kind', 'source', 'review_status', 'source_document_id', 'source_fact_id', 'confirmed_at', ...Object.keys(parsed.value)];
       const vals = [pid(req), kind, 'document', 'confirmed', d.id, factId, new Date().toISOString(), ...Object.values(parsed.value)];
