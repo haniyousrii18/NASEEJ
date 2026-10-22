@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "migrate": "tsx scripts/migrate.ts",
     "mail:test": "tsx scripts/test-mail.ts",
+    "account:delete": "tsx scripts/delete-account.ts",
     "translate:models": "tsx scripts/download-translation-models.ts",
     "seed": "tsx scripts/seed.ts",
     "db:check": "tsx scripts/check-database.ts schema",
