@@ -276,401 +276,242 @@
 }
 
 /* ------------------------------------------------------------------ scene (hero illustration) */
-/* One record panel, three entries with a switch each, and two readers that only receive what was switched on.
-   Final state is the default; the entrance below plays once, and the pulse on the links repeats slowly. */
+/* The record as cloth: many threads woven in, two chosen ones pulled out toward their readers. The final state is the
+   default; the entrance plays once (cloth, then the chosen threads, then the readers) and one soft glint repeats. */
 .scene {
-  --rc-panel: #fffdfb;
-  --rc-paper: #ffffff;
-  --rc-line: rgba(31, 26, 23, 0.12);
-  --rc-line-strong: rgba(31, 26, 23, 0.28);
-  --rc-ink: #1f1a17;
-  --rc-muted: #5e5650;
-  --rc-cell: #f7f3ee;
-  --rc-teal: #0f766e;
-  --rc-teal-bg: #dff1ee;
-  --rc-teal-ink: #0b5a54;
-  --rc-accent: #c2410c;
-  --rc-accent-bg: #fdebdd;
-  --rc-off: #e4dcd2;
-  --rc-knob-on: #ffffff;
-  --rc-knob-off: #ffffff;
-  --rc-shadow: 0 34px 60px -28px rgba(70, 30, 8, 0.45), 0 2px 6px rgba(70, 30, 8, 0.08);
+  --sc-plate: #eadfd2;
+  --sc-warp: #3b2a20;
+  --sc-sand: #d8c2a6;
+  --sc-orange: #c2410c;
+  --sc-amber: #ee9a4d;
+  --sc-chosen: #0f766e;
+  --sc-ink: #1f1a17;
+  --sc-muted: #5e5650;
+  --sc-paper: #fffdfb;
+  --sc-line: rgba(31, 26, 23, 0.28);
+  --sc-cell: #f7f3ee;
+  --sc-teal-bg: #dff1ee;
+  --sc-teal-ink: #0b5a54;
+  --sc-accent: #c2410c;
+  --sc-accent-bg: #fdebdd;
+  --sc-shadow: rgba(70, 30, 8, 0.4);
+  --dirsign: 1;
 
   position: relative;
   width: 100%;
-  max-width: 600px;
+  max-width: 620px;
   container-type: inline-size;
-  color: var(--rc-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--sc-ink);
 }
 
 :root[data-theme='dark'] .scene {
-  --rc-panel: #201a16;
-  --rc-paper: #2a221d;
-  --rc-line: rgba(243, 235, 227, 0.14);
-  --rc-line-strong: rgba(243, 235, 227, 0.32);
-  --rc-ink: #f3ebe3;
-  --rc-muted: #cdbfb4;
-  --rc-cell: #241d19;
-  --rc-teal: #5fd3c4;
-  --rc-teal-bg: rgba(95, 211, 196, 0.14);
-  --rc-teal-ink: #8ee6d9;
-  --rc-accent: #fdba74;
-  --rc-accent-bg: rgba(253, 186, 116, 0.14);
-  --rc-off: #3a3029;
-  --rc-knob-on: #12201d;
-  --rc-knob-off: #cdbfb4;
-  --rc-shadow: 0 34px 60px -28px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --sc-plate: #17110e;
+  --sc-warp: #6a594c;
+  --sc-sand: #e6d6c3;
+  --sc-orange: #e1642a;
+  --sc-amber: #fdba74;
+  --sc-chosen: #5fd3c4;
+  --sc-ink: #f3ebe3;
+  --sc-muted: #cdbfb4;
+  --sc-paper: #241c18;
+  --sc-line: rgba(243, 235, 227, 0.32);
+  --sc-cell: #241d19;
+  --sc-teal-bg: rgba(95, 211, 196, 0.14);
+  --sc-teal-ink: #8ee6d9;
+  --sc-accent: #fdba74;
+  --sc-accent-bg: rgba(253, 186, 116, 0.14);
+  --sc-shadow: rgba(0, 0, 0, 0.7);
 }
 
-.scene-board {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) clamp(40px, 9cqw, 72px) minmax(0, 1fr);
-  grid-template-rows: auto repeat(6, minmax(1.7rem, 1fr)) auto;
-  padding: clamp(14px, 3.4cqw, 24px);
-  border-radius: 26px;
-  background: var(--rc-panel);
-  border: 1px solid var(--rc-line);
-  box-shadow: var(--rc-shadow);
-  text-align: start;
+[dir='rtl'] .scene {
+  --dirsign: -1;
 }
 
-/* 1. the record */
-.scene-record {
-  grid-area: 1 / 1 / 8 / 2;
-  border-radius: 20px;
-  background: var(--rc-paper);
-  border: 1px solid var(--rc-line-strong);
-  animation: sceneIn 0.7s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
-}
-
-.scene-head {
-  grid-area: 1 / 1 / 2 / 2;
+/* the owner of the record */
+.scene-top {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 16px 14px;
-  border-bottom: 1px solid var(--rc-line);
-  margin-inline: 0;
-  animation: sceneIn 0.7s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) 0.15s both;
+  animation: sceneIn 0.7s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) 1.4s both;
 }
 
 .scene-avatar {
   flex: none;
-  width: clamp(36px, 8cqw, 46px);
+  width: 42px;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
   padding: 9px;
   border-radius: 50%;
-  color: var(--rc-accent);
-  background: var(--rc-accent-bg);
-  box-shadow: 0 0 0 1.5px var(--rc-accent);
-  animation: scenePop 0.6s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) 0.9s both;
+  color: var(--sc-accent);
+  background: var(--sc-accent-bg);
+  box-shadow: 0 0 0 1.5px var(--sc-accent);
 }
 
 .scene-id {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .scene-name {
-  display: flex;
-  white-space: nowrap;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
   font-size: clamp(14px, 3cqw, 17px);
   font-weight: 650;
   line-height: 1.25;
 }
 
-.scene-you {
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 650;
-  color: var(--rc-accent);
-  background: var(--rc-accent-bg);
-  animation: sceneIn 0.5s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) 1.1s both;
-}
-
 .scene-sub {
   font-size: 12.5px;
   line-height: 1.35;
-  color: var(--rc-muted);
+  color: var(--sc-muted);
 }
 
-/* entries */
-.scene-entry {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px 12px;
-  align-self: center;
-  margin-inline: 12px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: var(--rc-cell);
-  border: 1px solid var(--rc-line);
-  animation: sceneIn 0.6s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) var(--t, 0.45s) both;
-}
-
-.scene-entry--1 { grid-area: 2 / 1 / 4 / 2; --t: 0.45s; }
-.scene-entry--2 { grid-area: 4 / 1 / 6 / 2; --t: 0.57s; }
-.scene-entry--3 { grid-area: 6 / 1 / 8 / 2; --t: 0.69s; }
-
-.scene-entry--3 {
-  margin-bottom: 12px;
-}
-
-.scene-entry-icon {
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  color: var(--rc-muted);
-}
-
-.scene-entry-main {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
-}
-
-.scene-entry-label {
-  font-size: clamp(13px, 2.6cqw, 14.5px);
-  font-weight: 600;
-  line-height: 1.25;
-}
-
-.scene-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.3;
-  white-space: nowrap;
-  color: var(--rc-muted);
-  background: var(--rc-off);
-}
-
-.scene-state svg {
-  width: 13px;
-  height: 13px;
-}
-
-.is-shared .scene-state {
-  color: var(--rc-teal-ink);
-  background: var(--rc-teal-bg);
-}
-
-.scene-switch {
+/* the picture */
+.scene-art {
   position: relative;
-  flex: none;
-  width: 36px;
-  height: 20px;
-  border-radius: 999px;
-  background: var(--rc-off);
-  box-shadow: inset 0 0 0 1px var(--rc-line-strong);
+  aspect-ratio: 620 / 520;
 }
 
-.scene-knob {
-  position: absolute;
-  top: 3px;
-  inset-inline-start: 3px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--rc-knob-off);
-  box-shadow: 0 1px 2px rgba(31, 26, 23, 0.35);
-}
-
-/* the patient switches an entry on: track and knob change, the word follows */
-.is-shared .scene-switch {
-  background: var(--rc-teal);
-  box-shadow: none;
-  animation: sceneTrack 0.35s ease var(--s, 1.25s) both;
-}
-
-.is-shared .scene-knob {
-  inset-inline-start: 19px;
-  background: var(--rc-knob-on);
-  animation: sceneKnob 0.35s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) var(--s, 1.25s) both;
-}
-
-.is-shared .scene-state {
-  animation: sceneIn 0.4s ease var(--s, 1.25s) both;
-}
-
-.scene-entry--1 { --s: 1.25s; }
-.scene-entry--2 { --s: 1.4s; }
-
-/* 2. the secure links */
-.scene-gap {
-  position: relative;
-}
-
-.scene-gap--side {
-  grid-area: 2 / 2 / 8 / 3;
-}
-
-.scene-gap--down {
-  display: none;
-}
-
-.scene-gap svg {
+.scene-svg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: visible;
+  filter: drop-shadow(0 22px 20px var(--sc-shadow));
 }
 
-[dir='rtl'] .scene-gap svg {
+[dir='rtl'] .scene-svg {
   transform: scaleX(-1);
 }
 
-.scene-link,
-.scene-pulse {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.scene-plate {
+  fill: var(--sc-plate);
+  animation: sceneFade 0.6s ease both;
 }
 
-.scene-link {
-  stroke: var(--rc-teal);
-  stroke-width: 2.2;
+.scene-warp,
+.scene-weft,
+.scene-exit-line {
+  fill: none;
   stroke-dasharray: 1;
-  animation: sceneDraw 0.7s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) var(--t, 2.3s) both;
+  stroke-dashoffset: 0;
+  animation: sceneDraw 0.8s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
 }
 
-.scene-link--a { --t: 2.3s; }
-.scene-link--b { --t: 2.5s; }
-.scene-link--c { --t: 2.7s; }
-
-/* a small packet leaves the record along each link now and then */
-.scene-pulse {
-  stroke: var(--rc-accent);
-  stroke-width: 3.6;
-  stroke-dasharray: 0.06 2;
-  opacity: 0;
-  animation: scenePulse 7s ease-in-out infinite;
-  animation-delay: calc(var(--t, 2.3s) + 1.2s);
+.scene-warp {
+  stroke: var(--sc-warp);
 }
 
-.scene-pulse.scene-link--a { --t: 2.3s; }
-.scene-pulse.scene-link--b { --t: 2.5s; }
-.scene-pulse.scene-link--c { --t: 2.7s; }
+.scene-weft--sand { stroke: var(--sc-sand); }
+.scene-weft--orange { stroke: var(--sc-orange); }
+.scene-weft--amber { stroke: var(--sc-amber); }
+.scene-weft--chosen { stroke: var(--sc-chosen); }
 
-.scene-stub {
+.scene-gap {
+  stroke: var(--sc-plate);
   fill: none;
-  stroke: var(--rc-line-strong);
-  stroke-width: 2;
-  stroke-dasharray: 4 4;
-  animation: sceneIn 0.5s ease 2.9s both;
 }
 
-.scene-port,
-.scene-stop {
+.scene-weft-piece {
+  fill: none;
+}
+
+.scene-over {
+  animation: sceneFade 0.5s ease 1.35s both;
+}
+
+.scene-fray {
+  fill: none;
+  animation: sceneFade 0.6s ease 1.6s both;
+}
+
+.scene-exit-line {
+  stroke: var(--sc-chosen);
+}
+
+.scene-exit-glint {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-dasharray: 0.07 2;
+  opacity: 0;
+  animation: sceneGlint 7s ease-in-out infinite;
+}
+
+/* the QR token riding each thread */
+.scene-token {
   position: absolute;
-  inset-inline-start: 0;
-  transform: translateY(-50%);
+  --tk: clamp(26px, 6.6cqw, 40px);
+  width: var(--tk);
+  aspect-ratio: 1;
+  padding: calc(var(--tk) * 0.18);
+  translate: calc(var(--dirsign) * -50%) -50%;
+  border-radius: 10px;
+  background: #fffdfb;
+  border: 1.5px solid var(--sc-chosen);
+  box-shadow: 0 6px 14px var(--sc-shadow);
+  animation: sceneTokenIn 0.5s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
 }
 
-.scene-port {
-  width: 9px;
-  height: 9px;
-  margin-inline-start: -4.5px;
-  border-radius: 50%;
-  background: var(--rc-teal);
-  box-shadow: 0 0 0 2.5px var(--rc-paper);
-  animation: scenePop 0.4s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) 2.3s both;
+.scene-token svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: #1f1a17;
 }
 
-.scene-port--off {
-  background: var(--rc-off);
-  box-shadow: 0 0 0 2.5px var(--rc-paper), inset 0 0 0 1.5px var(--rc-line-strong);
-  animation-delay: 2.9s;
+.scene-token-hole {
+  fill: #fffdfb;
 }
 
-.scene-port--end {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-  margin-inline-start: 0;
-  margin-inline-end: -4.5px;
-  box-shadow: 0 0 0 2.5px var(--rc-panel);
-  animation-delay: 2.8s;
-}
-
-.scene-stop {
-  inset-inline-start: 34%;
-  width: 3px;
-  height: 15px;
-  border-radius: 2px;
-  background: var(--rc-muted);
-  animation: sceneIn 0.5s ease 2.9s both;
-}
-
-/* 3. the readers */
-.scene-dest {
+/* the readers */
+.scene-reader {
+  position: absolute;
+  inset-inline-start: 86%;
+  --disc: clamp(38px, 8.4cqw, 52px);
+  translate: calc(var(--dirsign) * -50%) calc(var(--disc) / -2);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  align-self: center;
-  padding: 11px 12px;
-  margin-inline-start: 10px;
-  border-radius: 16px;
-  background: var(--rc-paper);
-  border: 1px solid var(--rc-line-strong);
-  animation: sceneIn 0.7s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) var(--t, 1.75s) both;
+  gap: 8px;
+  animation: sceneIn 0.6s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
 }
 
-.scene-dest--doctor { grid-area: 2 / 3 / 5 / 4; --t: 1.75s; }
-.scene-dest--center { grid-area: 5 / 3 / 8 / 4; --t: 1.95s; }
-
-.scene-dest-icon {
-  flex: none;
-  width: clamp(34px, 7cqw, 40px);
+.scene-reader-disc {
+  width: var(--disc);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  padding: 9px;
-  border-radius: 12px;
-  color: var(--rc-teal-ink);
-  background: var(--rc-teal-bg);
+  padding: calc(var(--disc) * 0.27);
+  border-radius: 50%;
+  color: var(--sc-teal-ink);
+  background: var(--sc-paper);
+  border: 2px solid var(--sc-chosen);
+  box-shadow: 0 8px 18px var(--sc-shadow);
 }
 
-.scene-dest-text {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.scene-dest-name {
-  font-size: clamp(13px, 2.6cqw, 14.5px);
-  font-weight: 650;
-  line-height: 1.25;
-}
-
-.scene-dest-sub {
-  font-size: 12px;
-  color: var(--rc-muted);
+.scene-reader-label {
+  max-width: 30cqw;
+  padding: 3px 11px;
+  border-radius: 14px;
+  font-size: clamp(11.5px, 2.3cqw, 13.5px);
+  font-weight: 620;
+  line-height: 1.3;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--sc-ink);
+  background: var(--sc-paper);
+  border: 1px solid var(--sc-line);
 }
 
 .scene-foot {
-  grid-area: 8 / 1 / 9 / 4;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
 }
 
 .scene-chip {
@@ -682,20 +523,20 @@
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1.3;
-  color: var(--rc-ink);
-  background: var(--rc-cell);
-  border: 1px solid var(--rc-line-strong);
-  animation: sceneIn 0.5s ease 3.1s both;
+  color: var(--sc-ink);
+  background: var(--sc-paper);
+  border: 1px solid var(--sc-line);
+  animation: sceneIn 0.5s ease 3.8s both;
 }
 
 .scene-chip + .scene-chip {
-  animation-delay: 3.25s;
+  animation-delay: 3.95s;
 }
 
 .scene-chip svg {
   width: 14px;
   height: 14px;
-  color: var(--rc-teal);
+  color: var(--sc-chosen);
 }
 
 @keyframes sceneIn {
@@ -710,15 +551,13 @@
   }
 }
 
-@keyframes scenePop {
+@keyframes sceneFade {
   from {
     opacity: 0;
-    transform: translateY(-50%) scale(0.4);
   }
 
   to {
     opacity: 1;
-    transform: translateY(-50%) scale(1);
   }
 }
 
@@ -732,85 +571,33 @@
   }
 }
 
-@keyframes sceneTrack {
+@keyframes sceneTokenIn {
   from {
-    background: var(--rc-off);
-  }
-}
-
-@keyframes sceneKnob {
-  from {
-    inset-inline-start: 3px;
-  }
-}
-
-@keyframes scenePulse {
-  0% {
-    stroke-dashoffset: 0.06;
-    opacity: 1;
-  }
-
-  20% {
-    stroke-dashoffset: -1.06;
-    opacity: 1;
-  }
-
-  21%,
-  100% {
-    stroke-dashoffset: -1.06;
     opacity: 0;
+    scale: 0.4;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
   }
 }
 
-/* A small hero panel: the record on top, the two readers below it, one link fanning out between them. */
-@container (max-width: 519px) {
-  .scene-board {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: auto;
-    gap: 0;
-    padding: 12px;
+@keyframes sceneGlint {
+  0% {
+    stroke-dashoffset: 0.07;
+    opacity: 1;
   }
 
-  .scene-record { grid-area: 1 / 1 / 5 / 3; }
-  .scene-head { grid-area: 1 / 1 / 2 / 3; padding: 14px 14px 12px; }
-  .scene-entry--1 { grid-area: 2 / 1 / 3 / 3; margin: 10px 10px 0; }
-  .scene-entry--2 { grid-area: 3 / 1 / 4 / 3; margin: 8px 10px 0; }
-  .scene-entry--3 { grid-area: 4 / 1 / 5 / 3; margin: 8px 10px 12px; }
-
-  .scene-gap--side {
-    display: none;
+  22% {
+    stroke-dashoffset: -1.07;
+    opacity: 1;
   }
 
-  .scene-gap--down {
-    display: block;
-    grid-area: 5 / 1 / 6 / 3;
-    height: 34px;
-  }
-
-  .scene-gap--down .scene-link {
-    stroke-width: 2.2;
-  }
-
-  .scene-dest {
-    flex-direction: column;
-    text-align: center;
-    margin-inline-start: 0;
-    gap: 8px;
-    padding: 12px 8px;
-    align-self: stretch;
-  }
-
-  .scene-dest-text {
-    align-items: center;
-  }
-
-  .scene-dest--doctor { grid-area: 6 / 1 / 7 / 2; margin-inline-end: 5px; }
-  .scene-dest--center { grid-area: 6 / 2 / 7 / 3; margin-inline-start: 5px; }
-  .scene-foot { grid-area: 7 / 1 / 8 / 3; margin-top: 12px; }
-
-  .scene-entry {
-    gap: 8px 10px;
-    padding: 9px 10px;
+  23%,
+  100% {
+    stroke-dashoffset: -1.07;
+    opacity: 0;
   }
 }
 

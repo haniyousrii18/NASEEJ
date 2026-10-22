@@ -1,16 +1,42 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useLang } from '../context/LangContext.js';
-import { AlertIcon, CheckIcon, LockIcon } from './LineIcon.js';
+import { CheckIcon, LockIcon } from './LineIcon.js';
 
 /*
- * Hero illustration: the record is the source of truth and the patient decides what leaves it.
- * One record panel, three entries with a visible switch each, and two places that can read what was switched on.
- * Every state is a word plus an icon plus a switch position, so nothing depends on color or motion.
- * Drawn from HTML and SVG (no raster asset), laid out with container queries, and shown in its final state when motion is
- * reduced. The patient data is synthetic and labelled as such; nothing here is a metric or a claim.
+ * Hero illustration: the record as cloth. Naseej means weave, and a patient's history is a fabric of many threads.
+ * The patient pulls out only the threads they choose; each one leaves the cloth, carries a QR token and ends with a reader
+ * (their doctor, or any clinic or hospital). The other threads stay woven in.
+ * Drawn from SVG with the labels and icons in HTML, so text stays crisp, the picture mirrors in RTL without flipping any
+ * glyph, and the final state is the default when motion is reduced. The patient data is synthetic and labelled as such.
  */
 
-const Glyph: React.FC<{ kind: 'user' | 'steth' | 'building' | 'pill' | 'pulse' }> = ({ kind }) => (
+const COLS = 14;
+const ROWS = 13;
+const CELL = 26;
+const X0 = 30;
+const Y0 = 60;
+const X1 = X0 + COLS * CELL;
+const Y1 = Y0 + ROWS * CELL;
+const HALF = 13;
+const THREAD = 15;
+const GAP = 22;
+
+const colX = (i: number) => X0 + CELL / 2 + i * CELL;
+const rowY = (j: number) => Y0 + CELL / 2 + j * CELL;
+
+/** Weft colors by row. The two `chosen` rows are the threads the patient pulls out. */
+const WEFT: Array<'sand' | 'orange' | 'amber' | 'chosen'> = ['sand', 'sand', 'orange', 'sand', 'chosen', 'sand', 'amber', 'sand', 'sand', 'chosen', 'sand', 'orange', 'sand'];
+const CHOSEN = [4, 9];
+
+const weftOver = (i: number, j: number) => (i + j) % 2 === 0;
+
+// the two threads leave the cloth on the end side and bend toward their reader
+const EXIT = [
+  { d: `M${X1 - 6} ${rowY(4)} C${X1 + 72} ${rowY(4)} ${X1 + 56} 104 512 104`, token: { x: 72.6, y: 27 } },
+  { d: `M${X1 - 6} ${rowY(9)} C${X1 + 72} ${rowY(9)} ${X1 + 56} 400 512 400`, token: { x: 72.6, y: 68 } },
+];
+
+const Glyph: React.FC<{ kind: 'user' | 'steth' | 'building' }> = ({ kind }) => (
   <svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
     {kind === 'user' && (
       <>
@@ -32,144 +58,117 @@ const Glyph: React.FC<{ kind: 'user' | 'steth' | 'building' | 'pill' | 'pulse' }
         <path d="M12 8v3M10.5 9.5h3" />
       </>
     )}
-    {kind === 'pill' && (
-      <>
-        <rect x="3.5" y="9" width="17" height="6.5" rx="3.25" transform="rotate(-35 12 12.25)" />
-        <path d="M9.2 7.6l5.6 7.8" />
-      </>
-    )}
-    {kind === 'pulse' && <path d="M3 12h4l2.5-6 4 12 2.5-6H21" />}
   </svg>
 );
 
-/** The size of an element, kept current. The link drawings use it as their own coordinate space. */
-const useSize = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => setSize({ w: entry.contentRect.width, h: entry.contentRect.height }));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  return [ref, size] as const;
-};
-
-interface Entry {
-  key: string;
-  icon: 'alert' | 'pill' | 'pulse';
-  label: string;
-  shared: boolean;
-}
+const QrToken: React.FC = () => (
+  <svg viewBox="0 0 9 9" aria-hidden="true" focusable="false">
+    <path d="M1 1h3v3H1zM5 1h3v3H5zM1 5h3v3H1zM5.2 5.2h1v1h-1zM7 5.2h1v1H7zM6.1 6.1h1v1h-1zM5.2 7h1v1h-1zM7 7h1v1H7z" />
+    <path className="scene-token-hole" d="M2 2h1v1H2zM6 2h1v1H6zM2 6h1v1H2z" />
+  </svg>
+);
 
 export const HeroScene: React.FC = () => {
   const { t, isRtl } = useLang();
   const L = t.landing;
   const dir = isRtl ? 'rtl' : 'ltr';
-  const [sideRef, side] = useSize();
-  const [downRef, down] = useSize();
-  const r = (f: number) => (side.h * f).toFixed(1);
-  const curve = (from: number, to: number) => `M0 ${r(from)} C${(side.w / 2).toFixed(1)} ${r(from)} ${(side.w / 2).toFixed(1)} ${r(to)} ${side.w.toFixed(1)} ${r(to)}`;
-
-  const entries: Entry[] = [
-    { key: 'allergy', icon: 'alert', label: L.cardAllergy, shared: true },
-    { key: 'meds', icon: 'pill', label: L.sceneMeds, shared: true },
-    { key: 'symptoms', icon: 'pulse', label: L.sceneSymptoms, shared: false },
-  ];
 
   return (
     <div className="scene" role="img" aria-label={L.sceneAlt} dir={dir}>
-      <div className="scene-board" aria-hidden="true">
-        {/* 1. the record */}
-        <div className="scene-record" />
-        <div className="scene-head">
-          <span className="scene-avatar">
-            <Glyph kind="user" />
+      <div className="scene-top" aria-hidden="true">
+        <span className="scene-avatar">
+          <Glyph kind="user" />
+        </span>
+        <span className="scene-id">
+          <span className="scene-name" dir="auto">
+            {isRtl ? 'محمد المنصور' : 'Mohammed Al-Mansoor'}
           </span>
-          <span className="scene-id">
-            <span className="scene-name">
-              <span dir="auto">{isRtl ? 'محمد المنصور' : 'Mohammed Al-Mansoor'}</span>
-              <span className="scene-you">{L.nodeYou}</span>
-            </span>
-            <span className="scene-sub">{L.cardRecord}</span>
-          </span>
-        </div>
+          <span className="scene-sub">{L.cardRecord}</span>
+        </span>
+      </div>
 
-        {entries.map((e, i) => (
-          <div key={e.key} className={`scene-entry scene-entry--${i + 1}${e.shared ? ' is-shared' : ''}`}>
-            <span className="scene-entry-icon">{e.icon === 'alert' ? <AlertIcon size={18} /> : <Glyph kind={e.icon} />}</span>
-            <span className="scene-entry-main">
-              <span className="scene-entry-label">{e.label}</span>
-              <span className="scene-state">
-                {e.shared ? <CheckIcon /> : <LockIcon />}
-                {e.shared ? L.sceneShared : L.sceneNotShared}
-              </span>
-            </span>
-            <span className="scene-switch">
-              <span className="scene-knob" />
-            </span>
-          </div>
+      <div className="scene-art" aria-hidden="true">
+        <svg className="scene-svg" viewBox="0 0 620 520" fill="none">
+          <defs>
+            <clipPath id="scene-cloth-clip">
+              <rect x={X0} y={Y0} width={X1 - X0} height={Y1 - Y0} rx="20" />
+            </clipPath>
+          </defs>
+
+          <rect className="scene-plate" x={X0 - 8} y={Y0 - 8} width={X1 - X0 + 16} height={Y1 - Y0 + 16} rx="26" />
+
+          <g clipPath="url(#scene-cloth-clip)" strokeLinecap="butt">
+            <g strokeWidth={THREAD}>
+              {WEFT.map((kind, j) => (
+                <path key={`h${j}`} className={`scene-weft scene-weft--${kind}`} pathLength={1} d={`M${X0 - 4} ${rowY(j)} H${X1 + 4}`} style={{ animationDelay: `${0.45 + j * 0.05}s` }} />
+              ))}
+              {Array.from({ length: COLS }, (_, i) => (
+                <path key={`v${i}`} className="scene-warp" pathLength={1} d={`M${colX(i)} ${Y0 - 4} V${Y1 + 4}`} style={{ animationDelay: `${i * 0.035}s` }} />
+              ))}
+            </g>
+            <g className="scene-over">
+              {Array.from({ length: COLS }, (_, i) =>
+                WEFT.map((kind, j) =>
+                  weftOver(i, j) ? (
+                    <g key={`o${i}-${j}`}>
+                      <path className="scene-gap" d={`M${colX(i) - HALF} ${rowY(j)} H${colX(i) + HALF}`} strokeWidth={GAP} />
+                      <path className={`scene-weft-piece scene-weft--${kind}`} d={`M${colX(i) - HALF} ${rowY(j)} H${colX(i) + HALF}`} strokeWidth={THREAD} />
+                    </g>
+                  ) : null,
+                ),
+              )}
+            </g>
+          </g>
+
+          {/* loose ends along the edge: the rest of the history stays woven in */}
+          <g className="scene-fray" strokeLinecap="round" strokeWidth="5">
+            {WEFT.map((kind, j) =>
+              CHOSEN.includes(j) ? null : (
+                <path key={`f${j}`} className={`scene-weft--${kind}`} d={`M${X1 - 2} ${rowY(j)} c${8 + (j % 3) * 4} 0 ${14 + (j % 4) * 3} ${3 + (j % 2) * 4} ${18 + (j % 3) * 5} ${7 + (j % 3) * 3}`} />
+              ),
+            )}
+          </g>
+
+          {/* the chosen threads leave the cloth */}
+          <g className="scene-exit" strokeLinecap="round">
+            {EXIT.map((e, n) => (
+              <g key={n}>
+                <path className="scene-exit-line" pathLength={1} d={e.d} strokeWidth={THREAD - 4} style={{ animationDelay: `${2.1 + n * 0.3}s` }} />
+                <path className="scene-exit-glint" pathLength={1} d={e.d} strokeWidth={4} style={{ animationDelay: `${4.6 + n * 0.5}s` }} />
+              </g>
+            ))}
+          </g>
+        </svg>
+
+        {EXIT.map((e, n) => (
+          <span key={`t${n}`} className="scene-token" style={{ insetInlineStart: `${e.token.x}%`, top: `${e.token.y}%`, animationDelay: `${3 + n * 0.3}s` }}>
+            <QrToken />
+          </span>
         ))}
 
-        {/* 2. the secure links: only the switched-on entries reach a reader */}
-        <div className="scene-gap scene-gap--side" ref={sideRef}>
-          {side.w > 0 && (
-            <svg viewBox={`0 0 ${side.w} ${side.h}`} fill="none">
-              <path className="scene-link scene-link--a" pathLength={1} d={curve(0.167, 0.25)} />
-              <path className="scene-link scene-link--b" pathLength={1} d={curve(0.5, 0.25)} />
-              <path className="scene-link scene-link--c" pathLength={1} d={curve(0.167, 0.75)} />
-              <path className="scene-pulse scene-link--a" pathLength={1} d={curve(0.167, 0.25)} />
-              <path className="scene-pulse scene-link--b" pathLength={1} d={curve(0.5, 0.25)} />
-              <path className="scene-pulse scene-link--c" pathLength={1} d={curve(0.167, 0.75)} />
-              <path className="scene-stub" d={`M0 ${r(0.833)} H${(side.w * 0.34).toFixed(1)}`} />
-            </svg>
-          )}
-          <span className="scene-port" style={{ top: '16.7%' }} />
-          <span className="scene-port" style={{ top: '50%' }} />
-          <span className="scene-port scene-port--off" style={{ top: '83.3%' }} />
-          <span className="scene-stop" style={{ top: '83.3%' }} />
-          <span className="scene-port scene-port--end" style={{ top: '25%' }} />
-          <span className="scene-port scene-port--end" style={{ top: '75%' }} />
-        </div>
-        <div className="scene-gap scene-gap--down" ref={downRef}>
-          {down.w > 0 && (
-            <svg viewBox={`0 0 ${down.w} ${down.h}`} fill="none">
-              <path className="scene-link scene-link--a" pathLength={1} d={`M${down.w / 2} 0 V${down.h * 0.45} M${down.w / 2} ${down.h * 0.45} H${down.w * 0.25} V${down.h} M${down.w / 2} ${down.h * 0.45} H${down.w * 0.75} V${down.h}`} />
-            </svg>
-          )}
-        </div>
-
-        {/* 3. the readers */}
-        <div className="scene-dest scene-dest--doctor">
-          <span className="scene-dest-icon">
+        <div className="scene-reader" style={{ top: '20%', animationDelay: '3.3s' }}>
+          <span className="scene-reader-disc">
             <Glyph kind="steth" />
           </span>
-          <span className="scene-dest-text">
-            <span className="scene-dest-name">{L.nodeDoctor}</span>
-            <span className="scene-dest-sub">{L.sceneReadOnly}</span>
-          </span>
+          <span className="scene-reader-label">{L.nodeDoctor}</span>
         </div>
-        <div className="scene-dest scene-dest--center">
-          <span className="scene-dest-icon">
+        <div className="scene-reader" style={{ top: '76.9%', animationDelay: '3.6s' }}>
+          <span className="scene-reader-disc">
             <Glyph kind="building" />
           </span>
-          <span className="scene-dest-text">
-            <span className="scene-dest-name">{L.nodeAnyCenter}</span>
-            <span className="scene-dest-sub">{L.sceneReadOnly}</span>
-          </span>
+          <span className="scene-reader-label">{L.nodeAnyCenter}</span>
         </div>
+      </div>
 
-        <div className="scene-foot">
-          <span className="scene-chip">
-            <CheckIcon />
-            {L.cardShareOnly}
-          </span>
-          <span className="scene-chip">
-            <LockIcon />
-            {L.cardShareExpires}
-          </span>
-        </div>
+      <div className="scene-foot" aria-hidden="true">
+        <span className="scene-chip">
+          <CheckIcon />
+          {L.cardShareOnly}
+        </span>
+        <span className="scene-chip">
+          <LockIcon />
+          {L.cardShareExpires}
+        </span>
       </div>
     </div>
   );
