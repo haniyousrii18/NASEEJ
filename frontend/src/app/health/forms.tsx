@@ -1,4 +1,6 @@
 import React, { useCallback, useState } from 'react';
+import { UserText } from '../translate/UserText.js';
+import { validationMessage } from '../errors.js';
 import { useApiData, useMutation } from '../api.js';
 import { AppIcon } from '../AppIcons.js';
 import { fill, todayIso } from '../format.js';
@@ -80,14 +82,15 @@ export const EntryForm: React.FC<{ kind: EntryKind; initial?: Partial<Entry> & {
     setErrors(next);
     if (Object.keys(next).length) return;
     const res = await run<Entry>(editing ? `/api/record/entries/${initial!.id}` : '/api/record/entries', editing ? 'PATCH' : 'POST', body);
-    if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : res.error.status === 400 ? res.error.message : A.health.common.failed);
+    if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : res.error.status === 400 ? validationMessage(A, res.error) : A.health.common.failed);
     onSaved(res.data);
   };
 
   return (
     <form className="na-form na-form--stack" onSubmit={submit} noValidate>
       <Field label={titleLabel} htmlFor="en-title" required error={errors.title}>
-        <input id="en-title" className="na-input" value={v.title} maxLength={255} onChange={set('title')} autoFocus />
+        <input id="en-title" className="na-input" dir="auto" value={v.title} maxLength={255} onChange={set('title')} autoFocus />
+        <UserText hint text={v.title === initial?.title ? v.title : ''} />
       </Field>
 
       {hasDates(kind) && (
@@ -166,6 +169,7 @@ export const EntryForm: React.FC<{ kind: EntryKind; initial?: Partial<Entry> & {
 
       <Field label={F.notes} htmlFor="en-notes">
         <textarea id="en-notes" className="na-textarea" dir="auto" rows={3} maxLength={2000} value={v.notes} onChange={set('notes')} />
+        <UserText hint text={v.notes === initial?.notes ? v.notes : ''} />
       </Field>
 
       {error && (
@@ -275,7 +279,7 @@ export const SymptomForm: React.FC<{
     };
     if (!editing) body.captured_via = origin === 'assistant' ? 'assistant' : voiced ? 'voice' : 'form';
     const res = await run(editing ? `/api/record/symptoms/${initial!.id}` : '/api/record/symptoms', editing ? 'PATCH' : 'POST', body);
-    if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : res.error.status === 400 ? res.error.message : A.health.common.failed);
+    if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : res.error.status === 400 ? validationMessage(A, res.error) : A.health.common.failed);
     onSaved(res.data as { id: string } | undefined);
   };
 
@@ -285,6 +289,7 @@ export const SymptomForm: React.FC<{
     <form className="na-form na-form--stack" onSubmit={submit} noValidate>
       <Field label={S.what} htmlFor="sy-what" help={S.whatHelp} required error={errors.description}>
         <textarea id="sy-what" className="na-textarea" dir="auto" rows={3} maxLength={1000} value={v.description} onChange={(e) => setV((s) => ({ ...s, description: e.target.value }))} autoFocus />
+        <UserText hint text={v.description === initial?.description ? v.description : ''} />
       </Field>
       <MicButton listening={speech.listening} supported={speech.supported} onStart={speech.start} onStop={speech.stop} error={speech.error} />
 
@@ -295,6 +300,7 @@ export const SymptomForm: React.FC<{
       </Field>
       <Field label={S.duration} htmlFor="sy-dur" help={S.durationHelp}>
         <input id="sy-dur" className="na-input" dir="auto" maxLength={100} value={v.duration} onChange={(e) => setV((s) => ({ ...s, duration: e.target.value }))} />
+        <UserText hint text={v.duration === initial?.durationText ? v.duration : ''} />
       </Field>
       <Field label={S.frequency} htmlFor="sy-freq">
         <Select id="sy-freq" className="na-select" value={v.frequency} onChange={(e) => setV((s) => ({ ...s, frequency: e.target.value }))}>
@@ -308,12 +314,15 @@ export const SymptomForm: React.FC<{
       </Field>
       <Field label={S.better} htmlFor="sy-better">
         <input id="sy-better" className="na-input" dir="auto" maxLength={500} value={v.better} onChange={(e) => setV((s) => ({ ...s, better: e.target.value }))} />
+        <UserText hint text={v.better === initial?.betterFactors ? v.better : ''} />
       </Field>
       <Field label={S.worse} htmlFor="sy-worse">
         <input id="sy-worse" className="na-input" dir="auto" maxLength={500} value={v.worse} onChange={(e) => setV((s) => ({ ...s, worse: e.target.value }))} />
+        <UserText hint text={v.worse === initial?.worseFactors ? v.worse : ''} />
       </Field>
       <Field label={S.notes} htmlFor="sy-notes">
         <textarea id="sy-notes" className="na-textarea" dir="auto" rows={2} maxLength={2000} value={v.notes} onChange={(e) => setV((s) => ({ ...s, notes: e.target.value }))} />
+        <UserText hint text={v.notes === initial?.notes ? v.notes : ''} />
       </Field>
 
       <details className="hp-disclose" open={docsOpen} onToggle={(e) => setDocsOpen((e.target as HTMLDetailsElement).open)}>

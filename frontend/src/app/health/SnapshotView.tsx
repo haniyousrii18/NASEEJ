@@ -1,4 +1,5 @@
 import React from 'react';
+import { UserText } from '../translate/UserText.js';
 import { formatDate } from '../format.js';
 import { appT } from '../i18n/index.js';
 
@@ -52,15 +53,17 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
       {snapshot.reason && (
         <section className="hp-sv-sec">
           <h2>{T.reason}</h2>
-          <p dir="auto" className="hp-sv-reason">
-            {snapshot.reason}
+          <p className="hp-sv-reason">
+            <UserText text={snapshot.reason} lang={snapshot.lang} />
           </p>
         </section>
       )}
       {snapshot.overview && (
         <section className="hp-sv-sec">
           <h2>{T.overview}</h2>
-          <p dir="auto">{snapshot.overview}</p>
+          <p>
+            <UserText text={snapshot.overview} lang={snapshot.lang} />
+          </p>
         </section>
       )}
 
@@ -70,7 +73,7 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
           <ul className="hp-sv-list">
             {s.items.map((it, i) => (
               <li key={i}>
-                <span dir="auto">{it.text}</span>
+                <UserText text={it.text} lang={snapshot.lang} />
                 <span className="hp-sv-src">
                   {T.sourceLabel}: {it.source}
                   {it.date && s.key !== 'symptoms' ? ` · ${formatDate(snapshot.lang, it.date)}` : ''}
@@ -87,8 +90,8 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
           <ul className="hp-sv-list">
             {snapshot.documents.map((d) => (
               <li key={d.id}>
-                <span dir="auto">
-                  {d.title}
+                <span>
+                  <UserText text={d.title} lang={snapshot.lang} />
                   {d.docType ? ` · ${(V.types as Record<string, string>)[d.docType] ?? d.docType}` : ''}
                   {d.documentDate ? ` · ${formatDate(snapshot.lang, d.documentDate)}` : ''}
                   {d.providerName ? ` · ${d.providerName}` : ''}

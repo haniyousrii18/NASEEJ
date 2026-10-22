@@ -21,6 +21,8 @@ export const ENV = {
   STORAGE_DIR: process.env.STORAGE_DIR || path.resolve(process.cwd(), '../storage/protected'),
   // Optional AI document analysis. Off unless AI_PROVIDER and the matching key are set. Never commit a real key.
   AI_PROVIDER: (process.env.AI_PROVIDER || '').toLowerCase(),
+  // Automatic translation of typed text. Names a registered NON-AI provider (see services/translation). Empty = off.
+  TRANSLATION_PROVIDER: (process.env.TRANSLATION_PROVIDER || '').toLowerCase(),
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
   // Empty means each provider uses its own default model.

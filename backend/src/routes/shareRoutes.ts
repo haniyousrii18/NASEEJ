@@ -11,6 +11,7 @@ import { rateLimit, SlidingWindow } from '../services/rateLimit.js';
 import { fileExists, resolveStoredPath } from '../services/storageService.js';
 import { apiError, clampInt, isUuid, serverError } from '../services/validation.js';
 import { apiLimiter } from '../services/apiLimit.js';
+import { parseTarget, parseTexts, stringsIn, translateForPatient, type TranslationResult } from '../services/translation/service.js';
 
 /**
  * Temporary, revocable, read-only sharing.
@@ -221,6 +222,27 @@ publicShareRouter.post('/view', async (req: Request, res: Response): Promise<voi
     await query('UPDATE record_shares SET view_count = view_count + 1, last_viewed_at = NOW() WHERE id = $1', [s.id]);
     await record(req, s.id, 'view');
     res.json({ success: true, data: { snapshot: s.snapshot, expiresAt: s.expires_at } });
+  } catch (err) {
+    res.status(500).json(serverError(err));
+  }
+});
+
+// POST /api/share-view/translate  { token, texts, target }  the stored translation of wording that is inside THIS share, for the clinician.
+// Only strings the frozen summary actually contains are accepted, so a link cannot be used as a general translator.
+publicShareRouter.post('/translate', async (req: Request, res: Response): Promise<void> => {
+  if (guessBlocked(req, res)) return;
+  const texts = parseTexts(req.body?.texts);
+  const target = parseTarget(req.body?.target);
+  if (!texts || !target) return void res.status(400).json(apiError('VALIDATION_ERROR', 'Send 1 to 20 texts and a target language (ar or en).'));
+  try {
+    const found = await lookup(req.body?.token);
+    if (!('share' in found)) return deny(req, res, found);
+    const inside = stringsIn(found.share.snapshot);
+    const allowed = texts.filter((t) => inside.has(t));
+    const done = allowed.length ? await translateForPatient(found.share.patient_id, allowed, target) : [];
+    let k = 0;
+    const items: TranslationResult[] = texts.map((t) => (inside.has(t) ? done[k++] : { status: 'unavailable', reason: 'not_allowed' }));
+    res.json({ success: true, data: { items } });
   } catch (err) {
     res.status(500).json(serverError(err));
   }

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { UserText } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate } from '../format.js';
 import type { PortalSummary } from '../pages/patient.js';
@@ -190,7 +191,7 @@ const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate
                     <label className="cg-check">
                       <input type="radio" name="sh-prep" checked={prep?.id === p.id} onChange={() => { setPrepId(p.id); setDocIds(null); }} />
                       <span dir="auto">
-                        <strong>{p.content.reason || S.summary}</strong>
+                        <strong>{p.content.reason ? <UserText text={p.content.reason} /> : S.summary}</strong>
                         <span className="na-help">{p.visitDate ? formatDate(A.lang, p.visitDate) : formatDate(A.lang, p.updatedAt)}</span>
                       </span>
                     </label>
@@ -210,7 +211,7 @@ const NewShare: React.FC<{ presetPrep: string | null; maxHours: number; navigate
                     <li key={d.id}>
                       <label className="cg-check">
                         <input type="checkbox" checked={chosenDocs.includes(d.id)} onChange={() => setDocIds(chosenDocs.includes(d.id) ? chosenDocs.filter((x) => x !== d.id) : [...chosenDocs, d.id])} />
-                        <span dir="auto">{d.title}</span>
+                        <UserText text={d.title} />
                       </label>
                     </li>
                   ))}

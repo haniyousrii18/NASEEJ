@@ -8,8 +8,9 @@ export default defineConfig({
     testTimeout: 20000,
     hookTimeout: 30000,
     // The suite logs in as staff accounts created by tests/setup.ts, which patient-only mode would reject.
+    // Email is always off in the tests too (they use the in-memory outbox), so a configured SMTP account in .env is never used.
     // AI is always off in the tests, whatever the local .env says, so the "not connected" behaviour is what gets checked.
-    env: { PATIENT_ONLY_MODE: 'false', AI_PROVIDER: '', GEMINI_API_KEY: '', ANTHROPIC_API_KEY: '' },
+    env: { PATIENT_ONLY_MODE: 'false', SMTP_HOST: '', SMTP_USER: '', SMTP_PASS: '', TRANSLATION_PROVIDER: '', AI_PROVIDER: '', GEMINI_API_KEY: '', ANTHROPIC_API_KEY: '' },
     setupFiles: ['tests/setup.ts'],
   },
 });

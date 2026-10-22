@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "migrate": "tsx scripts/migrate.ts",
     "mail:test": "tsx scripts/test-mail.ts",
+    "translate:models": "tsx scripts/download-translation-models.ts",
     "seed": "tsx scripts/seed.ts",
     "db:check": "tsx scripts/check-database.ts schema",
     "db:rollback-check": "tsx scripts/check-database.ts rollback",
@@ -17,6 +18,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
+    "@huggingface/transformers": "^4.3.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^18.0.8",

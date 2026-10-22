@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { UserText } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate } from '../format.js';
 import { Timeline } from '../record/Timeline.js';
@@ -20,13 +21,13 @@ const EntryRow: React.FC<{ e: Entry; onEdit: () => void; onDelete: () => void }>
   return (
     <li className="hp-entry">
       <div className="hp-entry-main">
-        <strong dir="auto" className="hp-entry-title">
-          {e.title}
+        <strong className="hp-entry-title">
+          <UserText text={e.title} />
         </strong>
-        {details.length > 0 && <span dir="auto">{details.join(' · ')}</span>}
+        {details.length > 0 && <UserText text={details.join(' · ')} />}
         {e.notes && (
-          <span className="na-muted" dir="auto">
-            {e.notes}
+          <span className="na-muted">
+            <UserText text={e.notes} />
           </span>
         )}
         <SourceLine origin={e.source} confirmed={e.reviewStatus === 'confirmed'} date={date ? (e.kind === 'condition' ? fill(H.since, { date: formatDate(A.lang, date) }) : formatDate(A.lang, date)) : undefined} />
