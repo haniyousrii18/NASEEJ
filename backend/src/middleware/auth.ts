@@ -37,7 +37,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     
     // Fetch user from database
     const userRes = await query<User>(
-      'SELECT id, auth_provider_id, email, full_name_ar, full_name_en, phone, national_id, system_role, is_active, created_at, updated_at FROM users WHERE id = $1',
+      'SELECT id, auth_provider_id, email, full_name_ar, full_name_en, phone, national_id, system_role, is_active, created_at, updated_at, password_changed_at FROM users WHERE id = $1',
       [payload.userId]
     );
 
@@ -53,6 +53,14 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     }
 
     const user = userRes.rows[0];
+
+    // A reset or password change signs out every session that was issued before it.
+    const changedAt = (user as any).password_changed_at ? new Date((user as any).password_changed_at).getTime() : 0;
+    if (changedAt && (payload as any).iat !== undefined && (payload as any).iat < Math.floor(changedAt / 1000)) {
+      res.status(401).json({ success: false, error: { code: 'INVALID_TOKEN', message: 'Invalid or expired session token.' } });
+      return;
+    }
+    delete (user as any).password_changed_at;
 
     // Fetch user organization memberships
     const memRes = await query(

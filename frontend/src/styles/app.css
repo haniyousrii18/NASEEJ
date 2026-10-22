@@ -3476,6 +3476,19 @@ th[data-today] .na-sched-daybtn {
   font-weight: 560;
 }
 
+/* A record that was just saved: shown, scrolled to, and highlighted for a few seconds. */
+.na-tl-body {
+  transition: background-color 0.4s ease, box-shadow 0.4s ease;
+}
+.na-tl-item[data-fresh="true"] .na-tl-body {
+  background: var(--color-bg-subtle);
+  box-shadow: 0 0 0 2px var(--color-border-strong);
+}
+@media (prefers-reduced-motion: reduce) {
+  .na-tl-body {
+    transition: none;
+  }
+
 /* ------------------------------------------------------------------ typed text shown in the page language */
 .na-ut {
   display: inline-flex;

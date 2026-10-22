@@ -1,83 +1,109 @@
 import React, { useState } from 'react';
-import { ArrowIcon, EyeIcon, LockIcon, MailIcon } from '../components/LineIcon.js';
 import { AuthArt } from '../components/AuthArt.js';
-import { Collapse } from '../components/motion.js';
-import { useLang } from '../context/LangContext.js';
+import { MailIcon, LockIcon, UserIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useLang } from '../context/LangContext.js';
+import { AuthField, ForgotForm, InboxPanel, RegisterForm, ResetForm, VerifyPanel, authErrorText, authPost } from './AccessForms.js';
+
+/** Which screen the card shows. The address can open some of them directly (the links in the emails). */
+export type AccessMode = 'login' | 'register' | 'forgot' | 'reset' | 'verify' | 'inbox-register' | 'inbox-forgot';
 
 interface LoginPageProps {
   setCurrentView: (view: string) => void;
+  /** Open on another screen, e.g. from an emailed link. */
+  initialMode?: AccessMode;
+  /** The token from an emailed link (confirm email or reset password). */
+  token?: string;
+  /** Called when the person leaves an emailed link's screen, so the app can clear it from the address. */
+  onLeaveLink?: () => void;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
-  const { t, isRtl } = useLang();
+/** The one shared password of the synthetic demo accounts (shown on the page and in the seed). */
+const DEMO_PASSWORD = 'Password123!';
+const DEMO_EMAIL = 'patient@naseej.health';
+
+export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMode = 'login', token = '', onLeaveLink }) => {
+  const { t, isRtl, lang } = useLang();
   const A = t.auth;
   const { login } = useAuth();
 
+  const [mode, setMode] = useState<AccessMode>(initialMode);
+  const [sentTo, setSentTo] = useState('');
+  const [flash, setFlash] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [demoOpen, setDemoOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [unverified, setUnverified] = useState(false);
 
-  // PATIENT-ONLY MODE: only the patient demo account is shown.
+  // PATIENT-ONLY MODE: only the patient demo account exists.
   // To restore all accounts, revert commit on branch feat/patient-only-login.
-  const demoPersonas = [
-    {
-      roleKey: 'patient',
-      name: isRtl ? 'محمد المنصور (المريض)' : 'Mohammed Al-Mansoor (Patient)',
-      email: 'patient@naseej.health',
-      desc: isRtl ? 'بوابة السجل الصحي والنتائج المعتمدة' : 'Approved health record portal',
-      badge: 'Patient',
-      badgeClass: 'badge-approved',
-    },
-  ];
+  const demoName = isRtl ? 'محمد المنصور (المريض)' : 'Mohammed Al-Mansoor (Patient)';
+  const demoDesc = isRtl ? 'بوابة السجل الصحي والنتائج المعتمدة' : 'Approved health record portal';
 
-  const handleLoginSubmit = async (e?: React.FormEvent, customEmail?: string) => {
-    if (e) e.preventDefault();
+  const go = (next: AccessMode) => {
+    setMode(next);
+    setErrorMsg('');
+    setFlash('');
+    setUnverified(false);
+  };
+  /** Leaving a screen that was opened by an emailed link: back to plain sign-in, with the link out of the address. */
+  const toLogin = (message = '') => {
+    onLeaveLink?.();
+    go('login');
+    setFlash(message);
+  };
+
+  /** Signs in with what is typed, or with `creds` when given (a state update is not visible to the request in the same click). */
+  const handleLoginSubmit = async (e?: React.FormEvent, creds?: { email: string; password: string }) => {
+    e?.preventDefault();
     setLoading(true);
     setErrorMsg('');
+    setUnverified(false);
+    const r = await authPost('/login', { email: (creds?.email ?? email).trim(), password: creds?.password ?? password });
+    setLoading(false);
+    if (!r.ok) {
+      setUnverified(r.code === 'EMAIL_NOT_VERIFIED');
+      setErrorMsg(authErrorText(A, r));
+      return;
+    }
+    // PATIENT-ONLY MODE: only patients may access the app through this login page.
+    // To restore full access, revert commit on branch feat/patient-only-login.
+    if (!r.data.user.patientProfileId) {
+      setErrorMsg(A.errors.patientsOnly);
+      return;
+    }
+    login(r.data.token, r.data.user);
+    setCurrentView('portal');
+  };
 
-    const targetEmail = customEmail || email;
+  const handleQuickLogin = () => {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    void handleLoginSubmit(undefined, { email: DEMO_EMAIL, password: DEMO_PASSWORD });
+  };
 
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: targetEmail, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error?.message || 'Authentication failed.');
-      }
-
-      // PATIENT-ONLY MODE: only patients may access the app through this login page.
-      // Non-patient accounts (admin, doctor, manager, reception) are blocked at the UI level.
-      // To restore full access, revert commit on branch feat/patient-only-login.
-      if (!data.data.user.patientProfileId) {
-        throw new Error(
-          isRtl
-            ? 'هذه البوابة مخصصة للمرضى فقط في الوقت الحالي.'
-            : 'This portal is currently available to patients only.'
-        );
-      }
-
-      login(data.data.token, data.data.user);
-      setCurrentView('portal');
-    } catch (err: any) {
-      // fetch rejects with a TypeError when the server cannot be reached, and a gateway error body is not JSON.
-      setErrorMsg(err instanceof TypeError || err instanceof SyntaxError ? A.networkError : err.message || 'Login error');
-    } finally {
-      setLoading(false);
+  const resendConfirmation = async () => {
+    const r = await authPost('/resend-verification', { email: email.trim(), lang });
+    if (r.ok) {
+      setSentTo(email.trim());
+      go('inbox-register');
+    } else {
+      setErrorMsg(authErrorText(A, r));
     }
   };
 
-  const handleQuickLogin = (personaEmail: string) => {
-    setEmail(personaEmail);
-    setPassword('Password123!');
-    handleLoginSubmit(undefined, personaEmail);
+  const heading: Record<AccessMode, { title: string; sub: string }> = {
+    login: { title: A.cardTitle, sub: A.cardWelcome },
+    register: { title: A.registerTitle, sub: A.registerWelcome },
+    forgot: { title: A.forgotTitle, sub: A.forgotWelcome },
+    reset: { title: A.resetTitle, sub: A.resetWelcome },
+    verify: { title: A.verifiedTitle, sub: '' },
+    'inbox-register': { title: A.inboxTitle, sub: '' },
+    'inbox-forgot': { title: A.inboxTitle, sub: '' },
   };
+  // the confirm-email screen shows its own result, so its title is the neutral one until it knows
+  const head = mode === 'verify' ? { title: A.cardTitle, sub: '' } : heading[mode];
 
   return (
     <div className="auth">
@@ -91,108 +117,92 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView }) => {
 
         <div className="auth-card motion-stagger" dir={isRtl ? 'rtl' : 'ltr'}>
           <div className="auth-head">
-            <h1 className="auth-title">{A.cardTitle}</h1>
-            <p className="auth-sub">{A.cardWelcome}</p>
-          </div>
-
-          {errorMsg && (
-            <div id="login-error" className="auth-error motion-alert-enter" role="alert">
-              {errorMsg}
-            </div>
-          )}
-
-          <form className="auth-form" onSubmit={handleLoginSubmit}>
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="login-email">{A.email}</label>
-              <div className="auth-input-wrap">
-                <span className="auth-input-icon"><MailIcon /></span>
-                <input
-                  id="login-email"
-                  type="email"
-                  required
-                  autoComplete="username"
-                  aria-invalid={errorMsg ? true : undefined}
-                  aria-describedby={errorMsg ? 'login-error' : undefined}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="patient@naseej.health"
-                  className="auth-input"
-                />
-              </div>
-            </div>
-
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="login-password">{A.password}</label>
-              <div className="auth-input-wrap">
-                <span className="auth-input-icon"><LockIcon /></span>
-                <input
-                  id="login-password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoComplete="current-password"
-                  aria-invalid={errorMsg ? true : undefined}
-                  aria-describedby={errorMsg ? 'login-error' : undefined}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="auth-input auth-input--toggle"
-                />
+            <div className="auth-title-row">
+              <h1 className="auth-title">{head.title}</h1>
+              {mode === 'login' && (
                 <button
                   type="button"
-                  className="auth-eye"
-                  aria-label={showPassword ? A.hidePassword : A.showPassword}
-                  aria-pressed={showPassword}
-                  onClick={() => setShowPassword((v) => !v)}
+                  className="auth-quick"
+                  disabled={loading}
+                  aria-busy={loading || undefined}
+                  aria-label={`${A.quickLogin}: ${demoName}`}
+                  title={`${demoName}\n${loading ? A.signingIn : demoDesc}`}
+                  onClick={handleQuickLogin}
                 >
-                  <EyeIcon off={showPassword} />
+                  <UserIcon />
+                </button>
+              )}
+            </div>
+            {head.sub && <p className="auth-sub">{head.sub}</p>}
+          </div>
+
+          {mode === 'login' && (
+            <>
+              {flash && (
+                <div className="auth-panel" role="status">
+                  <p>{flash}</p>
+                </div>
+              )}
+              {errorMsg && (
+                <div id="login-error" className="auth-error motion-alert-enter" role="alert">
+                  {errorMsg}
+                  {unverified && (
+                    <>
+                      {' '}
+                      <button type="button" className="auth-linkbtn" onClick={() => void resendConfirmation()}>
+                        {A.resend}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <form className="auth-form" onSubmit={handleLoginSubmit}>
+                <AuthField id="login-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="username" placeholder="name@example.com" />
+                <AuthField id="login-password" label={A.password} icon="lock" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
+                <button type="submit" disabled={loading} className="auth-submit">
+                  {loading ? t.common.loading : A.loginBtn}
+                </button>
+              </form>
+
+              <div className="auth-switch">
+                <button type="button" className="auth-linkbtn" onClick={() => go('forgot')}>
+                  {A.forgotLink}
+                </button>
+                <button type="button" className="auth-linkbtn" onClick={() => go('register')}>
+                  {A.createAccount}
                 </button>
               </div>
-            </div>
+            </>
+          )}
 
-            <button type="submit" disabled={loading} className="auth-submit">
-              {loading ? t.common.loading : A.loginBtn}
-            </button>
-          </form>
+          {mode === 'register' && (
+            <RegisterForm
+              onSent={(to) => {
+                setSentTo(to);
+                go('inbox-register');
+              }}
+              onLogin={() => go('login')}
+            />
+          )}
 
-          <p className="auth-help">{A.forgotHelp}</p>
+          {mode === 'forgot' && (
+            <ForgotForm
+              onSent={(to) => {
+                setSentTo(to);
+                go('inbox-forgot');
+              }}
+              onLogin={() => toLogin()}
+            />
+          )}
 
-          <div className="auth-demo">
-            <button
-              type="button"
-              className="auth-demo-toggle"
-              aria-expanded={demoOpen}
-              aria-controls="auth-demo-panel"
-              onClick={() => setDemoOpen((o) => !o)}
-            >
-              {demoOpen ? A.hideDemo : A.tryDemo}
-              <span className="auth-demo-chevron" aria-hidden="true" data-open={demoOpen}>
-                <ArrowIcon />
-              </span>
-            </button>
-            <Collapse open={demoOpen} id="auth-demo-panel">
-              <div className="auth-demo-body">
-                <div className="auth-demo-head">
-                  <h2 className="auth-demo-title">{A.demoAccounts}</h2>
-                  <span className="auth-badge">{A.syntheticBadge}</span>
-                </div>
-                <p className="auth-demo-lead">{A.demoLead}</p>
-                <ul className="auth-personas">
-                  {demoPersonas.map((p) => (
-                    <li key={p.roleKey}>
-                      <button type="button" className="auth-persona" disabled={loading} onClick={() => handleQuickLogin(p.email)}>
-                        <span className="auth-persona-text">
-                          <span className="auth-persona-name">{p.name}</span>
-                          <span className="auth-persona-desc">{p.desc}</span>
-                        </span>
-                        <span className="auth-badge">{p.badge}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <p className="auth-note">{A.passwordNote}</p>
-              </div>
-            </Collapse>
-          </div>
+          {mode === 'reset' && <ResetForm token={token} onDone={() => toLogin(A.resetDone)} onAskAgain={() => go('forgot')} />}
+
+          {mode === 'verify' && <VerifyPanel token={token} onLogin={() => toLogin()} onAskAgain={() => go('forgot')} />}
+
+          {(mode === 'inbox-register' || mode === 'inbox-forgot') && (
+            <InboxPanel kind={mode === 'inbox-register' ? 'register' : 'forgot'} email={sentTo} onBack={() => go('login')} />
+          )}
         </div>
       </div>
     </div>

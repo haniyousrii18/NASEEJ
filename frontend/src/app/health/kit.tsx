@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRequest } from '../api.js';
 import { AppIcon } from '../AppIcons.js';
 import { Button, Dialog, Pill, type Tone } from '../ui.js';
@@ -45,27 +46,41 @@ export interface ToastState {
   tone?: 'ok' | 'danger';
 }
 
-export function useToast(durationMs = 8000) {
+/** How long a notice stays: short, because it is only a confirmation. An error stays a little longer so it can be read. */
+export const TOAST_MS = 3000;
+export const TOAST_ERROR_MS = 5000;
+
+export function useToast() {
   const [toast, setToast] = useState<ToastState | null>(null);
-  const timer = useRef<number | undefined>(undefined);
   const hide = useCallback(() => setToast(null), []);
-  const show = useCallback(
-    (t: ToastState) => {
-      window.clearTimeout(timer.current);
-      setToast(t);
-      timer.current = window.setTimeout(() => setToast(null), t.undo ? durationMs : 4000);
-    },
-    [durationMs],
-  );
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const show = useCallback((t: ToastState) => setToast(t), []);
   return { toast, show, hide };
 }
 
+/**
+ * A small notice in the top-left corner. It leaves by itself after a few seconds, with "Undo" while it is there. Hovering or
+ * focusing it holds it, so there is time to press Undo; it leaves again a moment after the pointer or focus does.
+ */
 export const Toast: React.FC<{ toast: ToastState | null; onClose: () => void }> = ({ toast, onClose }) => {
   const A = useA();
+  const [held, setHeld] = useState(false);
+  useEffect(() => {
+    if (!toast || held) return;
+    const id = window.setTimeout(onClose, toast.tone === 'danger' ? TOAST_ERROR_MS : TOAST_MS);
+    return () => window.clearTimeout(id);
+  }, [toast, held, onClose]);
   if (!toast) return null;
-  return (
-    <div className="hp-toast" role={toast.tone === 'danger' ? 'alert' : 'status'} data-tone={toast.tone}>
+  // Rendered on the page body: a page transition above this component moves position:fixed boxes, so the corner would drift.
+  return createPortal(
+    <div
+      className="hp-toast"
+      role={toast.tone === 'danger' ? 'alert' : 'status'}
+      data-tone={toast.tone}
+      onMouseEnter={() => setHeld(true)}
+      onMouseLeave={() => setHeld(false)}
+      onFocus={() => setHeld(true)}
+      onBlur={() => setHeld(false)}
+    >
       <span>{toast.text}</span>
       {toast.undo && (
         <button
@@ -82,7 +97,8 @@ export const Toast: React.FC<{ toast: ToastState | null; onClose: () => void }> 
       <button type="button" className="hp-toast-x" onClick={onClose} aria-label={A.health.common.close}>
         ×
       </button>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
