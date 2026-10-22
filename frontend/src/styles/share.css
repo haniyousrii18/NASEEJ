@@ -163,8 +163,8 @@
     display: none !important;
   }
   .sv-page {
-    background: #fff;
-    color: #000;
+    background: var(--paper);
+    color: var(--paper-ink);
   }
   .sv-page .hp-sv {
     border: 0;

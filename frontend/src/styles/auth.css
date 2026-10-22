@@ -1,30 +1,30 @@
-/* Login page: warm sand by day, copper-lit espresso by night. Colors are scoped to .auth tokens. */
+/* Login page: a mist-teal field by day, deep slate by night. Every colour is derived from the theme.css tokens. */
 
 .auth {
   /* light (day) */
   --auth-bg:
-    radial-gradient(60% 80% at 22% 55%, rgba(255, 244, 232, 0.85) 0%, transparent 70%),
-    linear-gradient(135deg, #f7e8d9 0%, #efd3b9 55%, #e3bb98 100%);
-  --auth-strand: #b98862;
-  --auth-rung: #c49a77;
+    radial-gradient(60% 80% at 22% 55%, color-mix(in srgb, var(--surface) 85%, transparent) 0%, transparent 70%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-surface) 35%, var(--background)) 0%, color-mix(in srgb, var(--accent-surface) 80%, var(--background)) 100%);
+  --auth-strand: color-mix(in srgb, var(--primary) 55%, var(--background));
+  --auth-rung: color-mix(in srgb, var(--primary) 45%, var(--background));
   --auth-glow: transparent;
-  --auth-line: #a06f4b;
-  --auth-ink: #3b2314;
-  --auth-muted: #664630;
-  --auth-link: #7a4524;
-  --auth-card-bg: rgba(255, 251, 246, 0.93);
-  --auth-card-border: rgba(138, 90, 59, 0.38);
-  --auth-card-shadow: 0 18px 50px rgba(110, 70, 40, 0.18);
-  --auth-field-bg: #ffffff;
-  --auth-field-border: rgba(138, 90, 59, 0.42);
-  --auth-icon: #8a5a3b;
-  --auth-btn-bg: #8a5a3b;
-  --auth-btn-hover: #744729;
-  --auth-btn-ink: #ffffff;
-  --auth-soft-bg: rgba(138, 90, 59, 0.07);
-  --auth-danger-bg: #fbe9e4;
-  --auth-danger-ink: #8a2c17;
-  --auth-danger-border: rgba(138, 44, 23, 0.4);
+  --auth-line: var(--primary);
+  --auth-ink: var(--text-primary);
+  --auth-muted: var(--text-secondary);
+  --auth-link: var(--text-on-accent-surface);
+  --auth-card-bg: color-mix(in srgb, var(--surface) 94%, transparent);
+  --auth-card-border: var(--border);
+  --auth-card-shadow: 0 18px 50px rgba(var(--shadow-color), 0.14);
+  --auth-field-bg: var(--surface);
+  --auth-field-border: var(--border-strong);
+  --auth-icon: var(--text-secondary);
+  --auth-btn-bg: var(--primary);
+  --auth-btn-hover: var(--primary-hover);
+  --auth-btn-ink: var(--on-primary);
+  --auth-soft-bg: color-mix(in srgb, var(--primary) 7%, transparent);
+  --auth-danger-bg: var(--danger-bg);
+  --auth-danger-ink: var(--danger-text);
+  --auth-danger-border: var(--danger-border);
   --auth-art-opacity: 0.9;
 
   position: relative;
@@ -39,28 +39,15 @@
 
 :root[data-theme='dark'] .auth {
   --auth-bg:
-    radial-gradient(55% 80% at 24% 55%, rgba(120, 72, 36, 0.5) 0%, transparent 70%),
-    linear-gradient(135deg, #1b110b 0%, #2a1a10 58%, #3a2414 100%);
-  --auth-strand: #e3a86f;
-  --auth-rung: #d9a06a;
-  --auth-glow: rgba(227, 168, 111, 0.55);
-  --auth-line: #dca064;
-  --auth-ink: #f6e9dc;
-  --auth-muted: #d2b8a2;
-  --auth-link: #f2bd88;
-  --auth-card-bg: rgba(34, 22, 14, 0.82);
-  --auth-card-border: rgba(217, 154, 92, 0.5);
-  --auth-card-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
-  --auth-field-bg: rgba(14, 9, 6, 0.6);
-  --auth-field-border: rgba(217, 154, 92, 0.4);
-  --auth-icon: #dcac80;
-  --auth-btn-bg: linear-gradient(180deg, #e0ab74 0%, #c58a55 100%);
-  --auth-btn-hover: linear-gradient(180deg, #ebb985 0%, #d09660 100%);
-  --auth-btn-ink: #1a1009;
-  --auth-soft-bg: rgba(255, 235, 215, 0.06);
-  --auth-danger-bg: rgba(120, 30, 15, 0.45);
-  --auth-danger-ink: #ffd5c8;
-  --auth-danger-border: rgba(255, 150, 120, 0.5);
+    radial-gradient(55% 80% at 24% 55%, color-mix(in srgb, var(--primary) 15%, transparent) 0%, transparent 70%),
+    linear-gradient(135deg, var(--background) 0%, color-mix(in srgb, var(--accent-surface) 55%, var(--background)) 100%);
+  --auth-strand: var(--primary);
+  --auth-rung: color-mix(in srgb, var(--primary) 80%, var(--background));
+  --auth-glow: color-mix(in srgb, var(--primary) 50%, transparent);
+  --auth-card-bg: color-mix(in srgb, var(--surface) 86%, transparent);
+  --auth-card-shadow: 0 18px 60px rgba(var(--shadow-color), 0.5);
+  --auth-field-bg: color-mix(in srgb, var(--background) 60%, transparent);
+  --auth-soft-bg: color-mix(in srgb, var(--text-primary) 6%, transparent);
   --auth-art-opacity: 1;
 }
 
@@ -165,21 +152,21 @@
   background: transparent;
   box-shadow: none;
   border: none;
-  filter: drop-shadow(0 6px 20px rgba(0, 168, 150, 0.24));
+  filter: drop-shadow(0 6px 20px color-mix(in srgb, var(--primary) 24%, transparent));
   transition: transform var(--t-fast, 0.2s) ease, filter var(--t-fast, 0.2s) ease;
 }
 
 .auth-logo:hover {
   transform: scale(1.05);
-  filter: drop-shadow(0 10px 28px rgba(0, 168, 150, 0.38));
+  filter: drop-shadow(0 10px 28px color-mix(in srgb, var(--primary) 38%, transparent));
 }
 
 :root[data-theme='dark'] .auth-logo {
-  filter: drop-shadow(0 4px 28px rgba(2, 195, 154, 0.44)) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 4px 28px color-mix(in srgb, var(--primary) 44%, transparent)) drop-shadow(0 2px 8px rgba(var(--shadow-color), 0.6));
 }
 
 :root[data-theme='dark'] .auth-logo:hover {
-  filter: drop-shadow(0 6px 36px rgba(2, 195, 154, 0.6)) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.7));
+  filter: drop-shadow(0 6px 36px color-mix(in srgb, var(--primary) 60%, transparent)) drop-shadow(0 2px 10px rgba(var(--shadow-color), 0.7));
 }
 
 .auth-brand-name {
@@ -343,7 +330,7 @@
   color: var(--auth-btn-ink);
   background: var(--auth-btn-bg);
   border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(80, 48, 24, 0.22);
+  box-shadow: 0 6px 18px rgba(var(--shadow-color), 0.22);
   transition: background var(--t-fast, 0.15s) ease, transform var(--t-fast, 0.15s) ease;
 }
 
@@ -415,7 +402,7 @@
 
 .auth-quick:hover:not(:disabled) {
   border-color: var(--auth-link);
-  box-shadow: 0 6px 16px rgba(80, 48, 24, 0.14);
+  box-shadow: 0 6px 16px rgba(var(--shadow-color), 0.14);
   transform: translateY(-1px);
 }
 

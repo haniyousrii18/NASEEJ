@@ -190,17 +190,6 @@
   border-color: var(--hero-ink);
 }
 
-/* Night: the primary action turns copper-gold, as in the night comps. */
-:root[data-theme='dark'] .hero .btn-pill-charcoal {
-  color: #1a1009;
-  background: linear-gradient(180deg, #f0c27a 0%, #d49a4a 100%);
-  box-shadow: 0 0 22px rgba(227, 168, 111, 0.35);
-}
-
-:root[data-theme='dark'] .hero .btn-pill-charcoal:hover:not(:disabled) {
-  background: linear-gradient(180deg, #f7d08f 0%, #dda556 100%);
-}
-
 /* Supported points as pills along the bottom edge, set off by a hairline. */
 .hero-foot {
   position: relative;
@@ -250,7 +239,7 @@
   --sc-line: color-mix(in srgb, var(--color-accent) 70%, transparent);
   --sc-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
   --sc-ring: color-mix(in srgb, var(--color-accent) 34%, transparent);
-  --sc-shadow: 0 18px 40px rgba(31, 26, 23, 0.16);
+  --sc-shadow: 0 18px 40px rgba(var(--shadow-color), 0.16);
 
   position: relative;
   width: 100%;
@@ -260,7 +249,7 @@
 }
 
 :root[data-theme='dark'] .scene {
-  --sc-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  --sc-shadow: 0 18px 40px rgba(var(--shadow-color), 0.5);
 }
 
 .scene-group {
@@ -644,7 +633,7 @@
 
 .l-thread-item:hover .l-node,
 .l-step:hover .l-node {
-  color: #fff;
+  color: var(--on-primary);
   background: var(--color-accent);
 }
 
@@ -754,7 +743,7 @@
 
 /* ------------------------------------------------------------------ trust band */
 .l-trust {
-  --l-on-dark-accent: #fdba74;
+  --l-on-dark-accent: var(--accent-on-inverse);
   position: relative;
   overflow: hidden;
   display: grid;
@@ -961,15 +950,15 @@
 
 .lb {
   --lb-scroll: 0;
-  --lb-thread: rgba(194, 65, 12, 0.2);
-  --lb-thread-weft: rgba(194, 65, 12, 0.13);
-  --lb-link: rgba(194, 65, 12, 0.18);
-  --lb-node: rgba(194, 65, 12, 0.5);
-  --lb-ring: rgba(194, 65, 12, 0.35);
-  --lb-pulse: #f97316;
-  --lb-glow: rgba(249, 115, 22, 0.35);
-  --lb-blob-a: rgba(251, 146, 60, 0.2);
-  --lb-blob-b: rgba(253, 186, 116, 0.3);
+  --lb-thread: color-mix(in srgb, var(--primary) 20%, transparent);
+  --lb-thread-weft: color-mix(in srgb, var(--primary) 13%, transparent);
+  --lb-link: color-mix(in srgb, var(--primary) 18%, transparent);
+  --lb-node: color-mix(in srgb, var(--primary) 50%, transparent);
+  --lb-ring: color-mix(in srgb, var(--primary) 35%, transparent);
+  --lb-pulse: var(--primary);
+  --lb-glow: color-mix(in srgb, var(--primary) 35%, transparent);
+  --lb-blob-a: color-mix(in srgb, var(--accent-surface) 60%, transparent);
+  --lb-blob-b: color-mix(in srgb, var(--accent-surface) 90%, transparent);
 
   position: sticky;
   top: 0;
@@ -984,15 +973,15 @@
 }
 
 :root[data-theme='dark'] .lb {
-  --lb-thread: rgba(253, 186, 116, 0.17);
-  --lb-thread-weft: rgba(253, 186, 116, 0.11);
-  --lb-link: rgba(253, 186, 116, 0.18);
-  --lb-node: rgba(240, 190, 130, 0.75);
-  --lb-ring: rgba(253, 186, 116, 0.4);
-  --lb-pulse: #fdba74;
-  --lb-glow: rgba(253, 186, 116, 0.55);
-  --lb-blob-a: rgba(150, 88, 40, 0.32);
-  --lb-blob-b: rgba(120, 70, 30, 0.28);
+  --lb-thread: color-mix(in srgb, var(--primary) 17%, transparent);
+  --lb-thread-weft: color-mix(in srgb, var(--primary) 11%, transparent);
+  --lb-link: color-mix(in srgb, var(--primary) 18%, transparent);
+  --lb-node: color-mix(in srgb, var(--primary) 75%, transparent);
+  --lb-ring: color-mix(in srgb, var(--primary) 40%, transparent);
+  --lb-pulse: var(--primary);
+  --lb-glow: color-mix(in srgb, var(--primary) 55%, transparent);
+  --lb-blob-a: color-mix(in srgb, var(--accent-surface) 70%, transparent);
+  --lb-blob-b: color-mix(in srgb, var(--accent-surface) 45%, transparent);
 }
 
 .lb-blob {

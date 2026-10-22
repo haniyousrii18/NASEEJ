@@ -8,12 +8,14 @@ const labels = {
     switchTo: 'التبديل إلى',
     light: 'الوضع النهاري',
     dark: 'الوضع الليلي',
+    system: 'حسب النظام',
   },
   en: {
     group: 'Theme',
     switchTo: 'Switch to',
     light: 'Day mode',
     dark: 'Night mode',
+    system: 'Match system',
   },
 } as const;
 
@@ -42,17 +44,23 @@ const icons: Record<ThemePreference, React.ReactNode> = {
       <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
     </svg>
   ),
+  system: (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <path d="M8 20h8M12 16v4" />
+    </svg>
+  ),
 };
 
-// Direct 2-way toggle between light (day) and dark (night)
-const next: Record<ThemePreference, ThemePreference> = { light: 'dark', dark: 'light' };
+// One button cycles day, night, then follow the system.
+const next: Record<ThemePreference, ThemePreference> = { light: 'dark', dark: 'system', system: 'light' };
 
 interface ThemeToggleProps {
   compact?: boolean;
 }
 
 /**
- * One compact button that toggles between day and night mode.
+ * One compact button that cycles day mode, night mode and the system setting.
  * When compact=true, only the icon is rendered, omitting the text label.
  */
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact }) => {

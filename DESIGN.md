@@ -1,5 +1,5 @@
 # Naseej | نَسيج — Design System
-> Calm clinical warmth: warm ivory by day, warm onyx by night, one orange action color. Public site and signed-in workspaces share one identity and differ only in density.
+> Calm clinical teal: a pale mist canvas by day, deep slate by night, one teal brand and action color. Public site and signed-in workspaces share one identity and differ only in density.
 
 This file describes what the code **does today**. If code and this file disagree, the code in `frontend/src/styles/theme.css` is the source of truth; fix the file.
 
@@ -21,23 +21,27 @@ Shared by both: the color tokens below, Cairo (Arabic) and Inter (Latin) type, A
 
 ## 3. Color tokens (real values)
 
+`frontend/src/styles/theme.css` is the single source. Layer 1 holds semantic tokens once per theme; layer 2 keeps the older component names (`--color-bg-canvas`, `--color-ink`, `--color-accent`, `--color-status-*`) as aliases, so components carry no colour literals. Add a colour there, in both themes.
+
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `--color-bg-canvas` | `#faf7f4` warm ivory | `#1a1411` warm onyx | page |
-| `--color-bg-elevated` / `--color-cloud-card` | `#ffffff` | `#241c18` | cards, sidebar |
-| `--color-bg-subtle` | `#f3eee9` | `#1d1612` | quiet fields, tinted bands |
-| `--color-cloud-card-hover` | `#f1ebe6` | `#2e2420` | hover |
-| `--color-ink` / `--color-text-primary` | `#1f1a17` | `#f3ebe3` | text |
-| `--color-body-gray` / secondary | `#5e5650` | `#cdbfb4` | secondary text |
-| `--color-text-muted` | `#6e655e` | `#b3a498` | helper text |
-| `--color-border-subtle` | ink at 10% | ivory at 10% | hairlines |
-| `--color-border-strong` | ink at 30% | ivory at 34% | controls |
-| `--color-accent` | `#c2410c` orange | `#c2410c` | primary action, selected state |
-| `--color-accent-hover` | `#9a3412` | `#d9480f` | |
-| `--color-accent-text` | `#b4380a` | `#fdba74` | orange used as text |
-| `--color-focus-ring` | `#b4380a` | (accent tint) | focus |
+| `--background` | `#f7f9f8` | `#101b22` | page |
+| `--surface` | `#ffffff` | `#182830` | cards, sidebar |
+| `--surface-muted` | `#eff4f2` | `#131f26` | quiet fields, tinted bands |
+| `--surface-raised` | `#ffffff` | `#1f3540` | menus, dialogs, popovers |
+| `--primary` / `--primary-hover` | `#137c72` / `#0f665e` | `#59c3b2` / `#79d4c5` | brand, primary action, selected state |
+| `--on-primary` | `#ffffff` | `#0a1a1e` | label on a primary fill |
+| `--text-primary` | `#182b36` | `#f0f5f3` | text |
+| `--text-secondary` / `--text-muted` | `#61717a` / `#5b6b74` | `#a8b7b8` / `#9bacad` | secondary and helper text |
+| `--border` / `--border-strong` | `#e1e8e6` / `#728585` | `#2b3d43` / `#6c8486` | hairlines / control edges (3:1) |
+| `--accent-surface` | `#bfe9df` | `#203f3a` | tinted selection, hero wash |
+| `--focus-ring` | `#137c72` | `#79d4c5` | focus |
+| `--surface-inverse` / `--text-inverse` | `#182b36` / `#f0f5f3` | `#1f3540` / `#f0f5f3` | always-dark prompts and callouts |
+| `--paper` / `--paper-ink` | `#ffffff` / `#182b36` | same | printed sheet and QR, never themed |
 
-Status tokens (`--color-status-{draft,approved,info,danger,lilac}-{bg,text,border}`) are muted and **always paired with a word or glyph**; state is never carried by color alone. Orange is the only chromatic brand color. Green, amber-red and lilac exist only as status tints.
+Status tokens (`--warning-*`, `--success-*`, `--danger-*`, `--info-*`, `--neutral-*`, each with `-bg`, `-text`, `-border`; the older `--color-status-{draft,approved,info,danger,lilac}-*` alias them: draft is amber, approved green, info teal, danger red, lilac neutral) are **always paired with a word or glyph**; state is never carried by color alone. Red, amber and green exist only as status tints. `--chart-1..4`, `--chart-grid` and `--chart-axis` are for data marks.
+
+**Theme choice.** Light, dark or system, stored as `naseej_theme` (public site) and `naseej_ws_theme` (workspace), applied before first paint by the inline script in `index.html` and kept by `ThemeContext`. System follows the OS live. The site-bar button cycles light, dark, system; Settings has all three.
 
 ## 4. Type
 - Arabic `Cairo`, Latin `Inter` (loaded in `index.html`), with system fallbacks. No other families.
@@ -51,7 +55,7 @@ Adapted from the reference in `docs/archive/accounts-design.reference.md`: large
 |---|---|
 | Card | radius 24px, 1px hairline plus a faint 1px ring and 1px shadow (`--na-card-shadow`), padding `clamp(16px, 2vw, 24px)` |
 | Inputs, selects, textareas | radius 18px, filled with `--color-bg-subtle`, no border at rest, border + elevated fill on focus, min height 44px |
-| Buttons | capsule (radius 999px), min height 44px (36px small), primary = orange fill with white text, quiet = transparent, danger = status-danger tint |
+| Buttons | capsule (radius 999px), min height 44px (36px small), primary = brand fill with `--on-primary` text, quiet = transparent, danger = status-danger tint |
 | Pills / badges | capsule, 12.5px / 560, tinted background + border + text from the status tokens |
 | Notices | radius 18px, tinted status background |
 | Modals, dialogs | rise in at the centre of the window, focus trapped, Escape closes, focus returns to the opener |

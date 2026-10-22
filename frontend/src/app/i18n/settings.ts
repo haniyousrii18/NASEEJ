@@ -50,6 +50,7 @@ const ar = {
     en: 'English',
     light: 'نهاري',
     dark: 'ليلي',
+    system: 'حسب النظام',
   },
   security: {
     title: 'الأمان',
@@ -182,6 +183,7 @@ const en: typeof ar = {
     en: 'English',
     light: 'Light',
     dark: 'Dark',
+    system: 'System',
   },
   security: {
     title: 'Security',
