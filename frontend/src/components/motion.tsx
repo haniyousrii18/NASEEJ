@@ -95,6 +95,34 @@ export const Reveal: React.FC<BoxProps & { i?: number; y?: number }> = ({ as = '
   );
 };
 
+/** A thread that draws itself along its axis when it scrolls into view (the line that joins a sequence). Decorative. */
+export const DrawLine: React.FC<{ axis: 'x' | 'y'; className?: string; delay?: number }> = ({ axis, className, delay = 0.15 }) => (
+  <m.span
+    aria-hidden="true"
+    className={`l-draw l-draw--${axis}${className ? ` ${className}` : ''}`}
+    initial={axis === 'x' ? { scaleX: 0 } : { scaleY: 0 }}
+    whileInView={axis === 'x' ? { scaleX: 1 } : { scaleY: 1 }}
+    viewport={{ once: true, margin: '0px 0px -80px 0px' }}
+    transition={{ delay, duration: 1.4, ease: EASE }}
+  />
+);
+
+/** A marker that pops in when it scrolls into view, one after another with `i`. */
+export const Pop: React.FC<BoxProps & { i?: number }> = ({ as = 'span', i = 0, children, ...rest }) => {
+  const Tag = tagOf(as);
+  return (
+    <Tag
+      {...rest}
+      initial={{ opacity: 0, scale: 0.5 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, margin: '0px 0px -60px 0px' }}
+      transition={{ delay: 0.15 + Math.min(i, 6) * 0.18, type: 'spring', stiffness: 380, damping: 20 }}
+    >
+      {children}
+    </Tag>
+  );
+};
+
 /** Interactive surface feedback: presses on tap. Surfaces stay flat, so there is no hover lift. */
 export const Pressable: React.FC<BoxProps> = ({ as = 'div', children, ...rest }) => {
   const Tag = tagOf(as);
