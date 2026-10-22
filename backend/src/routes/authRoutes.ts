@@ -9,7 +9,7 @@ export const authRouter = Router();
 
 // POST /api/auth/login
 authRouter.post('/login', async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
+  const { email, password, remember } = req.body;
   if (!email || !password) {
     res.status(400).json({
       success: false,
@@ -93,11 +93,14 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const token = authProvider.generateToken({
-      userId: user.id,
-      email: user.email,
-      systemRole: user.system_role,
-    });
+    const token = authProvider.generateToken(
+      {
+        userId: user.id,
+        email: user.email,
+        systemRole: user.system_role,
+      },
+      { remember: remember === true },
+    );
 
     logAuditEvent({
       actorId: user.id,

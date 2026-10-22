@@ -32,6 +32,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
   const [flash, setFlash] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [unverified, setUnverified] = useState(false);
@@ -60,7 +61,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
     setLoading(true);
     setErrorMsg('');
     setUnverified(false);
-    const r = await authPost('/login', { email: (creds?.email ?? email).trim(), password: creds?.password ?? password });
+    const r = await authPost('/login', { email: (creds?.email ?? email).trim(), password: creds?.password ?? password, remember });
     setLoading(false);
     if (!r.ok) {
       setUnverified(r.code === 'EMAIL_NOT_VERIFIED');
@@ -73,7 +74,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
       setErrorMsg(A.errors.patientsOnly);
       return;
     }
-    login(r.data.token, r.data.user);
+    login(r.data.token, r.data.user, remember);
     setCurrentView('portal');
   };
 
@@ -106,15 +107,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
   const head = mode === 'verify' ? { title: A.cardTitle, sub: '' } : heading[mode];
 
   return (
-    <div className="auth">
-      <AuthArt />
+    <div className="auth" data-busy={loading || undefined}>
+      <AuthArt title={A.heroTitle} sub={A.heroSub} points={[A.heroPoint1, A.heroPoint2, A.heroPoint3]} dir={isRtl ? 'rtl' : 'ltr'} />
       <div className="auth-stage">
-        <div className="auth-brand" dir={isRtl ? 'rtl' : 'ltr'}>
-          <img className="auth-logo" src="/logo-mark.svg" alt={t.brand.name} width={120} height={120} />
-          <span className="auth-brand-name">{t.brand.name}</span>
-          <span className="auth-brand-sub">{t.brand.tagline}</span>
-        </div>
-
         <div className="auth-card motion-stagger" dir={isRtl ? 'rtl' : 'ltr'}>
           <div className="auth-head">
             <div className="auth-title-row">
@@ -160,6 +155,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
               <form className="auth-form" onSubmit={handleLoginSubmit}>
                 <AuthField id="login-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="username" placeholder="name@example.com" />
                 <AuthField id="login-password" label={A.password} icon="lock" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
+                <label className="auth-check">
+                  <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                  <span className="auth-check-box" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" fill="none">
+                      <path d="M3.5 8.5l3 3 6-7" />
+                    </svg>
+                  </span>
+                  {A.rememberMe}
+                </label>
                 <button type="submit" disabled={loading} className="auth-submit">
                   {loading ? t.common.loading : A.loginBtn}
                 </button>

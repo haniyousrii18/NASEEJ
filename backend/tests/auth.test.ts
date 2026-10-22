@@ -25,6 +25,20 @@ describe('Authentication & Identity Mapping', () => {
     expect(res.body.data.user.memberships[0].role).toBe('doctor');
   });
 
+  it('keeps the sign-in longer only when the person asked to be remembered', async () => {
+    const life = async (remember?: boolean) => {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'admin@naseej.health', password: 'Password123!', ...(remember === undefined ? {} : { remember }) });
+      expect(res.status).toBe(200);
+      const { exp, iat } = JSON.parse(Buffer.from(res.body.data.token.split('.')[1], 'base64url').toString());
+      return (exp - iat) / 3600;
+    };
+    expect(await life()).toBe(24);
+    expect(await life(false)).toBe(24);
+    expect(await life(true)).toBe(24 * 30);
+  });
+
   it('should reject invalid password with 401', async () => {
     const res = await request(app)
       .post('/api/auth/login')
