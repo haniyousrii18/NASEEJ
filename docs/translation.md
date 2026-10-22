@@ -31,6 +31,9 @@ It uses no AI assistant, no LLM, no API key, and no network at run time. For eac
    original's content words). Anything that fails is "no reliable translation" and the original is shown.
 3. Otherwise: unavailable. Set `TRANSLATION_MT=off` to use only the glossary.
 
+On Linux, `npm ci` would try to download optional GPU binaries for onnxruntime-node. Naseej runs on the CPU, so set
+`ONNXRUNTIME_NODE_INSTALL=skip` for installs (CI does) to avoid needing access to the NuGet feed.
+
 Machine translation of medical text can still be wrong. Treat the original as the record; the "Show original" toggle is always there.
 
 To add another provider, implement `TranslationProvider` (`provider.ts`, `ai: false`) and register it in `providers.ts`.
