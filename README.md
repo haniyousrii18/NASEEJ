@@ -100,7 +100,7 @@ AI_CHAT_TIMEOUT_MS=25000
 ASSISTANT_MAX_PER_HOUR=40
 ```
 
-Before enabling: record text and files go to the provider's API, so use **synthetic data only** unless your data-protection policy allows an external processor (Google's free tier may use content to improve its products). The patient must also switch the assistant on in Settings, and confirm each file before it is read. Document readings stay unconfirmed suggestions until the patient confirms them. The emergency and refusal wording in `backend/src/services/health/safety.ts` is **not clinically reviewed**. Other settings: `SHARE_MAX_HOURS`, `TRUST_PROXY`, `AI_TIMEOUT_MS` (document reading), `DB_SSL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `STORAGE_DIR` (see `.env.example`; set a long random `JWT_SECRET` outside local use).
+Before enabling: record text and files go to the provider's API, so use **synthetic data only** unless your data-protection policy allows an external processor (Google's free tier may use content to improve its products). The patient must also switch the assistant on in Settings, and confirm each file before it is read. Document readings stay unconfirmed suggestions until the patient confirms them. The emergency and refusal wording in `backend/src/services/health/safety.ts` is **not clinically reviewed**. Other settings: `SHARE_MAX_HOURS`, `TRUST_PROXY`, `AI_TIMEOUT_MS` (document reading), `DB_SSL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `JWT_REMEMBER_EXPIRES_IN`, `STORAGE_DIR` (see `.env.example`; set a long random `JWT_SECRET` outside local use).
 
 ---
 

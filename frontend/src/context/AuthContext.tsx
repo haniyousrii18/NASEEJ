@@ -27,7 +27,8 @@ interface AuthContextType {
   currentOrgId: string | null;
   currentRole: string | null;
   setCurrentOrgId: (orgId: string) => void;
-  login: (token: string, user: UserProfile) => void;
+  /** `remember` keeps the session after the browser is closed; without it the session ends with the tab. */
+  login: (token: string, user: UserProfile, remember?: boolean) => void;
   logout: () => void;
   /** Updates the signed-in profile held in memory after the server confirmed a change (for example a new display name). */
   updateUser: (patch: Partial<UserProfile>) => void;
@@ -41,26 +42,37 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * "Keep me signed in on this device" decides where the session lives: localStorage survives closing the browser,
+ * sessionStorage ends with the tab. The session is read from whichever holds it.
+ */
+const readSaved = (key: string) => localStorage.getItem(key) ?? sessionStorage.getItem(key);
+const savedStore = (): Storage => (localStorage.getItem('naseej_token') ? localStorage : sessionStorage);
+const SESSION_KEYS = ['naseej_token', 'naseej_user', 'naseej_org_id'];
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('naseej_token'));
+  const [token, setToken] = useState<string | null>(() => readSaved('naseej_token'));
   const [user, setUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('naseej_user');
+    const saved = readSaved('naseej_user');
     return saved ? JSON.parse(saved) : null;
   });
   const [currentOrgId, setCurrentOrgIdState] = useState<string | null>(() => {
-    return localStorage.getItem('naseej_org_id');
+    return readSaved('naseej_org_id');
   });
 
   const setCurrentOrgId = (orgId: string) => {
     setCurrentOrgIdState(orgId);
-    localStorage.setItem('naseej_org_id', orgId);
+    savedStore().setItem('naseej_org_id', orgId);
   };
 
-  const login = (newToken: string, newUser: UserProfile) => {
+  const login = (newToken: string, newUser: UserProfile, remember = false) => {
     setToken(newToken);
     setUser(newUser);
-    localStorage.setItem('naseej_token', newToken);
-    localStorage.setItem('naseej_user', JSON.stringify(newUser));
+    // one place at a time: clear the other store so an old session cannot outlive this choice
+    const keep = remember ? localStorage : sessionStorage;
+    SESSION_KEYS.forEach((k) => (remember ? sessionStorage : localStorage).removeItem(k));
+    keep.setItem('naseej_token', newToken);
+    keep.setItem('naseej_user', JSON.stringify(newUser));
 
     // Default active center if user has memberships
     if (newUser.memberships && newUser.memberships.length > 0) {
@@ -75,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser((prev) => {
       if (!prev) return prev;
       const next = { ...prev, ...patch };
-      localStorage.setItem('naseej_user', JSON.stringify(next));
+      savedStore().setItem('naseej_user', JSON.stringify(next));
       return next;
     });
   };
@@ -84,9 +96,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     setCurrentOrgIdState(null);
-    localStorage.removeItem('naseej_token');
-    localStorage.removeItem('naseej_user');
-    localStorage.removeItem('naseej_org_id');
+    SESSION_KEYS.forEach((k) => {
+      localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
+    });
   };
 
   // Find active role in current organization
