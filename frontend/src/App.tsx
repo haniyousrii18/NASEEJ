@@ -7,7 +7,7 @@ import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
 import { PublicHome } from './pages/PublicHome.js';
 import { WorkflowPage } from './pages/WorkflowPage.js';
-import { LoginPage } from './pages/LoginPage.js';
+import { LoginPage, type AccessMode } from './pages/LoginPage.js';
 import { ShareView, isShareRoute } from './pages/ShareView.js';
 import { PwaPrompts, PWA_RESTORE_KEY } from './pwa/PwaPrompts.js';
 import { InstallProvider } from './pwa/InstallContext.js';
@@ -21,8 +21,23 @@ import './styles/health.css';
 import { AppShell } from './app/AppShell.js';
 import { AUTHENTICATED_VIEWS } from './app/nav.js';
 
+/**
+ * The links in account emails: #/verify-email/<token>, #/reset-password/<token> and #/forgot-password. The token sits in the
+ * fragment, so it never reaches a server log or a Referer header.
+ */
+function parseAccessRoute(): { mode: AccessMode; token: string } | null {
+  const m = /^#\/(verify-email|reset-password)\/([A-Za-z0-9_-]{43})$/.exec(window.location.hash);
+  if (m) return { mode: m[1] === 'verify-email' ? 'verify' : 'reset', token: m[2] };
+  if (window.location.hash === '#/forgot-password') return { mode: 'forgot', token: '' };
+  return null;
+}
+
 const MainContent: React.FC = () => {
+  const [access, setAccess] = useState(parseAccessRoute);
+  // Bumped only when a NEW emailed link is opened, so the sign-in page restarts for it but not when the person leaves it.
+  const [linkSeq, setLinkSeq] = useState(0);
   const [currentView, setCurrentView] = useState(() => {
+    if (parseAccessRoute()) return 'login';
     // After a PWA update reload, reopen the view the user was on (view name only; auth is unchanged).
     try {
       const saved = sessionStorage.getItem(PWA_RESTORE_KEY);
@@ -44,7 +59,15 @@ const MainContent: React.FC = () => {
   // A clinician opening a patient's QR link: a standalone, read-only page that needs no account.
   const [sharing, setSharing] = useState(isShareRoute);
   useEffect(() => {
-    const onHash = () => setSharing(isShareRoute());
+    const onHash = () => {
+      setSharing(isShareRoute());
+      const next = parseAccessRoute();
+      if (next) {
+        setAccess(next);
+        setLinkSeq((n) => n + 1);
+        setCurrentView('login');
+      }
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -66,7 +89,18 @@ const MainContent: React.FC = () => {
         <PageTransition key={currentView} style={{ minHeight: '100%' }}>
           {currentView === 'home' && <PublicHome setCurrentView={setCurrentView} />}
           {currentView === 'workflow' && <WorkflowPage />}
-          {currentView === 'login' && <LoginPage setCurrentView={setCurrentView} />}
+          {currentView === 'login' && (
+            <LoginPage
+              key={linkSeq}
+              setCurrentView={setCurrentView}
+              initialMode={access?.mode}
+              token={access?.token}
+              onLeaveLink={() => {
+                setAccess(null);
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+              }}
+            />
+          )}
 
           {(currentView === 'portal' || currentView === 'workspace') && <LoginPage setCurrentView={setCurrentView} />}
         </PageTransition>

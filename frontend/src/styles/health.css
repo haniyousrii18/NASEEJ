@@ -437,36 +437,73 @@
 /* ------------------------------------------------------------------ undo toast */
 .hp-toast {
   position: fixed;
-  inset-inline: 16px;
+  /* bottom corner at the end of the line: bottom-right in English, bottom-left in Arabic */
   inset-block-end: max(16px, env(safe-area-inset-bottom));
+  inset-inline-end: 16px;
   z-index: 300;
   display: flex;
   align-items: center;
-  gap: 12px;
-  max-inline-size: 460px;
-  margin-inline: auto;
-  padding: 12px 16px;
-  border-radius: 18px;
-  background: var(--color-ink);
-  color: var(--color-bg-canvas);
-  box-shadow: 0 8px 28px rgba(26, 18, 12, 0.28);
-  font-size: 14px;
+  gap: 4px;
+  inline-size: max-content;
+  max-inline-size: min(320px, calc(100vw - 32px));
+  padding: 4px 6px 4px 14px;
+  border-radius: 12px;
+  /* day: beige with orange text */
+  background: var(--color-bg-subtle);
+  color: var(--color-accent-text);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: 0 6px 20px rgba(26, 18, 12, 0.18);
+  font-size: 13px;
+  font-weight: 560;
+  line-height: 1.4;
+  animation: hp-toast-in 0.18s ease-out;
+}
+
+/* night: brown with white text */
+:root[data-theme='dark'] .hp-toast {
+  background: var(--color-bg-surface);
+  color: #ffffff;
+  border-color: var(--color-border-strong);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes hp-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-toast {
+    animation: none;
+  }
 }
 
 .hp-toast[data-tone='danger'] {
   background: var(--color-status-danger-text);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+:root[data-theme='dark'] .hp-toast[data-tone='danger'] {
+  background: var(--color-status-danger-text);
+  color: #ffffff;
 }
 
 .hp-toast > span {
   flex: 1;
+  padding-block: 4px;
+  padding-inline-end: 6px;
 }
 
 .hp-toast-btn,
 .hp-toast-x {
-  min-block-size: 40px;
-  min-inline-size: 40px;
+  min-block-size: 34px;
+  min-inline-size: 34px;
+  padding-inline: 6px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 9px;
   background: transparent;
   color: inherit;
   font-weight: 640;
@@ -476,7 +513,7 @@
 
 .hp-toast-x {
   text-decoration: none;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 /* ------------------------------------------------------------------ visit summary editor */

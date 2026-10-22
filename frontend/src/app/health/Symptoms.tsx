@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useApiData, useMutation } from '../api.js';
 import { Timeline, type TimelineItem } from '../record/Timeline.js';
 import { Button, Drawer, Loading, PageHead } from '../ui.js';
@@ -14,7 +14,7 @@ const hashParam = (name: string) => {
 type Editing = { kind: 'symptom'; id?: string } | { kind: 'entry'; item: TimelineItem } | null;
 
 /** Loads one symptom with its linked documents, then shows the form. */
-const SymptomEditor: React.FC<{ id?: string; onDone: () => void; onSaved: () => void }> = ({ id, onDone, onSaved }) => {
+const SymptomEditor: React.FC<{ id?: string; onDone: () => void; onSaved: (saved?: { id: string }) => void }> = ({ id, onDone, onSaved }) => {
   const list = useApiData<SymptomValue[]>(id ? '/api/record/symptoms?limit=200' : null);
   if (id && list.state.status !== 'ready') return <Loading />;
   const initial = id && list.state.status === 'ready' ? list.state.data.find((s) => s.id === id) : undefined;
@@ -27,6 +27,9 @@ export const PatientSymptoms: React.FC = () => {
   const [editing, setEditing] = useState<Editing>(() => (hashParam('new') ? { kind: 'symptom' } : null));
   const [version, setVersion] = useState(0);
   const [asking, setAsking] = useState<TimelineItem | null>(null);
+  /** The record just saved: the list loads until it is on screen, scrolls to it and highlights it. */
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const focusDone = useCallback(() => setFocusId(null), []);
   const { run } = useMutation();
   const { toast, show, hide } = useToast();
 
@@ -86,16 +89,17 @@ export const PatientSymptoms: React.FC = () => {
           </Button>
         }
       />
-      <Timeline endpoint="/api/portal/timeline" audience="patient" renderActions={actions} reloadKey={version} />
+      <Timeline endpoint="/api/portal/timeline" audience="patient" renderActions={actions} reloadKey={version} focusId={focusId} onFocusDone={focusDone} />
 
       {editing?.kind === 'symptom' && (
         <Drawer title={editing.id ? S.editTitle : S.newTitle} onClose={() => setEditing(null)}>
           <SymptomEditor
             id={editing.id}
             onDone={() => setEditing(null)}
-            onSaved={() => {
+            onSaved={(saved) => {
               setEditing(null);
               changed();
+              if (saved?.id) setFocusId(`symptom_report:${saved.id}`);
               show({ text: S.saved });
             }}
           />
@@ -107,9 +111,10 @@ export const PatientSymptoms: React.FC = () => {
             kind={editing.item.data.kind as EntryKind}
             initial={entryInitial(editing.item)}
             onCancel={() => setEditing(null)}
-            onSaved={() => {
+            onSaved={(saved) => {
               setEditing(null);
               changed();
+              if (saved?.id) setFocusId(`patient_entry:${saved.id}`);
               show({ text: A.health.common.saved });
             }}
           />

@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { authRouter } from './routes/authRoutes.js';
+import { accessRouter } from './routes/accessRoutes.js';
 import { portalRouter } from './routes/portalRoutes.js';
 import { documentRouter } from './routes/documentRoutes.js';
 import { documentReviewRouter } from './routes/documentReviewRoutes.js';
@@ -36,6 +37,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // Mount Routes
 app.use('/api/auth', authRouter);
+app.use('/api/auth', accessRouter);
 app.use('/api/account', accountRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/portal', portalRouter);

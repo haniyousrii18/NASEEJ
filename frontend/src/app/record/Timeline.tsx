@@ -47,13 +47,16 @@ interface Props {
   renderActions?: (item: TimelineItem) => React.ReactNode;
   /** Changing this value reloads the list. */
   reloadKey?: number;
+  /** A record to bring into view (e.g. one just saved): pages are loaded until it is found, then it is scrolled to and highlighted. */
+  focusId?: string | null;
+  onFocusDone?: () => void;
 }
 
 /**
  * The chronological record. Filters by type, center and date; pages with a cursor; every entry shows where it
  * came from (center, author, provenance, review state) and links to its source. It never summarizes or interprets.
  */
-export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize = 20, canDownload = true, renderActions, reloadKey = 0 }) => {
+export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize = 20, canDownload = true, renderActions, reloadKey = 0, focusId = null, onFocusDone }) => {
   const A = useA();
   const T = A.record.timeline;
   const request = useRequest();
@@ -71,6 +74,8 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [notice, setNotice] = useState('');
+  const [fresh, setFresh] = useState<string | null>(null);
+  const focusPages = useRef(0);
   const seq = useRef(0);
   const centers = useRef(new Map<string, { id: string; name_ar: string; name_en: string }>());
 
@@ -109,6 +114,33 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
   useEffect(() => {
     void load();
   }, [load, reloadKey]);
+
+  // Bring a just-saved record into view. The list is ordered by when each thing happened, not when it was saved, so a record
+  // that started days ago can sit on a later page: keep loading pages (bounded) until it is there, then scroll and highlight it.
+  useEffect(() => {
+    if (!focusId || status !== 'ready') return;
+    if (items.some((i) => i.id === focusId)) {
+      focusPages.current = 0;
+      setFresh(focusId);
+      requestAnimationFrame(() => {
+        const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        document.querySelector(`[data-item-id="${CSS.escape(focusId)}"]`)?.scrollIntoView({ block: 'center', behavior: calm ? 'auto' : 'smooth' });
+      });
+      onFocusDone?.();
+    } else if (next && focusPages.current < 30) {
+      focusPages.current += 1;
+      void load(next);
+    } else {
+      focusPages.current = 0;
+      onFocusDone?.();
+    }
+  }, [focusId, status, items, next, load, onFocusDone]);
+
+  useEffect(() => {
+    if (!fresh) return;
+    const t = setTimeout(() => setFresh(null), 4000);
+    return () => clearTimeout(t);
+  }, [fresh]);
 
   const toggleType = (t: string) => setSelected((s) => (s.includes(t) ? s.filter((x) => x !== t) : [...s, t]));
   const toggleOpen = (id: string) =>
@@ -194,7 +226,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
           </p>
           <ol className="na-timeline">
             {items.map((item) => (
-              <li key={item.id} className="na-tl-item" data-external={item.isExternal}>
+              <li key={item.id} className="na-tl-item" data-external={item.isExternal} data-item-id={item.id} data-fresh={fresh === item.id || undefined}>
                 <span className="na-tl-dot" aria-hidden="true">
                   <AppIcon name={ICON[item.type]} />
                 </span>
@@ -204,7 +236,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                     <time className="na-tl-date" dateTime={item.occurredAt}>
                       {item.type === 'appointment'
                         ? `${formatDate(A.lang, String(item.data.date))} ${item.data.startTime}`
-                        : formatDate(A.lang, item.occurredAt, item.type === 'visit' || item.type === 'symptom_report')}
+                        : formatDate(A.lang, item.occurredAt, item.type === 'visit' || (item.type === 'symptom_report' && !/T00:00:00(\.000)?Z$/.test(item.occurredAt)))}
                     </time>
                   </div>
                   <div className="na-tl-meta hp-meta">

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { isStrongPassword } from '../services/passwordPolicy.js';
 import { query } from '../config/db.js';
 import { authProvider } from '../auth/authProvider.js';
 import { authenticate } from '../middleware/auth.js';
@@ -19,7 +20,6 @@ accountRouter.use(authenticate);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9][0-9\s-]{5,18}[0-9]$/;
-const BCRYPT_MAX_BYTES = 72;
 
 const roleOf = (req: Request): string => (req.user!.system_role === 'platform_admin' ? 'platform_admin' : req.user!.patientProfileId ? 'patient' : req.user!.memberships[0]?.role ?? 'user');
 
@@ -210,7 +210,7 @@ accountRouter.post('/password', async (req: Request, res: Response): Promise<voi
     res.status(400).json(apiError('VALIDATION_ERROR', 'Enter your current password and a new one.'));
     return;
   }
-  if (newPassword.length < 8 || Buffer.byteLength(newPassword, 'utf8') > BCRYPT_MAX_BYTES || !/[A-Za-z؀-ۿ]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+  if (!isStrongPassword(newPassword)) {
     res.status(400).json(apiError('WEAK_PASSWORD', 'Use at least 8 characters, including a letter and a number.', { field: 'newPassword' }));
     return;
   }

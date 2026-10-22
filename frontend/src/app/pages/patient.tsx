@@ -7,7 +7,7 @@ import { useA } from '../useA.js';
 /** The clinician-approved part of the patient's file, from /api/portal/summary (scoped to the signed-in patient). */
 
 export interface PortalSummary {
-  profile: { full_name_ar: string; full_name_en: string; date_of_birth: string; blood_type: string | null };
+  profile: { full_name_ar: string; full_name_en: string; date_of_birth: string | null; blood_type: string | null };
   allergies: Array<{ id: string; allergen_ar: string; allergen_en: string; reaction_ar: string | null; reaction_en: string | null; severity: string }>;
   affiliatedCenters: Array<{ id: string; name_ar: string; name_en: string; mrn: string; first_visit_date: string | null }>;
   visits: Array<any>;
@@ -36,7 +36,7 @@ export const SummaryView: React.FC<{ s: PortalSummary }> = ({ s }) => {
       <Card title={S.profile}>
         <dl className="na-dl">
           <dt>{S.dob}</dt>
-          <dd>{formatDate(A.lang, s.profile.date_of_birth)}</dd>
+          <dd>{s.profile.date_of_birth ? formatDate(A.lang, s.profile.date_of_birth) : A.common.states.notRecorded}</dd>
           <dt>{S.blood}</dt>
           <dd className="na-ltr">{s.profile.blood_type || A.common.states.notRecorded}</dd>
         </dl>
