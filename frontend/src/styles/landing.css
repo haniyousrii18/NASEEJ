@@ -72,23 +72,21 @@
 }
 
 /* ------------------------------------------------------------------ hero (full width) */
-/* Light: warm peach with a faint grid and an orange disc. Dark: espresso with copper light. */
+/* Warm ivory in light, warm onyx in dark, with one soft orange light behind the illustration. Semantic tokens only. */
 .hero {
   --hero-bg:
-    radial-gradient(70% 90% at 76% 40%, rgba(255, 255, 255, 0.55) 0%, transparent 65%),
-    linear-gradient(120deg, #fde8d6 0%, #f9d4b2 52%, #f3c096 100%);
-  --hero-grid: rgba(194, 65, 12, 0.08);
-  --hero-ink: #2b170c;
-  --hero-soft: #58361f;
-  --hero-pill-bg: rgba(255, 255, 255, 0.7);
-  --hero-pill-line: rgba(160, 70, 20, 0.35);
-  --hero-ghost-line: rgba(43, 23, 12, 0.55);
-  --hero-ghost-hover: rgba(43, 23, 12, 0.08);
-  --hero-pt-bg: rgba(255, 255, 255, 0.72);
-  --hero-pt-line: rgba(160, 70, 20, 0.28);
-  --hero-pt-ink: #3b2314;
-  --hero-pt-icon: #15803d;
-
+    radial-gradient(60% 80% at 74% 42%, color-mix(in srgb, var(--color-accent) 11%, transparent) 0%, transparent 70%),
+    var(--gradient-hero-sky);
+  --hero-ink: var(--color-ink);
+  --hero-soft: var(--color-body-gray);
+  --hero-pill-bg: var(--color-bg-elevated);
+  --hero-pill-line: var(--color-border-strong);
+  --hero-ghost-line: var(--color-border-strong);
+  --hero-ghost-hover: var(--color-bg-subtle);
+  --hero-pt-bg: var(--color-bg-elevated);
+  --hero-pt-line: var(--color-border-subtle);
+  --hero-pt-ink: var(--color-text-primary);
+  --hero-pt-icon: var(--color-status-approved-text);
 
   position: relative;
   isolation: isolate;
@@ -99,43 +97,6 @@
   padding-top: var(--bar-h);
   background: var(--hero-bg);
   color: var(--hero-ink);
-}
-
-:root[data-theme='dark'] .hero {
-  --hero-bg:
-    radial-gradient(60% 80% at 74% 45%, rgba(150, 88, 40, 0.55) 0%, transparent 70%),
-    linear-gradient(135deg, #1a110b 0%, #2a1a10 60%, #3a2414 100%);
-  --hero-grid: rgba(253, 186, 116, 0.05);
-  --hero-ink: #f6e9dc;
-  --hero-soft: #dccab9;
-  --hero-pill-bg: rgba(26, 20, 17, 0.6);
-  --hero-pill-line: rgba(243, 235, 227, 0.26);
-  --hero-ghost-line: rgba(246, 233, 220, 0.6);
-  --hero-ghost-hover: rgba(246, 233, 220, 0.1);
-  --hero-pt-bg: rgba(26, 20, 17, 0.62);
-  --hero-pt-line: rgba(243, 235, 227, 0.2);
-  --hero-pt-ink: #f3ebe3;
-  --hero-pt-icon: #86d0a2;
-
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background-image:
-    linear-gradient(var(--hero-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--hero-grid) 1px, transparent 1px);
-  background-size: 44px 44px;
-  -webkit-mask-image: radial-gradient(70% 80% at 72% 40%, #000 0%, transparent 85%);
-  mask-image: radial-gradient(70% 80% at 72% 40%, #000 0%, transparent 85%);
-  pointer-events: none;
-}
-
-[dir='rtl'] .hero::before {
-  -webkit-mask-image: radial-gradient(70% 80% at 28% 40%, #000 0%, transparent 85%);
-  mask-image: radial-gradient(70% 80% at 28% 40%, #000 0%, transparent 85%);
 }
 
 .hero-visual {
@@ -642,104 +603,193 @@
   }
 }
 
-/* ------------------------------------------------------------------ grids and cards */
-.l-grid {
+/* ------------------------------------------------------------------ sections: sequences on one thread */
+/* The product is a weave: each sequence (values, steps) hangs on a single orange thread that draws itself as it scrolls in. */
+.l-split {
   display: grid;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 72px);
 }
 
-.l-grid--3 {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+@media (min-width: 960px) {
+  .l-split {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+  }
+
+  .l-head--sticky {
+    position: sticky;
+    top: calc(var(--bar-h) + 32px);
+    margin-bottom: 0;
+  }
 }
 
-.l-grid--roles {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+.l-node {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 620;
+  color: var(--color-accent-text);
+  background: var(--color-bg-elevated);
+  border: 1.5px solid var(--color-accent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-accent) 10%, transparent);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-.l-card {
-  padding: clamp(22px, 3vw, 32px);
+.l-thread-item:hover .l-node,
+.l-step:hover .l-node {
+  color: #fff;
+  background: var(--color-accent);
+}
+
+.l-draw {
+  position: absolute;
+  border-radius: 2px;
+  background: linear-gradient(var(--l-dir, 180deg), var(--color-accent), color-mix(in srgb, var(--color-accent) 18%, transparent));
+}
+
+.l-draw--y {
+  --l-dir: 180deg;
+  inset-block: 22px;
+  inset-inline-start: 21px;
+  width: 2px;
+  transform-origin: top center;
+}
+
+.l-draw--x {
+  --l-dir: 90deg;
+  top: 21px;
+  inset-inline: 22px;
+  height: 2px;
+  transform-origin: left center;
+}
+
+[dir='rtl'] .l-draw--x {
+  --l-dir: 270deg;
+  transform-origin: right center;
+}
+
+.l-thread,
+.l-steps {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: clamp(28px, 4vw, 44px);
 }
 
-.l-card-index {
-  font-size: 13px;
-  color: var(--color-brand-accent);
-  font-weight: 520;
+.l-thread-item,
+.l-step {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.l-thread-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 6px;
 }
 
 .l-card-title {
   margin: 0;
-  font-size: 1.125rem;
-  line-height: 1.35;
-  font-weight: 480;
+  font-size: clamp(1.15rem, 1.8vw, 1.4rem);
+  line-height: 1.3;
+  font-weight: 560;
   color: var(--color-ink);
 }
 
 .l-card-text {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.65;
+  max-width: 52ch;
+  font-size: 15.5px;
+  line-height: 1.7;
   color: var(--color-body-gray);
 }
 
-.l-role .l-card-title {
-  font-size: 1.05rem;
+/* five steps across: the thread runs horizontally through the nodes */
+.l-draw--x {
+  display: none;
 }
 
-/* ------------------------------------------------------------------ steps */
-.l-steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
-  gap: 16px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
+@media (min-width: 1100px) {
+  .l-steps {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 28px;
+  }
 
-.l-step {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 24px;
-  border-radius: 12px;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border-subtle);
-}
+  .l-step {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
 
-.l-step-badge {
-  display: inline-grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 14px;
-  font-weight: 520;
-  color: var(--color-ink);
-  background: var(--color-cloud-card-hover);
+  .l-steps .l-draw--x {
+    display: block;
+  }
+
+  .l-steps .l-draw--y {
+    display: none;
+  }
+
+  .l-card-title {
+    font-size: 1.1rem;
+  }
+
+  .l-step .l-card-text {
+    font-size: 14.5px;
+  }
 }
 
 /* ------------------------------------------------------------------ trust band */
 .l-trust {
+  --l-on-dark-accent: #fdba74;
+  position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: clamp(28px, 4vw, 48px);
-  padding: clamp(28px, 5vw, 56px);
-  border-radius: 24px;
+  gap: clamp(28px, 4vw, 56px);
+  padding: clamp(28px, 5vw, 64px);
+  border-radius: 28px;
   background: var(--color-surface-inverse);
   color: var(--color-text-inverse);
   border: 1px solid var(--color-border-subtle);
 }
 
+/* one slow dashed circle, the same circle of care as the hero */
+.l-trust::before {
+  content: '';
+  position: absolute;
+  inset-block-start: -32%;
+  inset-inline-end: -14%;
+  width: min(70%, 520px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--color-text-inverse) 20%, transparent);
+  animation: sceneSpin 90s linear infinite;
+  pointer-events: none;
+}
+
 @media (min-width: 900px) {
   .l-trust {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
     align-items: center;
   }
 }
 
 .l-trust-copy {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -752,9 +802,9 @@
 }
 
 .l-trust-list {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 14px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -763,47 +813,93 @@
 .l-trust-list li {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px 18px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--color-text-inverse) 16%, transparent);
-  font-size: 15px;
-  line-height: 1.5;
+  gap: 14px;
+  padding: 18px 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-text-inverse) 16%, transparent);
+  font-size: 15.5px;
+  line-height: 1.55;
 }
 
-.l-trust-list svg {
+.l-trust-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.l-check {
   flex: none;
-  margin-top: 3px;
-  color: var(--color-recovery-green);
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--l-on-dark-accent);
+  background: color-mix(in srgb, var(--color-accent) 26%, transparent);
+}
+
+.l-check svg {
+  width: 15px;
+  height: 15px;
 }
 
 /* ------------------------------------------------------------------ final call to action */
 .l-cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 28px;
-  padding: clamp(28px, 5vw, 48px);
-}
-
-.l-cta > div:first-child {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-width: min(100%, 320px);
-  flex: 1 1 360px;
+  align-items: center;
+  gap: 16px;
+  padding: clamp(44px, 8vw, 96px) clamp(20px, 5vw, 56px);
+  border-radius: 28px;
+  text-align: center;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.l-cta .l-h2,
+.l-cta .l-lead {
+  max-width: 30em;
+  text-wrap: balance;
+}
+
+.l-cta .hero-cta {
+  margin-top: 12px;
+}
+
+.l-cta::before,
+.l-cta::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  z-index: -1;
+  border-radius: 50%;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+[dir='rtl'] .l-cta::before,
+[dir='rtl'] .l-cta::after {
+  translate: 50% -50%;
+}
+
+.l-cta::before {
+  width: min(120%, 760px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 12%, transparent) 0%, transparent 62%);
+}
+
+.l-cta::after {
+  width: min(96%, 600px);
+  aspect-ratio: 1;
+  border: 1px dashed color-mix(in srgb, var(--color-accent) 34%, transparent);
+  animation: sceneSpin 80s linear infinite;
 }
 
 /* Arrows follow the reading direction. */
 [dir='rtl'] .flip-rtl {
   transform: scaleX(-1);
-}
-
-/* The decorative lifts from theme.css do not apply to static content cards. */
-.l-card:hover,
-.l-role:hover {
-  transform: none;
 }
 
 /* ------------------------------------------------------------------ landing backdrop (the weave) */
