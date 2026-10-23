@@ -64,13 +64,15 @@ const Section: React.FC<{
       <ul className="na-list">
         {section.items.map((it) => (
           <li key={it.id} className="na-list-item hp-item">
+            {/* An item taken from the record keeps the text it came with; the patient can remove it, not rewrite it. */}
             <textarea
-              className="na-textarea hp-item-text"
+              className={`na-textarea hp-item-text${it.source.ref ? ' hp-item-locked' : ''}`}
               dir="auto"
               rows={Math.min(5, Math.max(1, Math.ceil(it.text.length / 60)))}
-              aria-label={E.editItem}
+              aria-label={it.source.ref ? it.source.label : E.editItem}
               value={it.text}
               maxLength={600}
+              readOnly={!!it.source.ref}
               onChange={(e) => setItem(it.id, e.target.value)}
             />
             <div className="na-row na-row--between">

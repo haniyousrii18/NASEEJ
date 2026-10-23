@@ -98,6 +98,9 @@ One scale for the whole patient app; change a token, not a screen.
 - **Containers:** a card carries one task; a card inside a card is flattened; elevation is a hairline for cards and a soft lift for menus, dialogs and sheets. Side-sheet forms keep their actions in a sticky footer.
 - **Sidebar:** plain surface, 48px items, accent-tinted active item with a start marker, account group below a hairline; the role label is not repeated.
 
+## 7d. Timeline (health.css, `hp-tl-`)
+Read-only. A card on a thread (36px glyph dot, hairline card); origin is always a glyph plus a word (software reading, reported by you, recorded by a clinician, uploaded file) and a software reading is dashed. A flag (needs checking, conflicting readings, date not found) is a pill with a glyph and a word, plus a coloured inline-start edge. Source is one disclosure per card: document, page, quoted passage, confidence band, why it was surfaced, and links to a conflicting event. Clinical text is shown as written, never translated. The only action is "Prepare for a visit": checkboxes on cards, a sticky tray with the count, and a review drawer that creates a summary from the chosen events. Choosing never changes an event, and summary items taken from the record are read-only.
+
 ## 8. Clinical content rules (design-level)
 - Provenance (who or what the entry came from) and review state are visible on every record. "Not recorded" never reads as "absent".
 - AI-derived content is dashed-bordered, labelled "AI-generated", carries its source page and passage, and is never styled like confirmed data until the patient confirms it.

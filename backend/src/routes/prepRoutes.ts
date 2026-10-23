@@ -3,7 +3,7 @@ import { query } from '../config/db.js';
 import { authenticate } from '../middleware/auth.js';
 import { requirePatient } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
-import { buildDraft, parsePrepContent, verifyRefs } from '../services/health/prep.js';
+import { buildDraft, buildDraftFromRefs, parsePrepContent, verifyRefs } from '../services/health/prep.js';
 import { apiError, clampInt, isIsoDate, isUuid, serverError } from '../services/validation.js';
 import { apiLimiter } from '../services/apiLimit.js';
 
@@ -47,7 +47,13 @@ prepRouter.post('/', async (req: Request, res: Response): Promise<void> => {
   if (b.visit_date !== undefined && b.visit_date !== null && b.visit_date !== '' && !isIsoDate(b.visit_date)) return void res.status(400).json(apiError('VALIDATION_ERROR', 'visit_date must use the YYYY-MM-DD format.'));
   const reason = typeof b.reason === 'string' ? b.reason.trim().slice(0, 500) : '';
   try {
-    const content = await buildDraft(pid(req), lang, reason);
+    // `refs` are the timeline events the patient chose ("fact:<uuid>", "entry:<uuid>", ...). Without it, the default draft is built.
+    const REF = /^(entry|symptom|document|fact|visit|rx|lab|allergy|appt):[0-9a-f-]{36}$/i;
+    const refs: unknown = b.refs;
+    if (refs !== undefined && (!Array.isArray(refs) || refs.length > 60 || !refs.every((r) => typeof r === 'string' && REF.test(r)))) {
+      return void res.status(400).json(apiError('VALIDATION_ERROR', 'Choose up to 60 events from the timeline.'));
+    }
+    const content = Array.isArray(refs) && refs.length > 0 ? await buildDraftFromRefs(pid(req), lang, reason, refs as string[]) : await buildDraft(pid(req), lang, reason);
     const ins = await query(`INSERT INTO visit_preps (patient_id, visit_date, content) VALUES ($1, $2, $3) RETURNING ${COLS}`, [pid(req), b.visit_date || null, JSON.stringify(content)]);
     audit(req, 'PREP_CREATE', ins.rows[0].id);
     res.status(201).json({ success: true, data: out(ins.rows[0]) });
@@ -78,6 +84,19 @@ prepRouter.put('/:id', async (req: Request, res: Response): Promise<void> => {
   const parsed = parsePrepContent(b.content);
   if (!parsed.ok) return void res.status(400).json(apiError('VALIDATION_ERROR', parsed.message));
   try {
+    // An item that points at a record keeps the text it was made with: the patient may remove it from the summary, not rewrite it.
+    const stored = await query('SELECT content FROM visit_preps WHERE id = $1 AND patient_id = $2', [id, pid(req)]);
+    if (stored.rowCount === 0) return void res.status(404).json(apiError('PREP_NOT_FOUND', 'Visit summary not found.'));
+    const fixed = new Map<string, { text: string; date: string | null }>();
+    for (const sec of stored.rows[0].content?.sections ?? []) for (const it of sec.items ?? []) if (it?.source?.ref) fixed.set(it.id, { text: it.text, date: it.date ?? null });
+    for (const sec of parsed.value.sections) {
+      sec.items = sec.items.map((it) => {
+        const keep = fixed.get(it.id);
+        if (!keep || !it.source.ref) return it;
+        const { edited: _edited, ...rest } = it;
+        return { ...rest, text: keep.text, date: keep.date };
+      });
+    }
     if (!(await verifyRefs(pid(req), parsed.value))) return void res.status(400).json(apiError('INVALID_SOURCE', 'An item points to a record that is not yours.'));
     const upd = await query(
       `UPDATE visit_preps SET content = $3, visit_date = CASE WHEN $4::boolean THEN $5::date ELSE visit_date END,

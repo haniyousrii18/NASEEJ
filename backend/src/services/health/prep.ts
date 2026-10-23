@@ -12,7 +12,7 @@ import type { Lang } from './safety.js';
 export const SECTION_KEYS = ['symptoms', 'conditions', 'medications', 'allergies', 'procedures', 'measurements', 'documents', 'questions', 'notes'] as const;
 export type SectionKey = (typeof SECTION_KEYS)[number];
 
-export const SOURCE_KINDS = ['symptom', 'entry', 'document', 'visit', 'prescription', 'lab', 'allergy', 'patient'] as const;
+export const SOURCE_KINDS = ['symptom', 'entry', 'document', 'visit', 'prescription', 'lab', 'allergy', 'fact', 'patient'] as const;
 export type SourceKind = (typeof SOURCE_KINDS)[number];
 
 export interface PrepItem {
@@ -36,12 +36,12 @@ export interface PrepContent {
 
 const L = {
   ar: {
-    origin: { patient: 'أدخلتُه بنفسي', assistant: 'من محادثة المساعد وأكدتُه', document: 'من مستند وأكدتُه', clinician: 'سجّله طبيب', upload: 'رفعتُه بنفسي', ai_suggestion: 'قراءة آلية غير مؤكدة' },
+    origin: { patient: 'أدخلتُه بنفسي', assistant: 'من محادثة المساعد وأكدتُه', document: 'من مستند وأكدتُه', clinician: 'سجّله طبيب', upload: 'رفعتُه بنفسي', ai_suggestion: 'قراءة آلية من مستند، لم يراجعها طبيب' },
     sev: 'الشدة',
     from: 'منذ',
   },
   en: {
-    origin: { patient: 'Entered by me', assistant: 'From assistant chat, confirmed by me', document: 'From a document, confirmed by me', clinician: 'Recorded by a clinician', upload: 'Uploaded by me', ai_suggestion: 'Unconfirmed machine reading' },
+    origin: { patient: 'Entered by me', assistant: 'From assistant chat, confirmed by me', document: 'From a document, confirmed by me', clinician: 'Recorded by a clinician', upload: 'Uploaded by me', ai_suggestion: 'Read from a document by software, not checked by a clinician' },
     sev: 'Severity',
     from: 'since',
   },
@@ -49,7 +49,7 @@ const L = {
 
 const newId = () => globalThis.crypto.randomUUID();
 
-const KIND_BY_PREFIX: Record<string, SourceKind> = { symptom: 'symptom', entry: 'entry', document: 'document', visit: 'visit', rx: 'prescription', lab: 'lab', allergy: 'allergy' };
+const KIND_BY_PREFIX: Record<string, SourceKind> = { fact: 'fact', symptom: 'symptom', entry: 'entry', document: 'document', visit: 'visit', rx: 'prescription', lab: 'lab', allergy: 'allergy' };
 
 function toItem(i: RecordItem, lang: Lang, text?: string): PrepItem {
   const [prefix, id] = i.ref.split(':');
@@ -100,6 +100,51 @@ export async function buildDraft(patientId: string, lang: Lang, reason: string):
   };
 }
 
+/**
+ * A draft made of exactly the timeline events the patient chose, in date order. The events are copied by reference: the
+ * text comes from the record by code, and the choice changes only this draft, never the timeline. A reading that software
+ * took from a document keeps its "not checked by a clinician" label all the way to the clinician's page.
+ */
+export async function buildDraftFromRefs(patientId: string, lang: Lang, reason: string, refs: string[]): Promise<PrepContent> {
+  const wanted = new Set(refs);
+  const chosen = (await buildRecordItems(patientId, lang)).filter((i) => wanted.has(i.ref));
+  const factIds = chosen.filter((i) => i.ref.startsWith('fact:')).map((i) => i.ref.slice(5));
+  const factKinds = new Map<string, string>(
+    (await query(`SELECT id, kind FROM document_facts WHERE patient_id = $1 AND id = ANY($2::uuid[])`, [patientId, factIds])).rows.map((r) => [r.id as string, r.kind as string])
+  );
+  const sectionOf = (i: RecordItem): SectionKey => {
+    switch (i.type) {
+      case 'symptom': return 'symptoms';
+      case 'condition': return 'conditions';
+      case 'medication': case 'clinician_prescription': return 'medications';
+      case 'allergy': case 'clinician_allergy': return 'allergies';
+      case 'procedure': return 'procedures';
+      case 'measurement': case 'clinician_lab': return 'measurements';
+      case 'document': return 'documents';
+      case 'doc_fact': {
+        const k = factKinds.get(i.ref.slice(5));
+        return k === 'condition' ? 'conditions' : k === 'medication' ? 'medications' : k === 'allergy' ? 'allergies' : k === 'procedure' ? 'procedures' : k === 'lab_value' ? 'measurements' : 'notes';
+      }
+      default: return 'notes';
+    }
+  };
+  const bySection = new Map<SectionKey, PrepItem[]>();
+  for (const i of [...chosen].sort((a, b) => ((a.date ?? '') < (b.date ?? '') ? -1 : 1))) {
+    const key = sectionOf(i);
+    const text = `${[i.date, i.title].filter(Boolean).join(' — ')}${i.summary ? ` (${i.summary})` : ''}`;
+    bySection.set(key, [...(bySection.get(key) ?? []), toItem(i, lang, text)]);
+  }
+  return {
+    lang,
+    reason,
+    overview: '',
+    sections: SECTION_KEYS.map((key) => {
+      const items = bySection.get(key) ?? [];
+      return { key, included: items.length > 0, items };
+    }),
+  };
+}
+
 // ---------------------------------------------------------------- validation of an edited draft
 
 export type PrepParse = { ok: true; value: PrepContent } | { ok: false; message: string };
@@ -147,6 +192,7 @@ const TABLE_FOR_KIND: Record<Exclude<SourceKind, 'patient'>, string> = {
   prescription: `SELECT id FROM prescriptions WHERE patient_id = $1 AND status = 'approved' AND id = ANY($2::uuid[])`,
   lab: `SELECT lr.id FROM lab_results lr JOIN lab_orders lo ON lo.id = lr.lab_order_id WHERE lo.patient_id = $1 AND lr.status = 'approved' AND lr.id = ANY($2::uuid[])`,
   allergy: `SELECT id FROM patient_allergies WHERE patient_id = $1 AND id = ANY($2::uuid[])`,
+  fact: `SELECT f.id FROM document_facts f JOIN documents d ON d.id = f.document_id WHERE f.patient_id = $1 AND d.deleted_at IS NULL AND f.id = ANY($2::uuid[])`,
 };
 
 /** True only when every referenced source row belongs to this patient (and is released, for clinician records). */

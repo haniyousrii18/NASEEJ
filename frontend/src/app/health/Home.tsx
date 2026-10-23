@@ -55,7 +55,7 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
           <h2 id="today-do" className="hp-h2">
             {H.start}
           </h2>
-          <Button variant="primary" icon="plus" className="hp-hero-cta" onClick={() => navigate('patient/timeline?new=1')}>
+          <Button variant="primary" icon="plus" className="hp-hero-cta" onClick={() => navigate('patient/symptoms?new=1')}>
             {H.actions.symptom.title}
           </Button>
           <ul className="hp-rows">
