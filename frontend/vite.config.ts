@@ -69,8 +69,9 @@ export default defineConfig({
           },
         ],
       },
-      // Service worker also runs under `vite dev` so the app is installable on the dev port (localhost counts as secure).
-      devOptions: { enabled: true, type: 'module', navigateFallbackAllowlist: [/^\/index\.html$/] },
+      // Off under `vite dev`: the worker is rebuilt on every edit and kept per port, which shows the update prompt on each load.
+      // Test install and offline with `npm --prefix frontend run build` then `npm --prefix frontend run preview`.
+      devOptions: { enabled: false },
     }),
   ],
   server: {
