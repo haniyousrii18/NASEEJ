@@ -305,7 +305,7 @@ export const toBase64 = (file: File) =>
 export function routeForRef(ref: string, documentId?: string): string {
   const [prefix] = ref.split(':');
   if (documentId || prefix === 'document' || prefix === 'fact') return 'patient/documents';
-  if (prefix === 'symptom') return 'patient/timeline';
+  if (prefix === 'symptom') return 'patient/symptoms';
   if (prefix === 'appt') return 'patient/appointments';
   return 'patient/profile';
 }

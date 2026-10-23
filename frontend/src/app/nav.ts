@@ -31,7 +31,7 @@ export const NAV: Record<AppRole, NavGroup[]> = {
       items: [
         { route: 'patient/home', label: 'patientHome', icon: 'home' },
         { route: 'patient/profile', label: 'patientProfile', icon: 'user' },
-        { route: 'patient/timeline', label: 'patientTimeline', icon: 'timeline' },
+        { route: 'patient/timeline', label: 'patientTimeline', icon: 'timeline', alsoActiveFor: ['patient/symptoms'] },
         { route: 'patient/documents', label: 'patientDocuments', icon: 'documents' },
         { route: 'patient/visits', label: 'patientVisits', icon: 'visit' },
         { route: 'patient/assistant', label: 'patientAssistant', icon: 'pulse' },

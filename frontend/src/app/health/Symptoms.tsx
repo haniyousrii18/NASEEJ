@@ -35,7 +35,7 @@ export const PatientSymptoms: React.FC = () => {
 
   useEffect(() => {
     // Opening the page with ?new=1 (from Today) starts a new symptom once.
-    if (hashParam('new')) window.history.replaceState(null, '', '#/patient/timeline');
+    if (hashParam('new')) window.history.replaceState(null, '', '#/patient/symptoms');
   }, []);
 
   const base = (item: TimelineItem) => (item.type === 'symptom_report' ? '/api/record/symptoms' : '/api/record/entries');

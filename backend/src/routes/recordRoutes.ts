@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/auth.js';
 import { requirePatient } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 import { buildRecordItems, searchItems } from '../services/health/context.js';
+import { buildEvents } from '../services/health/timeline.js';
 import { ENTRY_KINDS, parseEntry, parseSymptom, type EntryKind } from '../services/health/input.js';
 import { apiError, clampInt, isUuid, serverError } from '../services/validation.js';
 import { apiLimiter } from '../services/apiLimit.js';
@@ -295,6 +296,17 @@ recordRouter.get('/search', async (req: Request, res: Response): Promise<void> =
   try {
     const items = await buildRecordItems(pid(req), req.query.lang === 'en' ? 'en' : 'ar');
     res.json({ success: true, data: searchItems(items, q).slice(0, 40) });
+  } catch (err) {
+    res.status(500).json(serverError(err));
+  }
+});
+
+// GET /api/record/events?lang=  the read-only timeline: events derived from the record and documents. There is no write
+// counterpart on purpose; the patient chooses events for a visit summary through /api/prep and never edits one here.
+recordRouter.get('/events', async (req: Request, res: Response): Promise<void> => {
+  try {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ success: true, data: await buildEvents(pid(req), req.query.lang === 'en' ? 'en' : 'ar') });
   } catch (err) {
     res.status(500).json(serverError(err));
   }

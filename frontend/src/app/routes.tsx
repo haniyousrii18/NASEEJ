@@ -3,6 +3,7 @@ import type { AppRole } from './nav.js';
 import { PatientToday } from './health/Home.js';
 import { PatientProfile } from './health/Profile.js';
 import { PatientSymptoms } from './health/Symptoms.js';
+import { PatientTimeline } from './health/PatientTimeline.js';
 import { PatientVault } from './health/Vault.js';
 import { PatientVisits } from './health/Visits.js';
 import { PrepEditor } from './health/PrepEditor.js';
@@ -30,6 +31,8 @@ export function resolvePage(route: string, ctx: PageContext): React.ReactNode {
     case 'patient/profile':
       return <PatientProfile navigate={navigate} />;
     case 'patient/timeline':
+      return <PatientTimeline navigate={navigate} />;
+    case 'patient/symptoms':
       return <PatientSymptoms />;
     case 'patient/documents':
       return <PatientVault />;
