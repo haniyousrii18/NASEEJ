@@ -112,9 +112,10 @@ export const EntryList: React.FC<{ kind: EntryKind; version: number; adding: boo
 export const PatientProfile: React.FC<{ navigate: (r: string) => void }> = () => {
   const A = useA();
   const H = A.health.profile;
-  const [tab, setTab] = useState<Tab>('condition');
+  // Opening the page with ?tab=visit&new=1 (from Today) lands on visits with the add form open.
+  const [tab, setTab] = useState<Tab>(() => (/[?&]tab=visit/.test(window.location.hash) ? 'visit' : 'condition'));
   const [version, setVersion] = useState(0);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(() => /[?&]tab=visit/.test(window.location.hash) && /[?&]new=1/.test(window.location.hash));
   const { toast, show, hide } = useToast();
   const summary = useApiData<PortalSummary>(tab === 'clinicians' ? '/api/portal/summary' : null);
 

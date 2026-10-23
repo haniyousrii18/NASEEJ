@@ -7,9 +7,10 @@ Migration `005_patient_owned_record.sql` (rollback `rollback/005_down.sql`) adds
 | Area | Tables | API (all `Authorization: Bearer`, patient only unless noted) |
 |---|---|---|
 | Health profile | `health_entries` (condition, medication, allergy, procedure, measurement, visit; `source` + `review_status`) | `/api/record/entries` (GET, POST, PATCH `/:id`, DELETE `/:id`, POST `/:id/restore`) |
+| Timeline (read-only) | none of its own: derived from the rows below | `/api/record/events` (GET only). Events from clinicians' released records, the patient's entries and symptoms, and software readings of documents (`document_facts`), each with origin, certainty (clear / check / conflict / undated), confidence, source document, page and passage. No POST, PATCH or DELETE exists for it. |
 | Symptoms | `symptom_reports` (+ duration, frequency, better/worse, soft delete) | `/api/record/symptoms` (same verbs), `/api/portal/timeline` (now includes `patient_entry`) |
 | Document vault | `documents` (center now optional, `doc_type`, `provider_name`, soft delete), `document_links`, `document_facts.patient_decision` | `/api/vault/documents` (list/filter, upload, PATCH, DELETE, restore, `/analyze`, `/suggestions`, confirm/dismiss); original file: `/api/documents/:id/download` |
-| Visit summary | `visit_preps` | `/api/prep` (create from record, PUT edit, `/approve`, DELETE) |
+| Visit summary | `visit_preps` | `/api/prep` (create from the record or from chosen timeline events with `refs`, PUT edit, `/approve`, DELETE). Items taken from the record keep their text on save; the patient can remove them, not rewrite them. |
 | QR sharing | `record_shares`, `share_documents`, `share_access_events` | patient: `/api/shares` (create, list, `/:id/revoke`, `/:id/events`); clinician, **no account**: `POST /api/share-view/view`, `POST /api/share-view/document` |
 | Assistant | `ai_interactions` (metadata only), `patient_profiles.ai_assistant_consent_at` | `/api/assistant/status`, `/consent`, `/chat`, `/overview`, `/safety`; plain search: `/api/record/search` |
 
