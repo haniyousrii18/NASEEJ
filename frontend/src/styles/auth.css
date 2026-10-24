@@ -296,6 +296,11 @@
   animation: riseIn 0.7s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) 0.5s both;
 }
 
+[dir='rtl'] .auth-hero-title,
+[dir='rtl'] .auth-title {
+  line-height: 1.42;
+}
+
 .auth-hero-title {
   margin: 0;
   font-size: clamp(1.6rem, 2.5vw + 0.4rem, 2.5rem);

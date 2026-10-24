@@ -160,6 +160,17 @@
   text-wrap: balance;
 }
 
+/* Arabic letters carry tall dots and marks above and below the line. At 1.12 the dots of one line touch the letters of the next,
+   so Arabic headings get a taller line box (the English ones keep their tight one). */
+[dir='rtl'] .hero-title,
+[dir='rtl'] .wf-title {
+  line-height: 1.42;
+}
+
+[dir='rtl'] .l-h2 {
+  line-height: 1.4;
+}
+
 .hero-lead {
   margin: 0;
   max-width: 54ch;
