@@ -1257,9 +1257,8 @@
 }
 
 .na-nt-type {
-  inline-size: auto;
-  min-inline-size: 150px;
-  max-inline-size: 100%;
+  flex: 1 1 200px;
+  max-inline-size: 320px;
 }
 
 .na-ntr-card {
@@ -1430,7 +1429,8 @@
     flex-basis: 100%;
     justify-content: stretch;
   }
-  .na-nt-toolbar-end .hp-search {
+  .na-nt-toolbar-end .hp-search,
+  .na-nt-type {
     max-inline-size: none;
   }
 }
