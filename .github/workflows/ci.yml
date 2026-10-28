@@ -1,8 +1,7 @@
 name: CI
 
 # Runs on every pull request and on pushes to main. Everything uses a throwaway PostgreSQL service and synthetic data.
-# Each area is its own job so a failure points straight at what broke: frontend, backend, API, database, security.
-# The final "CI passed" job is the single check to require in branch protection.
+# Two jobs only, to keep Actions usage low: "Code checks" (no database) and "Database and API" (PostgreSQL).
 on:
   pull_request:
   push:
@@ -22,8 +21,8 @@ env:
   ONNXRUNTIME_NODE_INSTALL: skip
 
 jobs:
-  frontend:
-    name: Frontend (typecheck, tests and build)
+  checks:
+    name: Code checks (typecheck, unit tests, build, audit)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -33,33 +32,30 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - name: Typecheck
+      - name: Typecheck frontend
+        if: ${{ !cancelled() }}
         run: npx tsc --noEmit -p frontend
-      - name: Unit tests
-        run: npm --prefix frontend run test
-      - name: Production build
-        run: npm --prefix frontend run build
-
-  backend:
-    name: Backend (typecheck, build and unit tests)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - name: Typecheck
+      - name: Typecheck backend
+        if: ${{ !cancelled() }}
         run: npx tsc --noEmit -p backend
-      - name: Compile
-        run: npm --prefix backend run build
-      - name: Unit tests (no database, no network)
+      - name: Frontend unit tests
+        if: ${{ !cancelled() }}
+        run: npm --prefix frontend run test
+      - name: Backend unit tests (no database, no network)
+        if: ${{ !cancelled() }}
         run: npm --prefix backend run test:unit
+      - name: Frontend production build
+        if: ${{ !cancelled() }}
+        run: npm --prefix frontend run build
+      - name: Backend build
+        if: ${{ !cancelled() }}
+        run: npm --prefix backend run build
+      - name: Fail on high or critical vulnerabilities in production dependencies
+        if: ${{ !cancelled() }}
+        run: npm audit --omit=dev --audit-level=high
 
-  api:
-    name: API (integration tests against PostgreSQL)
+  database-api:
+    name: Database and API (migrations, rollbacks, integration tests)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -95,91 +91,27 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - name: Apply migrations and synthetic seed
-        run: |
-          npm --prefix backend run migrate
-          npm --prefix backend run seed
-      - name: API tests (auth, patient record, vault, visit summary, QR sharing, assistant boundary)
-        run: npm --prefix backend run test
-
-  database:
-    name: Database (migrations, rollbacks and schema checks)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: naseej_dev
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      NODE_ENV: test
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_NAME: naseej_dev
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_SSL: "false"
-      JWT_SECRET: ci-only-secret-not-used-anywhere-else
-      STORAGE_DIR: ./storage/protected
-      AI_PROVIDER: ""
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
       - name: Migrate an empty database
+        if: ${{ !cancelled() }}
         run: npm --prefix backend run migrate
       - name: Migrate again (must be a no-op)
+        if: ${{ !cancelled() }}
         run: npm --prefix backend run migrate
       - name: Apply the synthetic seed
+        if: ${{ !cancelled() }}
         run: npm --prefix backend run seed
       - name: Check the schema (versions, primary keys, indexes)
+        if: ${{ !cancelled() }}
         run: npm --prefix backend run db:check
+      - name: API tests (auth, patient record, vault, visit summary, QR sharing, assistant boundary)
+        if: ${{ !cancelled() }}
+        run: npm --prefix backend run test
       - name: Roll every migration back, newest first
+        if: ${{ !cancelled() }}
         run: npm --prefix backend run db:rollback-check
       - name: Migrate forward again after the rollback
+        if: ${{ !cancelled() }}
         run: npm --prefix backend run migrate
       - name: Re-check the schema
+        if: ${{ !cancelled() }}
         run: npm --prefix backend run db:check
-
-  security:
-    name: Security (dependency audit)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - name: Fail on high or critical vulnerabilities in production dependencies
-        run: npm audit --omit=dev --audit-level=high
-
-  ci-passed:
-    name: CI passed
-    if: always()
-    needs: [frontend, backend, api, database, security]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Every job must have succeeded
-        env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
-        run: |
-          echo "Job results: $RESULTS"
-          for r in $RESULTS; do
-            if [ "$r" != "success" ]; then
-              echo "One or more required jobs did not succeed."
-              exit 1
-            fi
-          done
