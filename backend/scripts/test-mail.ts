@@ -37,7 +37,7 @@ async function main() {
   console.log(`[Mail] mode: ${mailMode()}  (host: ${ENV.SMTP_HOST || '(none)'}, port: ${ENV.SMTP_PORT}, secure: ${ENV.SMTP_SECURE}, user: ${ENV.SMTP_USER || '(none)'})`);
   if (!smtpConfigured()) {
     console.error(
-      ['', 'Email is NOT set up, so Naseej cannot send real email. In .env set:', '  SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, MAIL_FROM', 'See docs/accounts.md for the Gmail steps.', ENV.SMTP_USER && !ENV.SMTP_PASS ? '\nSMTP_USER is set but SMTP_PASS is empty.' : ''].join('\n'),
+      ['', 'Email is NOT set up, so Naseej cannot send real email. In .env set:', '  SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, MAIL_FROM', 'See docs/features/accounts.md for the Gmail steps.', ENV.SMTP_USER && !ENV.SMTP_PASS ? '\nSMTP_USER is set but SMTP_PASS is empty.' : ''].join('\n'),
     );
     process.exit(1);
   }

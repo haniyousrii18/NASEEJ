@@ -1,6 +1,6 @@
 # Security Policy
 
-Naseej is an academic graduation prototype using synthetic data only. It is not production software and must not be used with real patient data without the deployment work listed in `docs/patient-record.md` (encryption at rest, retention and purge jobs, a shared rate-limit store, clinical review of the AI safety wording, a data-processing agreement with any AI provider).
+Naseej is an academic graduation prototype using synthetic data only. It is not production software and must not be used with real patient data without the deployment work listed in `docs/features/patient-record.md` (encryption at rest, retention and purge jobs, a shared rate-limit store, clinical review of the AI safety wording, a data-processing agreement with any AI provider).
 
 ## Reporting a vulnerability
 
@@ -13,4 +13,4 @@ Please report suspected vulnerabilities privately to the project team (contact: 
 - The AI assistant has no write tools; its safety rules run on the server; nothing is sent to a provider without the patient's switch and per-file confirmation.
 - Secrets and API keys belong in `.env` (never committed); the audit log holds ids and kinds, never health content.
 
-Details and known limits: `docs/patient-record.md`.
+Details and known limits: `docs/features/patient-record.md`.

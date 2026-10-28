@@ -5,12 +5,21 @@ Base path `/api`. JSON in and out. Success: `{ "success": true, "data": ..., "me
 ## Auth and account
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/auth/login` | email + password → token, user |
+| POST | `/auth/register` | `{ email, password, fullName, lang }` → `202` the same for a known and an unknown address; mails a confirmation link |
+| POST | `/auth/verify-email` | `{ token }` single-use link, valid 24 hours |
+| POST | `/auth/resend-verification` | `{ email, lang }` → `202` either way |
+| POST | `/auth/forgot-password` | `{ email, lang }` → `202` either way; mails a reset link |
+| POST | `/auth/reset-password` | `{ token, newPassword, lang }` single-use link, valid 1 hour; signs out every other device |
+| GET | `/auth/access-status` | `{ mail }`: `smtp`, `dev` or `off`, so the site can say honestly whether email is sent |
+| POST | `/auth/login` | email + password → token, user; `EMAIL_NOT_VERIFIED` until the address is confirmed |
 | GET | `/auth/me` | current user |
 | GET | `/account` | profile, patient contact details |
 | PATCH | `/account/profile`, `/account/patient-contact` | edit own profile / contact |
 | POST | `/account/password` | change password |
-| GET/POST | `/notifications`, `/summary`, `/unread-count`, `/:id/read`, `/:id/dismiss`, `/:id/restore`, `/read-all` | in-app notifications |
+| GET/POST | `/notifications`, `/summary`, `/unread-count`, `/:id/read`, `/:id/dismiss`, `/:id/restore`, `/:id/refresh`, `/read-all` | in-app notifications |
+| POST | `/translations` | `{ texts, target }` (1 to 20 strings, `ar` or `en`) → per text `same`, `ok` or `unavailable` with a reason; local engine, no AI |
+
+Account, email and password rules: [accounts.md](../features/accounts.md). Translation: [translation.md](../features/translation.md).
 
 ## Health record (`/record`)
 | Method | Path | Notes |
@@ -21,8 +30,10 @@ Base path `/api`. JSON in and out. Success: `{ "success": true, "data": ..., "me
 | GET/POST | `/symptoms` | `?q=&from=&to=&limit=&offset=`; body: `symptom_description`, `severity` 1-10, `onset_date`, `duration_text`, `frequency`, `better_factors`, `worse_factors`, `notes`, `document_ids`, `captured_via` |
 | PATCH/DELETE, POST `/:id/restore` | `/symptoms/:id` | |
 | GET | `/search?q=&lang=` | plain keyword search of the record (no AI) |
+| GET | `/events` | read-only timeline of the patient's record: entries, symptoms, patient visits, document readings and released clinician records, each with origin, certainty, confidence and source. No write verbs exist. |
 | GET | `/home` | counts and ids for the Today screen |
-| GET | `/portal/timeline`, `/portal/summary` | timeline (`type`, `from`, `to`, `before`, `limit`; includes `patient_entry`) and clinician-approved summary |
+
+Under `/api/portal` (not `/api/record`): `GET /portal/timeline` (`type`, `organizationId`, `from`, `to`, `before`, `limit`; includes `patient_entry`) and `GET /portal/summary` (clinician-approved summary).
 
 ## Document vault (`/vault`)
 | Method | Path | Notes |
@@ -47,6 +58,7 @@ Base path `/api`. JSON in and out. Success: `{ "success": true, "data": ..., "me
 | POST | `/shares/:id/revoke` | immediate |
 | GET | `/shares/:id/events` | access history (device class, no addresses) |
 | POST | `/share-view/view` | **public**, `{ token }` → `{ snapshot, expiresAt }`; 404 `SHARE_NOT_FOUND`, 410 `SHARE_EXPIRED` / `SHARE_REVOKED`, 429 |
+| POST | `/share-view/translate` | **public**, `{ token, texts, target }` → translation of wording that is inside that share only; anything else is `not_allowed` |
 | POST | `/share-view/document` | **public**, `{ token, document_id }` → file, only if part of the share |
 
 Public responses: `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, `X-Robots-Tag: noindex`; 60 requests/min per address and 10 unknown-token attempts per 10 minutes.

@@ -1,0 +1,44 @@
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'primaryBorderColor': '#000000', 'lineColor': '#000000', 'secondaryColor': '#ffffff', 'tertiaryColor': '#ffffff', 'actorBkg': '#ffffff', 'actorBorder': '#000000', 'actorTextColor': '#000000', 'actorLineColor': '#000000', 'signalColor': '#000000', 'signalTextColor': '#000000', 'labelBoxBkgColor': '#ffffff', 'labelBoxBorderColor': '#000000', 'labelTextColor': '#000000', 'loopTextColor': '#000000', 'noteBkgColor': '#ffffff', 'noteBorderColor': '#000000', 'noteTextColor': '#000000', 'activationBkgColor': '#ffffff', 'activationBorderColor': '#000000'}}}%%
+sequenceDiagram
+    actor Patient
+    participant UI as Naseej UI
+    participant API as Naseej API
+    participant DB as PostgreSQL
+    actor Clinician
+
+    Patient->>UI: Choose Prepare visit
+    UI->>API: Request draft from patient record
+    API->>DB: Load entries, symptoms and linked documents
+    DB-->>API: Patient-owned records
+    API-->>UI: Draft summary with source references
+    Patient->>UI: Edit, select documents and approve
+    UI->>API: Save approved preparation
+    API->>DB: Store visit_prep (approved)
+    DB-->>API: Saved
+    API-->>UI: Approval confirmation
+    Patient->>UI: Choose expiry and confirm share
+    UI->>API: Create share request
+    Note right of API: Verify ownership,<br/>approval, expiry
+    API->>DB: Store snapshot, token hash and document grants
+    DB-->>API: Share created
+    Note over API,DB: Raw token is never stored
+    API-->>UI: One-time share URL for QR
+    Note over Patient,Clinician: Patient shows the QR or link
+    Clinician->>API: Open share token
+    API->>DB: Find share, check expiry and revocation
+    DB-->>API: Share status
+    alt Share is valid
+        API->>DB: Record access event
+        API-->>Clinician: Read-only snapshot
+        opt Document
+            Clinician->>API: Request document
+            API->>DB: Verify grant and validity, record event
+            API-->>Clinician: Document bytes
+        end
+    else Expired or revoked
+        API-->>Clinician: Access denied
+    end
+    Patient->>UI: Revoke share
+    UI->>API: Revoke request
+    API->>DB: Set revoked_at
+    DB-->>API: Updated share

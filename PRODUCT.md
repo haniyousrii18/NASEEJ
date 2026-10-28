@@ -12,8 +12,10 @@ web
 
 - Frontend: React 19, Vite 8, TypeScript, plain CSS design tokens (responsive, bilingual Arabic RTL / English LTR), installable PWA
 - Backend: Node.js, Express 5, TypeScript / ES modules, pg (PostgreSQL driver)
-- Database: PostgreSQL (SQL migrations 001-005 with rollbacks)
+- Database: PostgreSQL (SQL migrations 001-007 with rollbacks)
 - Testing: Vitest and Supertest (API, ownership and share tests against a real database), Vitest unit tests
+- Email: SMTP through nodemailer (optional; development prints links)
+- Translation of typed text: local glossary and local machine translation, no AI
 - Optional AI: provider-agnostic boundary in the API (Google Gemini over HTTPS, Anthropic SDK), off unless configured
 
 ## Users
@@ -48,12 +50,12 @@ Unlike clinic EHRs that keep a patient's information inside one provider, Naseej
 - **Voice:** browser speech recognition into an editable field, with a check of numbers and dates before saving.
 - **QR sharing:** hashed 256-bit token shown once, frozen snapshot, expiry, instant revoke, access history, read-only no-account page, printable.
 - **Audit and privacy:** ids and kinds only in the audit log; assistant conversation text is not stored; expired shares are scrubbed after a day.
-- **Account settings, in-app notifications, installable PWA** (`docs/notifications.md`, `docs/pwa.md`).
-- **Accounts:** sign-up with an email and a password, a confirmation link, "forgot password" with a one-hour reset link, and sign-out of other devices after a reset (`docs/accounts.md`). It needs an SMTP server to send real email; without one, development prints the links in the API console and production says email is not configured.
+- **Account settings, in-app notifications, installable PWA** (`docs/features/notifications.md`, `docs/features/pwa.md`).
+- **Accounts:** sign-up with an email and a password, a confirmation link, "forgot password" with a one-hour reset link, and sign-out of other devices after a reset (`docs/features/accounts.md`). It needs an SMTP server to send real email; without one, development prints the links in the API console and production says email is not configured.
 - **Not implemented:** push notifications, email for anything but account access, server-side transcription, clinician accounts, FHIR import/export, external identity provider, clinical review of the safety wording, regulatory compliance claims.
 - **Synthetic data only:** real patient data is forbidden. Email sign-up stores real email addresses and names, which are personal data: before real people use it, the project needs a privacy notice, a deletion path and a review of what the server logs.
 
-Design and rules: `docs/patient-record.md`.
+Design and rules: `docs/features/patient-record.md`.
 
 ## Brand Commitments
 
@@ -63,7 +65,7 @@ Design and rules: `docs/patient-record.md`.
 
 ## Evidence on Hand
 
-- `docs/patient-record.md`, `Naseej-PRD.md`, `docs/test-plan.md`, `DESIGN.md`, `logo.png`.
+- `docs/features/patient-record.md`, `Naseej-PRD.md`, `docs/guides/test-plan.md`, `DESIGN.md`, `logo.png`.
 
 ## Product Principles
 

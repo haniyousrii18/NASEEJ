@@ -1,0 +1,29 @@
+flowchart TD
+    Start(["Start"]) --> A1["Patient uploads file or takes a photo"]
+    A1 --> A2{"File type and size valid?"}
+    A2 -- "No" --> A3["Show error"]
+    A3 --> End(["End"])
+    A2 -- "Yes" --> A4["Save file to storage and document row in the vault"]
+    A4 --> A5["Patient sets type, date, provider and links"]
+    A5 --> A6{"Patient asks for AI analysis?"}
+    A6 -- "No" --> A7["Document stays in vault only"]
+    A7 --> End
+    A6 -- "Yes" --> A8{"AI consent given?"}
+    A8 -- "No" --> A9["Ask for consent"]
+    A9 --> A10{"Patient agrees?"}
+    A10 -- "No" --> A7
+    A10 -- "Yes" --> A11["Send document to AI provider"]
+    A8 -- "Yes" --> A11
+    A11 --> A12{"Provider answered?"}
+    A12 -- "No" --> A13["Mark processing failed and keep original"]
+    A13 --> End
+    A12 -- "Yes" --> A14["Store suggested facts, not yet part of the record"]
+    A14 --> A15["Patient reviews each suggestion"]
+    A15 --> A16{"Patient decision?"}
+    A16 -- "Confirm" --> A17["Create health entry: source = document, confirmed"]
+    A17 --> A18["Entry appears on timeline"]
+    A16 -- "Dismiss" --> A19["Mark suggestion rejected"]
+    A18 --> A20{"More suggestions?"}
+    A19 --> A20
+    A20 -- "Yes" --> A15
+    A20 -- "No" --> End

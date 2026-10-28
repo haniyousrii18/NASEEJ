@@ -3,7 +3,7 @@
 Naseej can be installed as an app on computers and phones. It is a standard progressive web app built with `vite-plugin-pwa` (Workbox `generateSW`). Nothing here changes who can see what: the service worker never stores protected data.
 
 ## What is installed
-- **Manifest** (`/manifest.webmanifest`, generated from `frontend/vite.config.ts`): name "Naseej | نَسيج", short name "نَسيج", `display: standalone`, `orientation: any`, `lang: ar`, `dir: rtl`, theme and background `#faf7f4`. `start_url`, `scope`, `id` and the icon paths are relative (`./`, `icons/...`), so they follow the deployment base path.
+- **Manifest** (`/manifest.webmanifest`, generated from `frontend/vite.config.ts`): name "Naseej | نَسيج — Connected Healthcare Platform", short name "نَسيج", `display: standalone`, `orientation: any`, `lang: ar`, `dir: rtl`, theme and background `#f7f9f8`. `start_url`, `scope`, `id` and the icon paths are relative (`./`, `icons/...`), so they follow the deployment base path.
 - **Icons** (`frontend/public/icons`): 192 and 512 px (`any`), a 512 px maskable icon, and a 180 px Apple touch icon. `index.html` carries the theme-color and Apple home-screen meta tags.
 - **Base path:** one constant, `BASE` at the top of `vite.config.ts` (default `/`). The manifest paths, the navigation fallback and the API exclusion all use it. If the app moves under a sub-path, change `BASE` and rebuild.
 

@@ -11,14 +11,14 @@ Notifications tell a signed-in patient that something needs their attention and 
 - **Authorization is re-checked on every read.** Someone else's notification and a missing one both return 404.
 - **Destinations are typed.** The server stores a destination kind and an id, never a URL. The client maps kind to an internal route in `frontend/src/app/notifications/model.ts`; a kind with no mapping has no destination.
 
-## Events that can occur in the patient-only app
-| Event | Leads to |
-|---|---|
-| `document.released` (a clinician-uploaded document released to the patient) | My documents |
-| `record.approved` | Symptoms and timeline |
-| `account.password_changed` | Settings → security |
+## Events in the patient-only app
+| Event | Leads to | Triggered |
+|---|---|---|
+| `account.password_changed` | Settings → security | Yes: `POST /api/account/password` |
+| `document.released` | My documents | Only by a clinician reviewing a center document (`POST /api/documents/:id/review`), which patient-only sign-in cannot reach |
+| `record.approved` | Symptoms and timeline | No caller exists in the current API |
 
-The service still contains events from the removed multi-center platform (appointments, messages, delegations, coordination); nothing in the current API triggers them and they can be deleted.
+The service still contains events from the removed multi-center platform (appointments, messages, delegations, coordination, demo requests); nothing in the current patient-only API triggers them and they can be deleted. A password **reset** (not a change while signed in) does not create a notification; the owner gets an email instead (see [accounts.md](accounts.md)).
 
 ## API
 `GET /api/notifications`, `/summary`, `/unread-count`; `POST /:id/read`, `/:id/dismiss`, `/:id/restore`, `/read-all`. The client refreshes periodically; there is no real-time channel, email or push.

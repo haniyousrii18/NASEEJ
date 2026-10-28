@@ -1,0 +1,182 @@
+<mxfile host="app.diagrams.net" pages="2">
+  <diagram id="State - Record Share" name="State - Record Share">
+    <mxGraphModel dx="899" dy="537" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1150" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n3" parent="1" style="rounded=1;arcSize=4;html=1;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;align=left;spacingLeft=10;" value="Visit Prep" vertex="1">
+          <mxGeometry height="400" width="520" x="220" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" parent="1" style="rounded=1;arcSize=4;html=1;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;align=left;spacingLeft=10;" value="Share" vertex="1">
+          <mxGeometry height="330" width="820" x="140" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" parent="1" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="415" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fontSize=13;" value="Draft" vertex="1">
+          <mxGeometry height="50" width="190" x="330" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fontSize=13;" value="Editing" vertex="1">
+          <mxGeometry height="50" width="190" x="330" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fontSize=13;" value="Approved" vertex="1">
+          <mxGeometry height="50" width="190" x="330" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fontSize=13;" value="ShareCreated" vertex="1">
+          <mxGeometry height="50" width="190" x="330" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="n10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fontSize=13;" value="Active" vertex="1">
+          <mxGeometry height="50" width="190" x="330" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="n11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fontSize=13;" value="Revoked" vertex="1">
+          <mxGeometry height="40" width="150" x="265" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="n12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fontSize=13;" value="Expired" vertex="1">
+          <mxGeometry height="40" width="150" x="445" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="n13" parent="1" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="28" width="28" x="506" y="1100" as="geometry" />
+        </mxCell>
+        <mxCell id="n14" edge="1" parent="1" source="n5" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;" target="n6" value="Patient starts visit prep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n15" edge="1" parent="1" source="n6" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;" target="n7" value="Patient edits summary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n16" edge="1" parent="1" source="n7" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;" target="n8" value="Patient approves">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-55" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n17" edge="1" parent="1" source="n8" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=1;entryDx=0;entryDy=0;" target="n7" value="Patient reopens">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="55" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n18" edge="1" parent="1" source="n7" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;" target="n7" value="Save changes">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="570" y="315" />
+              <mxPoint x="570" y="335" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n19" edge="1" parent="1" source="n8" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;" target="n9" value="Patient confirms share">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n20" edge="1" parent="1" source="n9" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;" target="n10" value="Token and snapshot stored">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n21" edge="1" parent="1" source="n10" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" target="n10" value="Clinician views&lt;br&gt;(access event logged)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-85" as="offset" />
+            <Array as="points">
+              <mxPoint x="280" y="805" />
+              <mxPoint x="280" y="825" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n22" edge="1" parent="1" source="n10" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n11" value="Patient revokes">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-30" as="offset" />
+            <Array as="points">
+              <mxPoint x="368" y="900" />
+              <mxPoint x="340" y="900" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n23" edge="1" parent="1" source="n10" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n12" value="expires_at reached">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="40" as="offset" />
+            <Array as="points">
+              <mxPoint x="482" y="900" />
+              <mxPoint x="520" y="900" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n24" edge="1" parent="1" source="n11" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n13" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="340" y="1050" />
+              <mxPoint x="520" y="1050" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n25" edge="1" parent="1" source="n12" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n13" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="1050" />
+              <mxPoint x="520" y="1050" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n26" parent="1" style="shape=note;whiteSpace=wrap;html=1;fontSize=11;size=14;" value="Read-only snapshot.&lt;br&gt;Documents only if granted." vertex="1">
+          <mxGeometry height="60" width="190" x="720" y="785" as="geometry" />
+        </mxCell>
+        <mxCell id="n27" edge="1" parent="1" source="n26" style="endArrow=none;dashed=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="n10" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="State - Document Fact" name="State - Document Fact">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="800" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n3" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="400" y="30" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="Suggested" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#FFFFFF;strokeColor=#000000;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="340" y="130" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="Confirmed" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#FFFFFF;strokeColor=#000000;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="170" y="270" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="Rejected" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#FFFFFF;strokeColor=#000000;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="510" y="270" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" value="HealthEntryCreated" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#FFFFFF;strokeColor=#000000;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="150" y="410" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="400" y="560" width="28" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" value="AI extracts a fact" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;" edge="1" parent="1" source="n3" target="n4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n10" value="Patient confirms" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="n4" target="n5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="155" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n11" value="Patient dismisses" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="n4" target="n6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="580" y="155" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n12" value="Create health entry" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;" edge="1" parent="1" source="n5" target="n7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n13" value="" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="574" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n14" value="" style="endArrow=block;endFill=1;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=1.4;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="n6" target="n8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="580" y="574" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

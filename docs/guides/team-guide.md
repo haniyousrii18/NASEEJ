@@ -166,7 +166,7 @@ git push -u origin feature/symptom-form
 
 ## 5. قاعدة البيانات (انتبه هنا)
 
-- ملفات التغيير في `database/migrations/` بأرقام متسلسلة: `005_اسم.sql` وهكذا (الرقم 004 مستخدم لجدول الإشعارات).
+- ملفات التغيير في `database/migrations/` بأرقام متسلسلة: `008_اسم.sql` وهكذا (الأرقام من 001 إلى 007 مستخدمة بالفعل، منها 004 للإشعارات و006 للترجمة و007 لتسجيل الحساب).
 - **ما تعدّلش migration اتدمجت خلاص.** لو محتاج تغيير، اعمل migration جديدة.
 - لو اتنين فتحوا `004` في نفس الوقت، هيحصل تعارض في الرقم. **اتفقوا في الـIssue** مين ياخد الرقم، ولو اتأخرت غيّر رقمك قبل الدمج.
 - كل migration تبقى إضافية وآمنة (`IF NOT EXISTS`) ومعاها ملف تراجع في `database/migrations/rollback/`.
@@ -239,7 +239,7 @@ git merge origin/main
 2. **احمي `main`:** Settings ← Branches ← Add branch protection rule لـ`main`:
    - Require a pull request before merging
    - Require approvals: 1
-   - Require status checks to pass: اختار **Backend (typecheck and tests)** و**Frontend (typecheck, tests and build)** (بيظهروا في القايمة بعد أول تشغيل للـCI)
+   - Require status checks to pass: اختار **Code checks (typecheck, unit tests, build, audit)** و**Database and API (migrations, rollbacks, integration tests)** (بيظهروا في القايمة بعد أول تشغيل للـCI)
    - Do not allow force pushes
 3. **اجعل الدمج Squash:** Settings ← General ← Pull Requests ← فعّل Allow squash merging وعطّل الباقي لو عايز تاريخ نضيف.
 4. **استخدم Issues:** كل مهمة Issue فيها الوصف ومعايير القبول والمالك والأولوية، والـPR بيشاور عليها (`Closes #12`).
@@ -249,7 +249,7 @@ git merge origin/main
    git switch -c chore/docs-update
    git add -A
    git commit -m "docs: patient-first documentation"
-   git push -u origin chore/workspaces-and-docs
+   git push -u origin chore/docs-update
    ```
    وافتح PR وادمجه. ملفات `.env` و`storage/` و`node_modules` و`.claude/` متجاهَلة في `.gitignore`.
 
