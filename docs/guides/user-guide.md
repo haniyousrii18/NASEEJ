@@ -2,6 +2,9 @@
 
 Demo patient: `patient@naseej.health` / `Password123!` (synthetic). Language and theme switch from the top bar.
 
+## 0. Creating an account
+Choose "Create an account", enter your email, name and a password (at least 8 characters, with a letter and a number). Open the confirmation link in your email (valid 24 hours, one use), then sign in. If you forget the password, choose "Forgot password?": the link is valid for 1 hour, and after you choose a new password every other device is signed out. If the site says email is not set up, no message was sent (see [accounts.md](../features/accounts.md)).
+
 ## 1. Today
 Four actions: record a symptom, add a document, ask the assistant, prepare for a visit. Below: your next visit, a draft summary you have not approved, document suggestions waiting for you, and active share links.
 
@@ -25,3 +28,6 @@ Choose an approved summary, the documents, whether to show your name, and the du
 
 ## 8. For the clinician
 Scan the QR: a read-only page opens with the reason, symptoms, medicines, allergies and any attached documents, each with its source. No account or app is needed. If the link has expired or been revoked, ask the patient for a new one. Print or save as PDF if the connection is poor.
+
+## 9. Arabic and English
+Text you typed is shown in the language of the page. A translation is labelled, numbers are never changed, and "Show original" is always one click away. If no reliable translation exists, you see your original with a short note. This is done on the server without an AI assistant.

@@ -1,7 +1,7 @@
 # Naseej | نَسيج — Product Requirements Document
 
 **Product:** a patient-owned health history and visit-preparation app.
-**Version:** 2.0 (patient-first). Supersedes the 1.x PRD of the multi-center clinic platform, which was removed (see section 12).
+**Version:** 2.1 (patient-first). Supersedes the 1.x PRD of the multi-center clinic platform, which was removed (see section 12). A formal requirements specification with acceptance criteria and traceability is in `docs/requirements/Naseej-Requirements.pdf`.
 **Status legend:** **Done** implemented and covered by tests · **Code** implemented, but needs an external service (AI provider) or clinical review before real use · **Future** not implemented.
 
 ---
@@ -55,15 +55,16 @@ Each requirement lists its acceptance criterion and the evidence (tests in `back
 | FR-12 | Clinician page | read-only; shows only approved content; states for invalid, expired, revoked, offline, rate-limited; documents open only if granted; printable | Done |
 | FR-13 | Revocation and expiry | take effect on the next request; deleting a document removes it from shares at once; the frozen copy is erased a day after the link ends | Done |
 | FR-14 | Access history | each view, document open and denied attempt recorded with time and device class; no addresses or content shown | Done |
-| FR-15 | Account | profile, contact, password, language and theme, assistant switch | Done |
+| FR-15 | Account | sign-up with email and password (at least 8 characters, a letter and a number), email confirmation link (24 hours, single use), forgot-password link (1 hour, single use) that signs out other devices, no account enumeration; profile, contact, password change, language and theme, assistant switch | Done (real email needs an SMTP server) |
 | FR-16 | Notifications and PWA | in-app notifications with typed destinations; installable app; `/api` never cached | Done |
-| FR-17 | Email/push, server-side transcription, FHIR import/export, clinician accounts | not provided | Future |
+| FR-17 | Translation of typed text | typed text is shown in the page language by a local glossary and local machine translation (no AI); numbers must survive; the original is always one click away; the clinician page translates only wording inside the share | Done |
+| FR-18 | Email/push reminders, server-side transcription, FHIR import/export, clinician accounts, external identity provider, account-deletion path | not provided | Future |
 
 ## 6. Non-functional requirements
 | ID | Requirement | Evidence |
 |---|---|---|
 | NFR-01 Ownership | every private query is filtered by the session's patient profile; foreign ids → 404; other roles → 403 | `patient-owned-record.test.ts` |
-| NFR-02 Share security | 256-bit random token stored only as SHA-256; public endpoints rate limited (60/min per address, 10 unknown tokens per 10 min), `no-store`, `no-referrer`, `noindex`; token in the URL fragment | tests, `docs/patient-record.md` |
+| NFR-02 Share security | 256-bit random token stored only as SHA-256; public endpoints rate limited (60/min per address, 10 unknown tokens per 10 min), `no-store`, `no-referrer`, `noindex`; token in the URL fragment | tests, `docs/features/patient-record.md` |
 | NFR-03 Privacy | assistant text not stored; AI interactions keep metadata only; audit entries carry ids and kinds, never content; no health data in browser storage by the patient screens; data minimization of the assistant context (no name, ID or contact) | tests (audit, interactions) |
 | NFR-04 AI safety | rules enforced on the server; assistant has no tools; citations validated; consent switch and per-file confirmation | `health-units.test.ts` |
 | NFR-05 Reliability | AI timeout (`AI_CHAT_TIMEOUT_MS`), per-hour limit (`ASSISTANT_MAX_PER_HOUR`), clear error states with retry | tests, manual plan |
@@ -71,7 +72,7 @@ Each requirement lists its acceptance criterion and the evidence (tests in `back
 | NFR-07 Portability | provider-agnostic AI behind environment variables; additive reversible migrations | CI database job |
 
 ## 7. Data model (summary)
-`health_entries`, `symptom_reports`, `documents` (+ `document_links`, `document_facts`), `visit_preps`, `record_shares` (+ `share_documents`, `share_access_events`), `ai_interactions`, `patient_profiles.ai_assistant_consent_at`. Details: `docs/database-erd.md`.
+`health_entries`, `symptom_reports`, `documents` (+ `document_links`, `document_facts`), `visit_preps`, `record_shares` (+ `share_documents`, `share_access_events`), `ai_interactions`, `patient_profiles.ai_assistant_consent_at`. Also `content_translations`, `auth_tokens`, `users.email_verified_at`. Details: `docs/reference/database-erd.md`.
 
 ## 8. AI and safety requirements
 - The assistant is an organizational and informational aid, not a doctor.
@@ -93,4 +94,5 @@ Synthetic data only; prototype hosting; browser dictation depends on the browser
 
 ## 12. Change history
 - **1.x** a multi-tenant clinic platform with doctor, reception, manager, coordinator, admin and caregiver workspaces, cross-center consent and clinician approval workflows. Removed when the concept changed; available in Git history; its tables remain unused in the schema.
-- **2.0** patient-first scope described here.
+- **2.0** patient-first scope.
+- **2.1** adds email sign-up, confirmation and password reset (migration 007), translation of typed text (migration 006), and the requirements specification PDF.

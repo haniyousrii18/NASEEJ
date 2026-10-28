@@ -1,8 +1,43 @@
 # Database Design & Entity Relationship — Naseej | نَسيج
 
-> **Scope note:** the app is now patient-only. The tables of sections 1-4 (organizations, memberships, appointments, visits, prescriptions, labs, consents, care coordination, caregivers, ops messages, demo requests) come from the earlier multi-center platform; they remain in the schema but are unused except `patient_profiles`, `users`, approved `visits`/`prescriptions`/`lab_*` read by the portal summary, `documents`, `document_*`, `patient_allergies`, `symptom_reports`, `audit_logs` and `notifications`. New tables are in section 5.
+> **Scope note:** the app is patient-only. The active data model is described in "Active data model" below and drawn in [the ERD diagram](../diagrams/exports/12-erd.png) (editable source `diagrams/source/erd-diagram.drawio`, mapped to relational form in `diagrams/exports/13-erd-mapping.pdf`). Sections 1-4 describe the earlier multi-center platform (organizations, memberships, appointments, visits, prescriptions, labs, consents, care coordination, caregivers, ops messages, demo requests). Those tables stay in the schema but are unused, except `users`, `patient_profiles`, approved `visits`/`prescriptions`/`lab_*` read by the portal summary, `documents`, `document_*`, `patient_allergies`, `symptom_reports`, `audit_logs` and `notifications`. Migrations 005-007 add the patient-owned tables.
 
-## 1. Schema Overview
+## Active data model (patient-owned record)
+
+Migrations `001` to `007`, each with a rollback in `database/migrations/rollback/` (except `001`). Every private table is reached through `patient_profiles`, and the server filters each query by the session's patient profile.
+
+```mermaid
+erDiagram
+    USERS ||--o| PATIENT_PROFILES : account_for
+    USERS ||--o{ AUTH_TOKENS : issues
+    PATIENT_PROFILES ||--o{ AI_INTERACTIONS : logs_metadata
+    PATIENT_PROFILES ||--o{ CONTENT_TRANSLATIONS : owns
+    PATIENT_PROFILES ||--o{ HEALTH_ENTRIES : owns
+    PATIENT_PROFILES ||--o{ SYMPTOM_REPORTS : records
+    PATIENT_PROFILES ||--o{ DOCUMENTS : owns
+    PATIENT_PROFILES ||--o{ VISIT_PREPS : prepares
+    PATIENT_PROFILES ||--o{ RECORD_SHARES : creates
+    VISIT_PREPS |o--o{ RECORD_SHARES : source_prep
+    DOCUMENTS ||--o{ DOCUMENT_FACTS : has_suggestions
+    DOCUMENTS ||--o{ DOCUMENT_LINKS : linked_by
+    DOCUMENTS ||--o{ SHARE_DOCUMENTS : included
+    RECORD_SHARES ||--o{ SHARE_DOCUMENTS : grants
+    RECORD_SHARES ||--o{ SHARE_ACCESS_EVENTS : records
+    DOCUMENT_FACTS |o--o{ HEALTH_ENTRIES : confirmed_into
+    DOCUMENTS |o--o{ HEALTH_ENTRIES : source_document
+```
+
+| Migration | Adds |
+|---|---|
+| 001 | Initial multi-center schema (organizations, users, patient profiles, appointments, visits, prescriptions, labs, documents, audit) |
+| 002 | Longitudinal record and coordination (section 3) |
+| 003 | Caregivers, ops messages, AI review of documents (section 3b) |
+| 004 | Notifications (section 4) |
+| 005 | Patient-owned record: health entries, document links, visit preparations, QR shares, access events, AI interaction log (section 5) |
+| 006 | `content_translations` (section 6) |
+| 007 | Account access: email confirmation, password reset, optional profile fields (section 7) |
+
+## 1. Legacy multi-center overview (migration 001, unused)
 
 The database design adheres to 3NF normalization, foreign key constraints with cascading rules, strict indexing for tenant isolation (`organization_id`), and timestamp tracking for auditability.
 
@@ -39,7 +74,7 @@ erDiagram
 
 ---
 
-## 2. Table Specifications
+## 2. Table specifications (migrations 001-003)
 
 ### 2.1 Organizations & Identity
 
@@ -52,7 +87,8 @@ erDiagram
 - `status` VARCHAR(20) DEFAULT 'active' ('active', 'suspended')
 - `contact_phone` VARCHAR(50)
 - `contact_email` VARCHAR(100)
-- `address` TEXT
+- `address_ar` TEXT
+- `address_en` TEXT
 - `created_at` TIMESTAMPTZ DEFAULT NOW()
 - `updated_at` TIMESTAMPTZ DEFAULT NOW()
 
@@ -75,7 +111,8 @@ erDiagram
 - `organization_id` UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE
 - `user_id` UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
 - `role` VARCHAR(50) NOT NULL ('center_manager', 'doctor', 'reception')
-- `specialty` VARCHAR(100) (e.g. 'Cardiology', 'General Practice')
+- `specialty_ar` VARCHAR(100)
+- `specialty_en` VARCHAR(100)
 - `license_number` VARCHAR(100)
 - `status` VARCHAR(20) DEFAULT 'active' ('active', 'inactive')
 - `created_at` TIMESTAMPTZ DEFAULT NOW()
@@ -105,8 +142,10 @@ erDiagram
 #### `patient_allergies` (Critical Safety Table)
 - `id` UUID PRIMARY KEY DEFAULT gen_random_uuid()
 - `patient_id` UUID NOT NULL REFERENCES patient_profiles(id) ON DELETE CASCADE
-- `allergen` VARCHAR(255) NOT NULL
-- `reaction` TEXT
+- `allergen_ar` VARCHAR(255) NOT NULL
+- `allergen_en` VARCHAR(255) NOT NULL
+- `reaction_ar` TEXT
+- `reaction_en` TEXT
 - `severity` VARCHAR(20) NOT NULL ('mild', 'moderate', 'severe', 'life_threatening')
 - `diagnosed_at` DATE
 - `created_at` TIMESTAMPTZ DEFAULT NOW()
@@ -212,7 +251,8 @@ erDiagram
 - `visit_id` UUID REFERENCES visits(id) ON DELETE SET NULL
 - `patient_id` UUID NOT NULL REFERENCES patient_profiles(id) ON DELETE CASCADE
 - `clinician_id` UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
-- `test_name` VARCHAR(255) NOT NULL
+- `test_name_ar` VARCHAR(255) NOT NULL
+- `test_name_en` VARCHAR(255) NOT NULL
 - `test_category` VARCHAR(100) (e.g. 'Hematology', 'Biochemistry')
 - `clinical_notes` TEXT
 - `status` VARCHAR(30) DEFAULT 'pending' ('pending', 'sample_collected', 'completed', 'cancelled')
@@ -302,8 +342,12 @@ erDiagram
 
 ## 3. Migration 002: longitudinal record and coordination
 
-Additive and reversible (`database/migrations/rollback/002_down.sql`), applied by the tracked runner (`npm --prefix backend run migrate`). Adds `care_cases`, `care_tasks`, `care_referrals`, `care_followup_log` (append-only), provenance/review/visibility columns and `NOT VALID` check constraints on `documents`, consent status/scope constraints, the `care_coordinator` membership role, and indexes for timeline paging. Synthetic data: `database/seeds/synthetic_seed_002.sql`.
+Additive and reversible (`database/migrations/rollback/002_down.sql`), applied by the tracked runner (`npm --prefix backend run migrate`). Adds `care_cases`, `care_tasks`, `care_referrals`, `care_followup_log` (append-only), provenance/review/visibility columns and `NOT VALID` check constraints on `documents`, consent status/scope constraints, the `care_coordinator` membership role, and indexes for timeline paging.
 `npm --prefix backend run migrate -- --reset` re-runs everything from 001 and **destroys data**; the API test suite changes state, so reseed (`migrate -- --reset` then `seed`) before re-running it.
+
+## 3b. Migration 003: caregivers, operational messages, AI review of documents
+
+Additive and reversible (`rollback/003_down.sql`). Adds `caregiver_delegations` (access a patient grants to a caregiver account, per capability, expiring), `ops_messages` and `ops_message_replies` (reception to clinician messages without clinical content), `patient_messages.sent_by_caregiver_id`, `documents.ai_processing_allowed`, and the document-reading tables `document_processing` (one row per document: status, provider, model, suggested type) and `document_facts` (readings kept apart from verified data). Only `document_processing` and `document_facts` are still used by the patient-only app; the rest is unused.
 
 ## 4. Migration 004: notifications
 
@@ -328,8 +372,23 @@ Additive and reversible (`rollback/005_down.sql`).
 | `document_links` | document ↔ symptom / entry / visit of the same patient |
 | `document_facts` (extended) | + `patient_decision` (confirmed / rejected), `patient_decided_at`; AI readings stay suggestions until confirmed |
 | `visit_preps` | `visit_date`, `status` (draft / approved), `content` JSONB (reason, overview, sections of sourced items), `approved_at` |
-| `record_shares` | `token_hash` CHAR(64) unique (SHA-256 of a 256-bit token), `snapshot` JSONB (frozen approved content), `expires_at`, `revoked_at`, `view_count`, `last_viewed_at` |
+| `record_shares` | `patient_id`, `prep_id` (nullable FK to `visit_preps`, set null on delete), `token_hash` CHAR(64) unique (SHA-256 of a 256-bit token), `label`, `snapshot` JSONB (frozen approved content), `expires_at`, `revoked_at`, `view_count`, `last_viewed_at` |
 | `share_documents` | documents a share may stream |
 | `share_access_events` | `event` (view / document / denied_expired / denied_revoked), `device`, `ip_hash` (keyed, truncated), `occurred_at` |
-| `ai_interactions` | metadata only: `kind`, `outcome`, `provider`, `model`, `latency_ms` |
+| `ai_interactions` | metadata only: `kind` (assistant / prep_overview), `outcome` (answered / refused / urgent / error / not_configured), `provider`, `model`, `latency_ms` |
 | `patient_profiles` (extended) | `ai_assistant_consent_at` (NULL = never allowed) |
+
+## 6. Migration 006: content translations
+
+Additive and reversible (`rollback/006_down.sql`). One table, `content_translations`, a cache of translations of text the patient typed:
+- Primary key `(patient_id, source_hash, target_lang)`; `patient_id` FK to `patient_profiles` (cascade).
+- `source_hash` CHAR(64) is the SHA-256 of the original wording, so edited text can never show an old translation. The original text is never copied into this table.
+- `source_lang` and `target_lang` are `ar` or `en` and must differ; `translated_text`, `provider` (the engine that made it), `created_at`, `last_used_at`.
+- Rows unused for 90 days are pruned. Design: [translation.md](../features/translation.md).
+
+## 7. Migration 007: account access
+
+Additive and reversible (`rollback/007_down.sql`; it removes email-registered accounts first, because they cannot exist under the older constraints).
+- `users.email_verified_at` (default `NOW()`, so every earlier and administrator-made account counts as confirmed) and `users.password_changed_at` (a reset signs out older sessions).
+- `auth_tokens`: `id`, `user_id` (FK users, cascade), `purpose` (`verify_email` or `reset_password`), `token_hash` CHAR(64) unique (SHA-256 of a 256-bit token), `expires_at`, `used_at`, `created_at`. Tokens are single-use and never stored in clear.
+- `patient_profiles.national_id`, `date_of_birth`, `gender` and `phone` become optional, because a self-registered patient does not have them. Design: [accounts.md](../features/accounts.md).

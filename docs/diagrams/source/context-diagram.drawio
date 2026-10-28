@@ -1,0 +1,78 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="Context Diagram" name="Context Diagram">
+    <mxGraphModel dx="1472" dy="879" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n3" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;strokeWidth=2;" value="Naseej System" vertex="1">
+          <mxGeometry height="240" width="340" x="580" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;" value="Patient" vertex="1">
+          <mxGeometry height="100" width="200" x="40" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;" value="Clinician" vertex="1">
+          <mxGeometry height="100" width="200" x="1260" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;" value="Optional AI Provider" vertex="1">
+          <mxGeometry height="80" width="240" x="630" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;" value="Translation Provider" vertex="1">
+          <mxGeometry height="70" width="230" x="195" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;" value="Email Service" vertex="1">
+          <mxGeometry height="70" width="230" x="1075" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" edge="1" parent="1" source="n4" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.0109;entryY=0.396;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n3" value="Account details, health facts,&lt;br&gt;symptoms, documents,&lt;br&gt;consent, visit prep, share choices">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-50" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n10" edge="1" parent="1" source="n3" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0.0109;exitY=0.604;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n4" value="Timeline, record, suggestions&lt;br&gt;for review, visit summary,&lt;br&gt;QR code, notifications">
+          <mxGeometry relative="1" x="-0.0474" y="45" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n11" edge="1" parent="1" source="n5" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=0.9891;entryY=0.396;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n3" value="Share token (QR / link),&lt;br&gt;document read requests">
+          <mxGeometry relative="1" x="0.0474" y="-35" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n12" edge="1" parent="1" source="n3" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0.9891;exitY=0.604;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n5" value="Read-only approved summary,&lt;br&gt;permitted documents, access outcome">
+          <mxGeometry relative="1" x="-0.0474" y="-35" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n13" edge="1" parent="1" source="n6" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.2887;entryY=0.0468;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n3" value="Suggestions with source references&lt;br&gt;(only with consent)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-120" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n14" edge="1" parent="1" source="n3" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0.7113;exitY=0.0468;exitDx=0;exitDy=0;entryX=0.8;entryY=1;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n6" value="Minimized record context + question&lt;br&gt;(only with consent)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="120" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n15" edge="1" parent="1" source="n7" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.238;entryY=0.919;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n3" value="Translated text">
+          <mxGeometry relative="1" x="0.0421" y="-8" as="geometry">
+            <mxPoint x="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n16" edge="1" parent="1" source="n3" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0.076;exitY=0.765;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n7" value="Text for translation">
+          <mxGeometry relative="1" x="0.1631" y="-10" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n17" edge="1" parent="1" source="n8" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0.3;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" target="n3" value="Delivery outcome">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-55" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n18" edge="1" parent="1" source="n3" style="endArrow=block;endFill=1;html=1;rounded=0;labelBackgroundColor=#FFFFFF;fontSize=11;strokeWidth=1.5;exitX=0.924;exitY=0.765;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n8" value="Verification and&lt;br&gt;password-reset requests">
+          <mxGeometry relative="1" x="0.134" y="18" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

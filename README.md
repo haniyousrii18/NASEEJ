@@ -47,7 +47,7 @@ Principles: the patient decides; nothing is saved or shared without their confir
 | Settings (profile, contact, privacy and assistant switch, password, language/theme), in-app notifications, installable PWA | Implemented |
 | Email/push, server-side transcription, clinical review of safety wording, external identity provider | **Not implemented** |
 
-The earlier multi-center clinic platform (doctor, reception, manager, coordinator, admin and caregiver workspaces) was removed. Its tables from migrations 001-004 remain in the schema but are unused. Design and rules of the new layer: [docs/patient-record.md](docs/patient-record.md).
+The earlier multi-center clinic platform (doctor, reception, manager, coordinator, admin and caregiver workspaces) was removed. Its tables from migrations 001-004 remain in the schema but are unused. Design and rules of the new layer: [docs/features/patient-record.md](docs/features/patient-record.md).
 
 ---
 
@@ -55,7 +55,7 @@ The earlier multi-center clinic platform (doctor, reception, manager, coordinato
 
 - **Frontend:** React 19, Vite 8, TypeScript, plain CSS with design tokens ([DESIGN.md](DESIGN.md)), `qrcode` for the QR image.
 - **Backend:** Node.js, Express 5, TypeScript, `pg`. Email and password with a JWT behind a replaceable `IAuthProvider`.
-- **Database:** PostgreSQL 16+, plain SQL migrations `database/migrations/001-005` with rollbacks.
+- **Database:** PostgreSQL 16+, plain SQL migrations `database/migrations/001-007` with rollbacks.
 - **AI:** provider-agnostic boundary (`backend/src/services/ai`): Google Gemini (HTTPS) or Anthropic (`@anthropic-ai/sdk`). Off by default.
 - **Files:** protected local storage outside the web root (`storage/protected/`), served only through authorized routes.
 - **Tests:** Vitest and Supertest (against a real PostgreSQL), Vitest for the frontend.
@@ -63,15 +63,15 @@ The earlier multi-center clinic platform (doctor, reception, manager, coordinato
 ```text
 backend/    Express API, services, migrations runner, seeds script, tests
 frontend/   React app (public site in src/pages, signed-in app in src/app, health screens in src/app/health)
-database/   migrations/ (001-005), rollback/, seeds/
-docs/       patient-record, architecture, API, ERD, test plan, user guide, team guide
+database/   migrations/ (001-007, rollbacks in migrations/rollback/), seeds/
+docs/       guides/ (user, team, test plan), reference/ (architecture, API, ERD), features/, diagrams/, requirements/
 ```
 
 ---
 
 ## 3. Quick start
 
-Full guide with Git rules: **[docs/team-guide.md](docs/team-guide.md)**. Requirements: Node.js 20+, npm 10+, PostgreSQL 16+, Git.
+Full guide with Git rules: **[docs/guides/team-guide.md](docs/guides/team-guide.md)**. Requirements: Node.js 20+, npm 10+, PostgreSQL 16+, Git.
 
 ```bash
 git clone https://github.com/haniyousrii18/NASEEJ.git
@@ -79,7 +79,7 @@ cd NASEEJ
 npm install
 cp .env.example .env             # set DB_PASSWORD (and DB_* if different)
 # once, in psql:  CREATE DATABASE naseej_dev;
-npm --prefix backend run migrate # tables (001-005)
+npm --prefix backend run migrate # tables (001-007)
 npm --prefix backend run seed    # small synthetic demo (empties every table first)
 npm run dev                      # API on :5000, app on :3000
 ```
@@ -118,9 +118,9 @@ The backend API tests change the database and are meant for a **fresh** one (CI 
 npm --prefix backend run seed
 ```
 
-The demo is one patient with two or three examples per page: 2 conditions, 2 medications, 2 allergies, 3 symptoms, 3 documents (two AI readings waiting for confirmation), 2 visit summaries (one approved and shared, one draft), 1 active share and 2 notifications. The demo holds nothing from a clinic. The API tests create their own center, staff accounts and center-recorded visits (`backend/tests/setup.ts`) to prove that staff cannot use the patient API and that the portal never shows a draft.
+The demo is one patient with two or three examples per page: 2 conditions, 2 medications, 2 allergies, 1 procedure, 1 measurement, 2 visits, 3 symptoms, 3 documents (two AI readings waiting for confirmation), 2 visit summaries (one approved and shared, one draft), 1 active share and 2 notifications. The demo holds nothing from a clinic. The API tests create their own center, staff accounts and center-recorded visits (`backend/tests/setup.ts`) to prove that staff cannot use the patient API and that the portal never shows a draft.
 
-Set `AI_PROVIDER=` (empty) when testing so no real provider is called. Coverage: ownership and IDOR checks, entries/symptoms/vault, suggestions needing confirmation, visit summary, share create/open/expire/revoke and document grants, assistant safety answers, audit content, plus unit tests of safety rules, validation, tokens, rate limiting and reply shaping. Details: [docs/test-plan.md](docs/test-plan.md).
+Set `AI_PROVIDER=` (empty) when testing so no real provider is called. Coverage: ownership and IDOR checks, entries/symptoms/vault, suggestions needing confirmation, visit summary, share create/open/expire/revoke and document grants, assistant safety answers, audit content, plus unit tests of safety rules, validation, tokens, rate limiting and reply shaping. Details: [docs/guides/test-plan.md](docs/guides/test-plan.md).
 
 ---
 
@@ -139,15 +139,17 @@ Restore into a fresh database with `pg_restore` and unpack the archive, then che
 
 ## 7. Documentation index
 
-- [docs/patient-record.md](docs/patient-record.md): the patient layer, rules enforced, configuration, limits.
-- [docs/architecture.md](docs/architecture.md), [docs/api-spec.md](docs/api-spec.md), [docs/database-erd.md](docs/database-erd.md).
-- [docs/test-plan.md](docs/test-plan.md), [docs/user-guide.md](docs/user-guide.md), [docs/team-guide.md](docs/team-guide.md).
+- [docs/features/patient-record.md](docs/features/patient-record.md): the patient layer, rules enforced, configuration, limits.
+- [docs/reference/architecture.md](docs/reference/architecture.md), [docs/reference/api-spec.md](docs/reference/api-spec.md), [docs/reference/database-erd.md](docs/reference/database-erd.md).
+- [docs/README.md](docs/README.md): index of the whole documentation folder.
+- [docs/diagrams/](docs/diagrams/README.md): system analysis diagrams (context, DFD levels 0-2, activity, flowchart, use case, sequence, state, class, ERD and mapping).
+- [docs/guides/test-plan.md](docs/guides/test-plan.md), [docs/guides/user-guide.md](docs/guides/user-guide.md), [docs/guides/team-guide.md](docs/guides/team-guide.md).
 - [DESIGN.md](DESIGN.md), [PRODUCT.md](PRODUCT.md), [Naseej-PRD.md](Naseej-PRD.md).
-- [docs/notifications.md](docs/notifications.md), [docs/pwa.md](docs/pwa.md), [SECURITY.md](SECURITY.md).
+- [docs/features/notifications.md](docs/features/notifications.md), [docs/features/pwa.md](docs/features/pwa.md), [SECURITY.md](SECURITY.md).
 - [docs/academic-deliverables.md](docs/academic-deliverables.md): capstone deliverables.
 
 ---
 
 ## 8. Limits and disclaimer
 
-Naseej is a graduation prototype. It is not certified, not clinically validated and not production-ready, and it claims no compliance with any healthcare regulation. All names and data are synthetic. The software does not diagnose, prescribe or give treatment advice, and AI output never replaces a clinician's judgment. Deployment requirements (encryption at rest, retention jobs, shared rate-limit store, clinical review, a data-processing agreement with any AI provider) are listed in [docs/patient-record.md](docs/patient-record.md).
+Naseej is a graduation prototype. It is not certified, not clinically validated and not production-ready, and it claims no compliance with any healthcare regulation. All names and data are synthetic. The software does not diagnose, prescribe or give treatment advice, and AI output never replaces a clinician's judgment. Deployment requirements (encryption at rest, retention jobs, shared rate-limit store, clinical review, a data-processing agreement with any AI provider) are listed in [docs/features/patient-record.md](docs/features/patient-record.md).

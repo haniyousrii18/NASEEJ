@@ -7,14 +7,15 @@
 | # | Deliverable | Location |
 |---|---|---|
 | 1 | Source code | `backend/src/`, `frontend/src/` |
-| 2 | Migrations, rollbacks, seeds | `database/` |
-| 3 | README and local setup | `README.md`, `docs/team-guide.md` |
-| 4 | Requirements | `Naseej-PRD.md`, `PRODUCT.md` |
-| 5 | Design and rules of the patient layer | `docs/patient-record.md` |
-| 6 | Architecture, API, data model | `docs/architecture.md`, `docs/api-spec.md`, `docs/database-erd.md` |
-| 7 | Test plan and automated tests | `docs/test-plan.md`, `backend/tests/`, `frontend/tests/` |
-| 8 | User guide and demo script | `docs/user-guide.md`, section 4 below |
+| 2 | Migrations (001-007), rollbacks, seeds | `database/` |
+| 3 | README and local setup | `README.md`, `docs/guides/team-guide.md` |
+| 4 | Requirements | `Naseej-PRD.md`, `PRODUCT.md`, `docs/requirements/Naseej-Requirements.pdf` (functional and non-functional requirements) |
+| 5 | Design and rules of the patient layer | `docs/features/patient-record.md` |
+| 6 | Architecture, API, data model | `docs/reference/architecture.md`, `docs/reference/api-spec.md`, `docs/reference/database-erd.md` |
+| 7 | Test plan and automated tests | `docs/guides/test-plan.md`, `backend/tests/`, `frontend/tests/` |
+| 8 | User guide and demo script | `docs/guides/user-guide.md`, section 4 below |
 | 9 | Design system | `DESIGN.md` |
+| 10 | System analysis diagrams (context, DFD 0-2, activity, flowchart, use case, sequence, state, class, ERD, ERD mapping) | `docs/diagrams/` |
 
 ## 3. Report outline
 1. Introduction and motivation (scattered personal health information; history recalled from memory in short consultations).
@@ -34,7 +35,7 @@
 5. Prepare a visit, approve it, create a QR, open it on a phone, revoke it, show the expired state and the access history.
 
 ## 5. Limitations (honest register)
-No live AI provider run yet; safety wording not clinically reviewed; no usability study yet; browser dictation depends on the browser; unencrypted local file storage; in-memory rate limits; no regulatory compliance claimed. See `docs/patient-record.md`.
+No live AI provider run yet; safety wording not clinically reviewed; no usability study yet; browser dictation depends on the browser; unencrypted local file storage; in-memory rate limits; no regulatory compliance claimed. See `docs/features/patient-record.md`.
 
 ## 6. Future work
 Server-side transcription, FHIR import/export, email/push reminders, encryption at rest and retention jobs, clinical review of safety content, formal usability and safety evaluations.
