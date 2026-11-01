@@ -8,7 +8,7 @@ Diagrams for the patient-first prototype (PRD 2.1). The signed-in user is the pa
 
 | # | Diagram | Export | Source | Shows |
 |---|---|---|---|---|
-| 1 | Context diagram | [01-context-diagram.png](exports/01-context-diagram.png) | [context-diagram.drawio](source/context-diagram.drawio) | The system as one process and its five external parties |
+| 1 | Context diagram | [01-context-diagram.png](exports/01-context-diagram.png) | [context-diagram.drawio](source/context-diagram.drawio) | The system as one process and its four external parties |
 | 2 | Flowchart | [02-flowchart.png](exports/02-flowchart.png) | [flowchart.mmd](source/flowchart.mmd) | Uploading a document and reviewing AI suggestions |
 | 3 | Activity diagram | [03-activity-diagram.png](exports/03-activity-diagram.png) | [activity-diagram.drawio](source/activity-diagram.drawio) | Preparing a visit summary and sharing it (swimlanes: patient, system, clinician) |
 | 4 | Use case diagram | [04-use-case-diagram.png](exports/04-use-case-diagram.png) | [use-case-diagram.drawio](source/use-case-diagram.drawio) | Patient, clinician and AI provider use cases |
