@@ -1,25 +1,25 @@
 <mxfile host="app.diagrams.net">
   <diagram id="class" name="Class Diagram">
-    <mxGraphModel dx="488" dy="291" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1000" math="0" shadow="0">
+    <mxGraphModel dx="2938" dy="739" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1000" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="c3" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="User" vertex="1">
           <mxGeometry height="162" width="220" x="40" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="c4" parent="c3" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+string email&#xa;+string passwordHash&#xa;+datetime emailVerifiedAt&#xa;+datetime passwordChangedAt" vertex="1">
+        <mxCell id="c4" parent="c3" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- email : string&#xa;- passwordHash : string&#xa;- emailVerifiedAt : datetime&#xa;- passwordChangedAt : datetime" vertex="1">
           <mxGeometry height="88" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c5" parent="c3" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
           <mxGeometry height="8" width="220" y="114" as="geometry" />
         </mxCell>
-        <mxCell id="c6" parent="c3" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+signIn()&#xa;+resetPassword()" vertex="1">
+        <mxCell id="c6" parent="c3" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+ signIn()&#xa;+ resetPassword()" vertex="1">
           <mxGeometry height="40" width="220" y="122" as="geometry" />
         </mxCell>
         <mxCell id="ca1" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="AuthToken" vertex="1">
           <mxGeometry height="130" width="220" x="-320" y="56" as="geometry" />
         </mxCell>
-        <mxCell id="ca2" parent="ca1" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+string purpose&#xa;+string tokenHash&#xa;+datetime expiresAt&#xa;+datetime usedAt" vertex="1">
+        <mxCell id="ca2" parent="ca1" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- purpose : string&#xa;- tokenHash : string&#xa;- expiresAt : datetime&#xa;- usedAt : datetime" vertex="1">
           <mxGeometry height="88" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="ca3" parent="ca1" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
@@ -31,7 +31,7 @@
         <mxCell id="c7" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="PatientProfile" vertex="1">
           <mxGeometry height="114" width="220" x="560" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="c8" parent="c7" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+UUID userId&#xa;+string preferredLanguage&#xa;+datetime aiAssistantConsentAt" vertex="1">
+        <mxCell id="c8" parent="c7" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- userId : UUID&#xa;- preferredLanguage : string&#xa;- aiAssistantConsentAt : datetime" vertex="1">
           <mxGeometry height="72" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c9" parent="c7" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
@@ -49,85 +49,85 @@
         <mxCell id="c13" parent="c11" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
           <mxGeometry height="8" width="220" y="52" as="geometry" />
         </mxCell>
-        <mxCell id="c14" parent="c11" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+answerFromRecord()&#xa;+validateCitations()&#xa;+applySafetyRules()" vertex="1">
+        <mxCell id="c14" parent="c11" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+ answerFromRecord()&#xa;+ validateCitations()&#xa;+ applySafetyRules()" vertex="1">
           <mxGeometry height="56" width="220" y="60" as="geometry" />
         </mxCell>
         <mxCell id="c15" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="HealthEntry" vertex="1">
           <mxGeometry height="194" width="220" x="40" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="c16" parent="c15" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+string kind&#xa;+string title&#xa;+string source&#xa;+string reviewStatus&#xa;+date eventDate" vertex="1">
+        <mxCell id="c16" parent="c15" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- kind : string&#xa;- title : string&#xa;- source : string&#xa;- reviewStatus : string&#xa;- eventDate : date" vertex="1">
           <mxGeometry height="104" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c17" parent="c15" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
           <mxGeometry height="8" width="220" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="c18" parent="c15" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+confirm()&#xa;+edit()&#xa;+softDelete()" vertex="1">
+        <mxCell id="c18" parent="c15" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+ confirm()&#xa;+ edit()&#xa;+ softDelete()" vertex="1">
           <mxGeometry height="56" width="220" y="138" as="geometry" />
         </mxCell>
         <mxCell id="c19" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="SymptomReport" vertex="1">
           <mxGeometry height="162" width="220" x="300" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="c20" parent="c19" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+string description&#xa;+int severity&#xa;+datetime onsetDate&#xa;+string capturedVia" vertex="1">
+        <mxCell id="c20" parent="c19" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- description : string&#xa;- severity : int&#xa;- onsetDate : datetime&#xa;- capturedVia : string" vertex="1">
           <mxGeometry height="88" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c21" parent="c19" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
           <mxGeometry height="8" width="220" y="114" as="geometry" />
         </mxCell>
-        <mxCell id="c22" parent="c19" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+save()&#xa;+softDelete()" vertex="1">
+        <mxCell id="c22" parent="c19" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+ save()&#xa;+ softDelete()" vertex="1">
           <mxGeometry height="40" width="220" y="122" as="geometry" />
         </mxCell>
         <mxCell id="c23" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="Document" vertex="1">
           <mxGeometry height="162" width="220" x="560" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="c24" parent="c23" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+string fileName&#xa;+string docType&#xa;+string providerName&#xa;+string storagePath" vertex="1">
+        <mxCell id="c24" parent="c23" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- fileName : string&#xa;- docType : string&#xa;- providerName : string&#xa;- storagePath : string" vertex="1">
           <mxGeometry height="88" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c25" parent="c23" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
           <mxGeometry height="8" width="220" y="114" as="geometry" />
         </mxCell>
-        <mxCell id="c26" parent="c23" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+upload()&#xa;+restore()" vertex="1">
+        <mxCell id="c26" parent="c23" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+ upload()&#xa;+ restore()" vertex="1">
           <mxGeometry height="40" width="220" y="122" as="geometry" />
         </mxCell>
         <mxCell id="c27" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="VisitPrep" vertex="1">
           <mxGeometry height="146" width="220" x="820" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="c28" parent="c27" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+date visitDate&#xa;+string status&#xa;+json content" vertex="1">
+        <mxCell id="c28" parent="c27" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- visitDate : date&#xa;- status : string&#xa;- content : json" vertex="1">
           <mxGeometry height="72" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c29" parent="c27" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
           <mxGeometry height="8" width="220" y="98" as="geometry" />
         </mxCell>
-        <mxCell id="c30" parent="c27" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+edit()&#xa;+approve()" vertex="1">
+        <mxCell id="c30" parent="c27" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+ edit()&#xa;+ approve()" vertex="1">
           <mxGeometry height="40" width="220" y="106" as="geometry" />
         </mxCell>
         <mxCell id="c31" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="RecordShare" vertex="1">
           <mxGeometry height="178" width="220" x="1160" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="c32" parent="c31" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+string tokenHash&#xa;+json snapshot&#xa;+datetime expiresAt&#xa;+datetime revokedAt" vertex="1">
+        <mxCell id="c32" parent="c31" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- tokenHash : string&#xa;- snapshot : json&#xa;- expiresAt : datetime&#xa;- revokedAt : datetime" vertex="1">
           <mxGeometry height="88" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c33" parent="c31" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
           <mxGeometry height="8" width="220" y="114" as="geometry" />
         </mxCell>
-        <mxCell id="c34" parent="c31" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+create()&#xa;+revoke()&#xa;+isAccessible()" vertex="1">
+        <mxCell id="c34" parent="c31" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+ create()&#xa;+ revoke()&#xa;+ isAccessible()" vertex="1">
           <mxGeometry height="56" width="220" y="122" as="geometry" />
         </mxCell>
         <mxCell id="c35" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="DocumentFact" vertex="1">
           <mxGeometry height="146" width="220" x="560" y="580" as="geometry" />
         </mxCell>
-        <mxCell id="c36" parent="c35" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+string factType&#xa;+string suggestedValue&#xa;+string patientDecision" vertex="1">
+        <mxCell id="c36" parent="c35" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- kind : string&#xa;- value : string&#xa;- patientDecision : string" vertex="1">
           <mxGeometry height="72" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c37" parent="c35" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
           <mxGeometry height="8" width="220" y="98" as="geometry" />
         </mxCell>
-        <mxCell id="c38" parent="c35" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+confirmSuggestion()&#xa;+rejectSuggestion()" vertex="1">
+        <mxCell id="c38" parent="c35" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+ confirmSuggestion()&#xa;+ rejectSuggestion()" vertex="1">
           <mxGeometry height="40" width="220" y="106" as="geometry" />
         </mxCell>
         <mxCell id="c39" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;horizontal=1;startSize=26;html=1;swimlaneFillColor=#FFFFFF;collapsible=0;marginBottom=0;" value="ShareAccessEvent" vertex="1">
           <mxGeometry height="114" width="220" x="1160" y="580" as="geometry" />
         </mxCell>
-        <mxCell id="c40" parent="c39" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="+UUID id&#xa;+string event&#xa;+string device&#xa;+datetime occurredAt" vertex="1">
+        <mxCell id="c40" parent="c39" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;rotatable=0;whiteSpace=nowrap;html=0;" value="- id : UUID&#xa;- event : string&#xa;- device : string&#xa;- occurredAt : datetime" vertex="1">
           <mxGeometry height="72" width="220" y="26" as="geometry" />
         </mxCell>
         <mxCell id="c41" parent="c39" style="line;strokeWidth=1;align=left;verticalAlign=middle;rotatable=0;" value="" vertex="1">
@@ -276,7 +276,7 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c54" edge="1" parent="1" source="c35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelBackgroundColor=#FFFFFF;fontSize=11;endArrow=none;fillColor=#f5f5f5;strokeColor=#666666;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;" target="c15" value="confirmed into">
+        <mxCell id="c54" edge="1" parent="1" source="c35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelBackgroundColor=#FFFFFF;fontSize=11;endArrow=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;" target="c15" value="confirmed into">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="106" y="653" />
