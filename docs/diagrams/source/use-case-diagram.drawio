@@ -1,1 +1,106 @@
-<mxfile host="app.diagrams.net"><diagram id="Use Case Diagram" name="Use Case Diagram"><mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1350" math="0" shadow="0"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="n3" value="Naseej" style="rounded=0;html=1;fillColor=none;strokeColor=#000000;verticalAlign=top;fontStyle=1;fontSize=15;align=center;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="330" y="30" width="440" height="1240" as="geometry"/></mxCell><mxCell id="n4" value="Create account / sign in" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="80" width="320" height="60" as="geometry"/></mxCell><mxCell id="n5" value="Manage health profile" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="180" width="320" height="60" as="geometry"/></mxCell><mxCell id="n6" value="Record and review symptoms" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="280" width="320" height="60" as="geometry"/></mxCell><mxCell id="n7" value="Upload and manage documents" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="380" width="320" height="60" as="geometry"/></mxCell><mxCell id="n8" value="Review document suggestions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="480" width="320" height="60" as="geometry"/></mxCell><mxCell id="n9" value="View health timeline" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="580" width="320" height="60" as="geometry"/></mxCell><mxCell id="n10" value="Prepare and approve visit summary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="680" width="320" height="60" as="geometry"/></mxCell><mxCell id="n11" value="Create temporary QR share" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="780" width="320" height="60" as="geometry"/></mxCell><mxCell id="n12" value="Revoke share and inspect access history" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="880" width="320" height="60" as="geometry"/></mxCell><mxCell id="n13" value="Ask assistant about own record" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="980" width="320" height="60" as="geometry"/></mxCell><mxCell id="n14" value="Read approved shared summary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="1080" width="320" height="60" as="geometry"/></mxCell><mxCell id="n15" value="Open permitted shared document" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;fontSize=12;" vertex="1" parent="1"><mxGeometry x="390" y="1180" width="320" height="60" as="geometry"/></mxCell><mxCell id="n16" value="Patient" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="110" y="490.0" width="40" height="80" as="geometry"/></mxCell><mxCell id="n17" value="Optional AI&lt;br&gt;Provider" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="900" y="985" width="40" height="80" as="geometry"/></mxCell><mxCell id="n18" value="Clinician&lt;br&gt;(no account)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="900" y="1135.0" width="40" height="80" as="geometry"/></mxCell><mxCell id="n19" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n4"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n20" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n5"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n21" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n6"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n22" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n7"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n23" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n8"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n24" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n9"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n25" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n10"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n26" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n11"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n27" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n12"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n28" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n16" target="n13"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n29" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=0;exitY=0.33;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n18" target="n14"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n30" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=0;exitY=0.33;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n18" target="n15"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n31" value="consent required" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;dashed=1;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0;exitY=0.33;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="n17" target="n13"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n32" value="«extend»" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeWidth=1.2;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="n8" target="n7"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n33" value="«include»" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeWidth=1.2;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="n11" target="n10"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell><mxCell id="n34" value="«extend»" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeWidth=1.2;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="n15" target="n14"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell></root></mxGraphModel></diagram></mxfile>
+<mxfile host="app.diagrams.net">
+  <diagram id="Use Case Diagram" name="Use Case Diagram">
+    <mxGraphModel dx="2135" dy="1275" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1350" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n3" parent="1" style="rounded=0;html=1;verticalAlign=top;fontStyle=1;fontSize=15;align=center;strokeWidth=2;" value="Naseej" vertex="1">
+          <mxGeometry height="1240" width="440" x="330" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Create account / sign in" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Manage health profile" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Record and review symptoms" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Upload and manage documents" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Review document suggestions" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="View health timeline" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="n10" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Prepare and approve visit summary" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="n11" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Create temporary QR share" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="n12" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Revoke share and inspect access history" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="n13" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Ask assistant about own record" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="n14" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Read approved shared summary" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="1080" as="geometry" />
+        </mxCell>
+        <mxCell id="n15" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;" value="Open permitted shared document" vertex="1">
+          <mxGeometry height="60" width="320" x="390" y="1180" as="geometry" />
+        </mxCell>
+        <mxCell id="n16" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontStyle=1;fontSize=13;" value="Patient" vertex="1">
+          <mxGeometry height="80" width="40" x="110" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="n17" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontStyle=1;fontSize=13;" value="Optional AI&lt;br&gt;Provider" vertex="1">
+          <mxGeometry height="80" width="40" x="900" y="985" as="geometry" />
+        </mxCell>
+        <mxCell id="n18" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontStyle=1;fontSize=13;" value="Clinician&lt;br&gt;(no account)" vertex="1">
+          <mxGeometry height="80" width="40" x="900" y="1135" as="geometry" />
+        </mxCell>
+        <mxCell id="n19" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n20" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n21" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n22" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n23" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n24" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n25" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n10" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n26" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n11" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n27" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n12" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n28" edge="1" parent="1" source="n16" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=1;exitY=0.33;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n13" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n29" edge="1" parent="1" source="n18" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=0;exitY=0.33;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n14" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n30" edge="1" parent="1" source="n18" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;exitX=0;exitY=0.33;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n15" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n31" edge="1" parent="1" source="n17" style="endArrow=none;html=1;rounded=0;strokeWidth=1.2;dashed=1;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0;exitY=0.33;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n13" value="consent required">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n32" edge="1" parent="1" source="n8" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeWidth=1.2;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="n7" value="«extend»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n33" edge="1" parent="1" source="n10" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeWidth=1.2;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n11" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n34" edge="1" parent="1" source="n15" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeWidth=1.2;labelBackgroundColor=#FFFFFF;fontSize=11;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="n14" value="«extend»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
