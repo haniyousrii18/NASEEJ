@@ -76,13 +76,10 @@
         <mxCell id="n26" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;strokeWidth=1.5;" value="Optional AI&lt;br&gt;Provider" vertex="1">
           <mxGeometry height="76" width="200" x="1400" y="1505" as="geometry" />
         </mxCell>
-        <mxCell id="n27" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;strokeWidth=1.5;" value="Translation&lt;br&gt;Provider" vertex="1">
-          <mxGeometry height="70" width="200" x="1400" y="1595" as="geometry" />
-        </mxCell>
         <mxCell id="n28" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=0;right=0;fontSize=12;strokeWidth=1.5;" value="D3  |  Documents and Suggestions" vertex="1">
           <mxGeometry height="45" width="240" x="900" y="1683" as="geometry" />
         </mxCell>
-        <mxCell id="n29" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=0;right=0;fontSize=12;strokeWidth=1.5;" value="D7  |  AI and Translation Log" vertex="1">
+        <mxCell id="n29" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=0;right=0;fontSize=12;strokeWidth=1.5;" value="D7  |  AI Log and Translation Cache" vertex="1">
           <mxGeometry height="40" width="240" x="420" y="1775" as="geometry" />
         </mxCell>
         <mxCell id="n30" edge="1" parent="1" source="n3" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=10;strokeWidth=1.3;labelBackgroundColor=none;exitX=1.0;exitY=0.0094;exitDx=0;exitDy=0;entryX=0.0;entryY=0.1786;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n4" value="Account details, consent">
@@ -240,22 +237,12 @@
             <mxPoint y="-12" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="n61" edge="1" parent="1" source="n9" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=10;strokeWidth=1.3;labelBackgroundColor=none;exitX=1.0;exitY=0.6067;exitDx=0;exitDy=0;entryX=0.0;entryY=0.2429;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n27" value="Text to translate">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint y="-12" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="n62" edge="1" parent="1" source="n27" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=10;strokeWidth=1.3;labelBackgroundColor=none;exitX=0.0;exitY=0.7571;exitDx=0;exitDy=0;entryX=1.0;entryY=0.7267;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n9" value="Translated text">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint y="-12" as="offset" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="n63" edge="1" parent="1" source="n28" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=10;strokeWidth=1.3;labelBackgroundColor=none;exitX=0.0;exitY=0.4889;exitDx=0;exitDy=0;entryX=1.0;entryY=0.9167;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n9" value="Document context">
           <mxGeometry relative="1" as="geometry">
             <mxPoint y="-12" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="n64" edge="1" parent="1" source="n9" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=10;strokeWidth=1.3;labelBackgroundColor=none;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n29" value="AI / translation log">
+        <mxCell id="n64" edge="1" parent="1" source="n9" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=10;strokeWidth=1.3;labelBackgroundColor=none;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;exitPerimeter=0;entryPerimeter=0;" target="n29" value="AI log, cached translations">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="68" as="offset" />
           </mxGeometry>
