@@ -117,6 +117,10 @@ export const HeroScene: React.FC = () => {
           </div>
           <span className="scene-badge">
             <CheckIcon />
+            <span>{L.cardReviewed}</span>
+          </span>
+          <span className="scene-badge scene-badge--soft">
+            <CheckIcon />
             <span>{L.cardShareOnly}</span>
           </span>
           <span className="scene-badge scene-badge--soft">

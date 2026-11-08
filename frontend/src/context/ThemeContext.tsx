@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-export type ThemePreference = 'light' | 'dark' | 'system';
+export type ThemePreference = 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
 
 // Only the preference word is stored (never user data). The inline script in index.html reads
@@ -18,7 +18,7 @@ interface ThemeContextValue {
   setPreference: (pref: ThemePreference) => void;
   toggleTheme: () => void;
   workspace: {
-    /** What the workspace is showing right now (a preference of "system" is already resolved). */
+    /** What the workspace is showing right now. */
     theme: ResolvedTheme;
     preference: ThemePreference;
     setPreference: (pref: ThemePreference) => void;
@@ -31,7 +31,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-const isPreference = (v: unknown): v is ThemePreference => v === 'light' || v === 'dark' || v === 'system';
+const isPreference = (v: unknown): v is ThemePreference => v === 'light' || v === 'dark';
 
 const systemTheme = (): ResolvedTheme => {
   try {
@@ -44,9 +44,8 @@ const systemTheme = (): ResolvedTheme => {
   return 'light';
 };
 
-const resolve = (pref: ThemePreference): ResolvedTheme => (pref === 'system' ? systemTheme() : pref);
-
-const readStored = (key: string, fallback: ThemePreference): ThemePreference => {
+// A visitor with no saved choice (or an old "match system" one) starts from what the device prefers once; after that only light or dark.
+const readStored = (key: string, fallback: ThemePreference = systemTheme()): ThemePreference => {
   try {
     const v = localStorage.getItem(key);
     if (isPreference(v)) return v;
@@ -76,30 +75,15 @@ const applyTheme = (theme: ResolvedTheme, animate: boolean) => {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[theme]);
 };
 
-/** True while the operating system prefers dark; re-renders when it changes. */
-const useSystemTheme = (): ResolvedTheme => {
-  const [system, setSystem] = useState<ResolvedTheme>(systemTheme);
-  useEffect(() => {
-    if (!window.matchMedia) return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => setSystem(mq.matches ? 'dark' : 'light');
-    onChange();
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  return system;
-};
-
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [preference, setPreferenceState] = useState<ThemePreference>(() => readStored(THEME_STORAGE_KEY, 'system'));
+  const [preference, setPreferenceState] = useState<ThemePreference>(() => readStored(THEME_STORAGE_KEY));
   const [wsPreference, setWsPreferenceState] = useState<ThemePreference>(() =>
-    readStored(WORKSPACE_THEME_KEY, readStored(THEME_STORAGE_KEY, 'system')),
+    readStored(WORKSPACE_THEME_KEY, readStored(THEME_STORAGE_KEY)),
   );
   const [wsActive, setWsActive] = useState(false);
-  const system = useSystemTheme();
 
-  const resolved: ResolvedTheme = preference === 'system' ? system : preference;
-  const wsTheme: ResolvedTheme = wsPreference === 'system' ? system : wsPreference;
+  const resolved: ResolvedTheme = preference;
+  const wsTheme: ResolvedTheme = wsPreference;
 
   const setWsPreference = useCallback((pref: ThemePreference) => {
     store(WORKSPACE_THEME_KEY, pref);
@@ -115,7 +99,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setPreference(resolve(preference) === 'dark' ? 'light' : 'dark');
+    setPreference(preference === 'dark' ? 'light' : 'dark');
   }, [preference, setPreference]);
 
   // Apply whenever the resolved theme changes, or while a workspace is open, its own theme instead.
@@ -126,8 +110,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Keep other open tabs in step with a change made in this one.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === THEME_STORAGE_KEY) setPreferenceState(readStored(THEME_STORAGE_KEY, 'system'));
-      if (e.key === WORKSPACE_THEME_KEY) setWsPreferenceState(readStored(WORKSPACE_THEME_KEY, 'system'));
+      if (e.key === THEME_STORAGE_KEY) setPreferenceState(readStored(THEME_STORAGE_KEY));
+      if (e.key === WORKSPACE_THEME_KEY) setWsPreferenceState(readStored(WORKSPACE_THEME_KEY, readStored(THEME_STORAGE_KEY)));
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);

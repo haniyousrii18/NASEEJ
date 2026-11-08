@@ -614,6 +614,7 @@ const ar = {
 
   shareView: {
     loading: 'جارٍ فتح الملخص…',
+    jumpTo: 'الانتقال إلى قسم',
     brand: 'نسيج',
     readOnly: 'للقراءة فقط',
     sharedBy: 'ملخص شاركه المريض',
@@ -1263,6 +1264,7 @@ const en: typeof ar = {
 
   shareView: {
     loading: 'Opening the summary…',
+    jumpTo: 'Jump to a section',
     brand: 'Naseej',
     readOnly: 'Read only',
     sharedBy: 'A summary shared by the patient',
