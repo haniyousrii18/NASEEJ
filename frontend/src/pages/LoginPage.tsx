@@ -3,7 +3,8 @@ import { AuthArt } from '../components/AuthArt.js';
 import { ShieldIcon, UserIcon } from '../components/LineIcon.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLang } from '../context/LangContext.js';
-import { AuthField, ForgotForm, InboxPanel, RegisterForm, ResetForm, VerifyPanel, authErrorText, authPost } from './AccessForms.js';
+import { useSiteMsgState, type Msg, type SiteStrings } from '../app/useMsg.js';
+import { AuthField, ForgotForm, InboxPanel, RegisterForm, ResetForm, VerifyPanel, authErrorMsg, authPost } from './AccessForms.js';
 
 /** Which screen the card shows. The address can open some of them directly (the links in the emails). */
 export type AccessMode = 'login' | 'register' | 'forgot' | 'reset' | 'verify' | 'inbox-register' | 'inbox-forgot';
@@ -29,18 +30,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
 
   const [mode, setMode] = useState<AccessMode>(initialMode);
   const [sentTo, setSentTo] = useState('');
-  const [flash, setFlash] = useState('');
+  const [flash, setFlash] = useSiteMsgState();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useSiteMsgState();
   const [unverified, setUnverified] = useState(false);
 
   // PATIENT-ONLY MODE: only the patient demo account exists.
   // To restore all accounts, revert commit on branch feat/patient-only-login.
-  const demoName = isRtl ? 'محمد المنصور (المريض)' : 'Mohammed Al-Mansoor (Patient)';
-  const demoDesc = isRtl ? 'بوابة السجل الصحي والنتائج المعتمدة' : 'Approved health record portal';
+  const demoName = A.demoName;
+  const demoDesc = A.demoDesc;
 
   const go = (next: AccessMode) => {
     setMode(next);
@@ -49,7 +50,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
     setUnverified(false);
   };
   /** Leaving a screen that was opened by an emailed link: back to plain sign-in, with the link out of the address. */
-  const toLogin = (message = '') => {
+  const toLogin = (message: Msg<SiteStrings> = '') => {
     onLeaveLink?.();
     go('login');
     setFlash(message);
@@ -65,13 +66,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
     setLoading(false);
     if (!r.ok) {
       setUnverified(r.code === 'EMAIL_NOT_VERIFIED');
-      setErrorMsg(authErrorText(A, r));
+      setErrorMsg(authErrorMsg(r));
       return;
     }
     // PATIENT-ONLY MODE: only patients may access the app through this login page.
     // To restore full access, revert commit on branch feat/patient-only-login.
     if (!r.data.user.patientProfileId) {
-      setErrorMsg(A.errors.patientsOnly);
+      setErrorMsg((X) => X.auth.errors.patientsOnly);
       return;
     }
     login(r.data.token, r.data.user, remember);
@@ -90,7 +91,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
       setSentTo(email.trim());
       go('inbox-register');
     } else {
-      setErrorMsg(authErrorText(A, r));
+      setErrorMsg(authErrorMsg(r));
     }
   };
 
@@ -200,7 +201,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setCurrentView, initialMod
             />
           )}
 
-          {mode === 'reset' && <ResetForm token={token} onDone={() => toLogin(A.resetDone)} onAskAgain={() => go('forgot')} />}
+          {mode === 'reset' && <ResetForm token={token} onDone={() => toLogin((X) => X.auth.resetDone)} onAskAgain={() => go('forgot')} />}
 
           {mode === 'verify' && <VerifyPanel token={token} onLogin={() => toLogin()} onAskAgain={() => go('forgot')} />}
 

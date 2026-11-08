@@ -1,12 +1,15 @@
 import React, { useCallback, useId, useMemo, useState } from 'react';
+import { UserText } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { DatePicker } from '../DatePicker.js';
 import { fill, formatDate } from '../format.js';
 import { Button, Drawer, EmptyState, ErrorState, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
-import { FilterBar } from './filters.js';
+import { FilterBar, FilterToggle } from './filters.js';
 import { routeForRef } from './kit.js';
+import { useMsgState } from '../useMsg.js';
+import { DrawLine, Pop, Reveal } from '../../components/motion.js';
 
 /**
  * The patient's timeline. It is read-only by design: there is no add, edit or delete anywhere on it. Events are derived
@@ -14,6 +17,14 @@ import { routeForRef } from './kit.js';
  * from and how sure that source is. Clinical text is shown exactly as written, never translated or rephrased. The only thing a patient does here is choose events for a visit summary; that
  * choice is copied into the summary and never touches an event.
  */
+const RANGE_DAYS = { d30: 30, m3: 90, y1: 365 } as const;
+/** Today minus n days, as a local YYYY-MM-DD (the form a date field holds). */
+const isoDaysAgo = (n: number) => {
+  const d = new Date(`${todayIso()}T00:00:00`);
+  d.setDate(d.getDate() - n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 type Category = 'condition' | 'medication' | 'allergy' | 'procedure' | 'test' | 'symptom' | 'visit' | 'document' | 'other';
 type Origin = 'record_ai' | 'patient' | 'clinician' | 'upload';
 type Certainty = 'clear' | 'check' | 'conflict' | 'undated';
@@ -74,7 +85,8 @@ const EventCard: React.FC<{
   onToggle: (ref: string) => void;
   onOpenDocument: (e: TlEvent) => void;
   onJump: (ref: string) => void;
-}> = ({ event: e, byRef, selecting, chosen, atLimit, onToggle, onOpenDocument, onJump }) => {
+  index: number;
+}> = ({ event: e, byRef, selecting, chosen, atLimit, onToggle, onOpenDocument, onJump, index }) => {
   const A = useA();
   const T = A.health.tl;
   const [open, setOpen] = useState(false);
@@ -84,10 +96,10 @@ const EventCard: React.FC<{
   const band = confidenceBand(e.confidence);
 
   return (
-    <li id={`tl-${e.ref.replace(':', '-')}`} className="hp-tl-item" data-origin={e.origin} data-flag={flag ?? undefined} data-chosen={chosen || undefined}>
-      <span className="hp-tl-dot" aria-hidden="true">
-        <AppIcon name={CATEGORY_ICON[e.category]} size={18} />
-      </span>
+    <Reveal as="li" y={16} i={index % 5} id={`tl-${e.ref.replace(':', '-')}`} className="hp-tl-item" data-origin={e.origin} data-flag={flag ?? undefined} data-chosen={chosen || undefined}>
+      <Pop className="hp-tl-dot l-node" i={index % 5} aria-hidden="true">
+        <AppIcon name={CATEGORY_ICON[e.category]} size={19} />
+      </Pop>
       <article className="hp-tl-card" aria-labelledby={`${uid}-t`}>
         <div className="hp-tl-head">
           <div className="hp-tl-when">
@@ -106,11 +118,11 @@ const EventCard: React.FC<{
         </div>
 
         <h3 id={`${uid}-t`} className="hp-tl-title">
-          <bdi>{e.title}</bdi>
+          <UserText text={e.title} />
         </h3>
         {e.detail && (
           <p className="hp-tl-detail">
-            <bdi>{e.detail}</bdi>
+            <DetailText text={e.detail} />
           </p>
         )}
 
@@ -186,7 +198,7 @@ const EventCard: React.FC<{
                     return (
                       <li key={ref}>
                         <button type="button" className="hp-tl-link" onClick={() => onJump(ref)}>
-                          <bdi>{other.title}{other.detail ? ` · ${other.detail}` : ''}</bdi>
+                          <bdi><UserText text={other.title} />{other.detail ? <> · <DetailText text={other.detail} /></> : null}</bdi>
                           {other.date && <span className="na-ltr"> · {formatDate(A.lang, other.date)}</span>}
                         </button>
                       </li>
@@ -203,7 +215,7 @@ const EventCard: React.FC<{
           </div>
         )}
       </article>
-    </li>
+    </Reveal>
   );
 };
 
@@ -221,7 +233,7 @@ const ReviewDrawer: React.FC<{
   const [date, setDate] = useState('');
   const [noDate, setNoDate] = useState(false);
   const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useMsgState();
   const unverified = chosen.filter((e) => e.origin === 'record_ai' && !e.confirmedByPatient);
   const flagged = unverified.filter((e) => e.certainty !== 'clear').length + chosen.filter((e) => !(e.origin === 'record_ai' && !e.confirmedByPatient) && e.certainty !== 'clear').length;
 
@@ -229,7 +241,7 @@ const ReviewDrawer: React.FC<{
     ev.preventDefault();
     setError('');
     const res = await run<{ id: string }>('/api/prep', 'POST', { visit_date: noDate ? null : date || null, reason: reason.trim(), lang: A.lang, refs: chosen.map((e) => e.ref) });
-    if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : R.failed);
+    if (!res.ok) return setError((X) => (res.error.status === 0 ? X.health.common.offline : X.health.tl.review.failed));
     onCreated(res.data.id);
   };
 
@@ -254,7 +266,7 @@ const ReviewDrawer: React.FC<{
             <li key={e.ref}>
               <span className="hp-tl-chosen-text">
                 <strong>
-                  <bdi>{e.title}</bdi>
+                  <UserText text={e.title} />
                 </strong>
                 <span>
                   {e.date ? formatDate(A.lang, e.date) : A.health.tl.undated} · {A.health.tl.origin[e.origin]}
@@ -311,6 +323,21 @@ const Skeleton: React.FC = () => {
   );
 };
 
+/**
+ * An event's detail line is several pieces joined with " · " by the server (dose, provider, notes...). Translation works on
+ * one piece of typed text at a time, and a line mixing two languages is never translated, so each piece is shown on its own.
+ */
+const DetailText: React.FC<{ text: string }> = ({ text }) => (
+  <>
+    {text.split(' · ').map((part, i) => (
+      <React.Fragment key={i}>
+        {i > 0 && ' · '}
+        <UserText text={part} />
+      </React.Fragment>
+    ))}
+  </>
+);
+
 export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ navigate }) => {
   const A = useA();
   const T = A.health.tl;
@@ -322,6 +349,7 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const filtersId = useId();
   // Opening the page with ?select=1 (from Today) starts choosing events for a visit summary.
   const [selecting, setSelecting] = useState(() => /[?&]select=1/.test(window.location.hash));
   const [chosen, setChosen] = useState<string[]>([]);
@@ -352,6 +380,15 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
     return [...m];
   }, [visible]);
 
+  const [customRange, setCustomRange] = useState(false);
+  // Which period chip is lit: a preset when the dates match one exactly, "custom" when they are anything else.
+  const rangeKey: 'all' | 'd30' | 'm3' | 'y1' | 'custom' = customRange
+    ? 'custom'
+    : !from && !to
+      ? 'all'
+      : !to
+        ? ((['d30', 'm3', 'y1'] as const).find((k) => from === isoDaysAgo(RANGE_DAYS[k])) ?? 'custom')
+        : 'custom';
   const toggle = <V,>(list: V[], set: (v: V[]) => void, v: V) => set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const reset = () => {
     setCats([]);
@@ -359,6 +396,7 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
     setFlags([]);
     setFrom('');
     setTo('');
+    setCustomRange(false);
   };
   const toggleChosen = useCallback((ref: string) => setChosen((c) => (c.includes(ref) ? c.filter((x) => x !== ref) : [...c, ref])), []);
   const stopSelecting = () => {
@@ -376,12 +414,14 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
   }, []);
 
   const chosenEvents = chosen.map((r) => byRef.get(r)).filter((e): e is TlEvent => !!e);
+  const activeFilters = cats.length + origins.length + flags.length + (from ? 1 : 0) + (to ? 1 : 0);
   const filtersActive = cats.length + origins.length + flags.length + (from ? 1 : 0) + (to ? 1 : 0) > 0;
   const status = state.status === 'ready' ? state.data.status : null;
   const docs = status?.documents;
 
   const actions = (
     <>
+      {all.length > 0 && <FilterToggle open={showFilters} count={activeFilters} controls={filtersId} onToggle={() => setShowFilters((v) => !v)} />}
       <Button small variant="quiet" icon="message" onClick={() => navigate('patient/symptoms')} title={T.reportSymptomHelp}>
         {T.reportSymptom}
       </Button>
@@ -412,56 +452,10 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
   return (
     <>
       <PageHead title={T.title} subtitle={T.subtitle} actions={actions} />
-      <div className="hp-stack">
-        <aside className="hp-tl-about" aria-label={T.legendTitle}>
-          <p>{T.about}</p>
-          <ul className="hp-tl-legend">
-            {ORIGINS.map((o) => (
-              <li key={o} data-origin={o}>
-                <AppIcon name={ORIGIN_ICON[o]} size={15} />
-                {T.origin[o]}
-              </li>
-            ))}
-          </ul>
-        </aside>
-
-        {status && (docs!.total > 0 || !status.aiConfigured) && (
-          <div className="hp-tl-status">
-            {docs!.total > 0 && (
-              <ul className="hp-tl-status-list">
-                <li>{fill(T.status.readOf, { n: docs!.readable, total: docs!.total })}</li>
-                {docs!.waiting > 0 && <li>{fill(T.status.waiting, { n: docs!.waiting })}</li>}
-                {docs!.failed > 0 && (
-                  <li data-tone="warn">
-                    <AppIcon name="alert" size={14} />
-                    {fill(T.status.failed, { n: docs!.failed })}
-                  </li>
-                )}
-                {docs!.notAllowed > 0 && <li>{fill(T.status.notAllowed, { n: docs!.notAllowed })}</li>}
-              </ul>
-            )}
-            <div className="na-row">
-              {docs!.waiting > 0 && (
-                <Button small variant="quiet" icon="refresh" onClick={() => void reload()}>
-                  {T.status.refresh}
-                </Button>
-              )}
-              {(docs!.failed > 0 || docs!.notAllowed > 0) && (
-                <Button small variant="quiet" onClick={() => navigate('patient/documents')}>
-                  {T.status.openDocs}
-                </Button>
-              )}
-            </div>
-            {!status.aiConfigured && docs!.total > 0 && (
-              <Notice tone="info" icon="alert">
-                {T.status.aiOff}
-              </Notice>
-            )}
-          </div>
-        )}
-
+      <div className="hp-stack hp-tl-stack">
         {all.length > 0 && (
           <FilterBar
+            external={{ controls: filtersId }}
             open={showFilters}
             onToggle={() => setShowFilters((v) => !v)}
             onReset={reset}
@@ -483,36 +477,58 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
                 ))}
               </div>
             </fieldset>
-            <fieldset className="hp-fieldset">
-              <legend>{T.filters.origin}</legend>
-              <div className="na-chips">
-                {ORIGINS.map((o) => (
-                  <button key={o} type="button" className="na-chip" aria-pressed={origins.includes(o)} onClick={() => toggle(origins, setOrigins, o)}>
-                    {T.origin[o]}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset className="hp-fieldset">
-              <legend>{T.filters.certainty}</legend>
-              <div className="na-chips">
-                {FLAGS.map((f) => (
-                  <button key={f} type="button" className="na-chip" aria-pressed={flags.includes(f)} onClick={() => toggle(flags, setFlags, f)}>
-                    {T.certainty[f]}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <div className="hp-fgrid">
+              <fieldset className="hp-fieldset">
+                <legend>{T.filters.origin}</legend>
+                <div className="na-chips">
+                  {ORIGINS.map((o) => (
+                    <button key={o} type="button" className="na-chip" aria-pressed={origins.includes(o)} onClick={() => toggle(origins, setOrigins, o)}>
+                      {T.origin[o]}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset className="hp-fieldset">
+                <legend>{T.filters.certainty}</legend>
+                <div className="na-chips">
+                  {FLAGS.map((f) => (
+                    <button key={f} type="button" className="na-chip" aria-pressed={flags.includes(f)} onClick={() => toggle(flags, setFlags, f)}>
+                      {T.certainty[f]}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
             <fieldset className="hp-fieldset">
               <legend>{T.filters.range}</legend>
-              <div className="hp-pair">
-                <Field label={A.common.filters.from} htmlFor="tl-from">
-                  <DatePicker id="tl-from" value={from} max={to || todayIso()} onChange={(e) => setFrom(e.target.value)} />
-                </Field>
-                <Field label={A.common.filters.to} htmlFor="tl-to">
-                  <DatePicker id="tl-to" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
-                </Field>
+              <div className="na-chips">
+                {(['all', 'd30', 'm3', 'y1', 'custom'] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    className="na-chip"
+                    aria-pressed={rangeKey === k}
+                    onClick={() => {
+                      if (k === 'custom') return setCustomRange(true);
+                      setCustomRange(false);
+                      setTo('');
+                      setFrom(k === 'all' ? '' : isoDaysAgo(RANGE_DAYS[k]));
+                    }}
+                  >
+                    {T.filters.quick[k]}
+                  </button>
+                ))}
               </div>
+              {rangeKey === 'custom' && (
+                <div className="hp-pair">
+                  <Field label={A.common.filters.from} htmlFor="tl-from">
+                    <DatePicker id="tl-from" value={from} max={to || todayIso()} onChange={(e) => setFrom(e.target.value)} />
+                  </Field>
+                  <Field label={A.common.filters.to} htmlFor="tl-to">
+                    <DatePicker id="tl-to" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+                  </Field>
+                </div>
+              )}
             </fieldset>
           </FilterBar>
         )}
@@ -532,7 +548,7 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
 
         {visible.length > 0 && (
           <>
-            <p className="na-help" role="status">
+            <p className={filtersActive ? 'na-help' : 'hp-visually-hidden'} role="status">
               {fill(T.count, { n: visible.length, total: all.length })}
             </p>
             {groups.map(([year, events]) => (
@@ -542,9 +558,11 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
                   <span className="hp-tl-yearcount">{events.length}</span>
                 </h2>
                 <ol className="hp-tl-list">
-                  {events.map((e) => (
+                  <DrawLine axis="y" />
+                  {events.map((e, index) => (
                     <EventCard
                       key={e.ref}
+                      index={index}
                       event={e}
                       byRef={byRef}
                       selecting={selecting}

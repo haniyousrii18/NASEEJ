@@ -33,6 +33,22 @@ export const SearchField: React.FC<{ id: string; label: string; value: string; o
   );
 };
 
+/** The button that opens a FilterBar's panel. FilterBar draws it by default; a page can place it elsewhere. */
+export const FilterToggle: React.FC<{ open: boolean; count: number; controls: string; onToggle: () => void }> = ({ open, count, controls, onToggle }) => {
+  const C = useA().health.common;
+  return (
+    <Button small variant="quiet" className="hp-filters-btn" aria-expanded={open} aria-controls={controls} onClick={onToggle}>
+      <AppIcon name="settings" size={16} />
+      {C.filters}
+      {count > 0 && (
+        <span className="hp-count" aria-label={fill(C.filtersOn, { n: count })}>
+          {count}
+        </span>
+      )}
+    </Button>
+  );
+};
+
 export const FilterBar: React.FC<{
   search?: { id: string; label: string; value: string; onChange: (v: string) => void; placeholder?: string };
   open: boolean;
@@ -41,26 +57,21 @@ export const FilterBar: React.FC<{
   onReset: () => void;
   /** The controls inside the panel (selects, dates, chips). */
   children?: React.ReactNode;
-}> = ({ search, open, onToggle, active, onReset, children }) => {
+  /** The page shows the toggle itself (e.g. in its header), as a FilterToggle with the same `controls` id. */
+  external?: { controls: string };
+}> = ({ search, open, onToggle, active, onReset, children, external }) => {
   const A = useA();
   const C = A.health.common;
-  const panelId = useId();
+  const ownId = useId();
+  const panelId = external?.controls ?? ownId;
   const hasPanel = !!children;
+  // A page that draws the toggle itself has nothing to show here until the panel is open or a filter is on.
+  if (external && !open && active.length === 0) return null;
   return (
     <div className="hp-filters">
       <div className="hp-filters-row">
         {search && <SearchField {...search} />}
-        {hasPanel && (
-          <Button small variant="quiet" className="hp-filters-btn" aria-expanded={open} aria-controls={panelId} onClick={onToggle}>
-            <AppIcon name="settings" size={16} />
-            {C.filters}
-            {active.length > 0 && (
-              <span className="hp-count" aria-label={fill(C.filtersOn, { n: active.length })}>
-                {active.length}
-              </span>
-            )}
-          </Button>
-        )}
+        {hasPanel && !external && <FilterToggle open={open} count={active.length} controls={panelId} onToggle={onToggle} />}
       </div>
       {open && hasPanel && (
         <div className="hp-filters-panel" id={panelId} role="group" aria-label={C.filters}>

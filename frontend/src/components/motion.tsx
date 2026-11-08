@@ -42,19 +42,21 @@ export const WorkspaceMotion: React.FC<{ children: React.ReactNode }> = ({ child
   <MotionConfig reducedMotion="user">{children}</MotionConfig>
 );
 
-/** Whole-page enter, keyed by view in the shell. There is no exit, so navigation never feels slow. */
+/** Whole-page enter, keyed by view in the shell: a short fade, never a slide, so the page itself does not move. There is no exit, so navigation never feels slow. */
 export const PageTransition: React.FC<BoxProps> = ({ children, as = 'div', ...rest }) => {
   const Tag = tagOf(as);
   return (
-    <Tag {...rest} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, ease: EASE }}>
+    <Tag {...rest} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, ease: EASE }}>
       {children}
     </Tag>
   );
 };
 
 const riseVariants = {
-  hidden: { opacity: 0, y: 14 },
-  show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: Math.min(i, STAGGER_CAP) * STAGGER_STEP, duration: 0.4, ease: EASE } }),
+  // Cards and rows are in place from the first frame: the page fades in as one piece (PageTransition), so nothing slides or
+  // arrives one after another while the person is navigating.
+  hidden: { opacity: 1, y: 0 },
+  show: () => ({ opacity: 1, y: 0, transition: { duration: 0 } }),
   now: { opacity: 1, y: 0, transition: { duration: 0 } },
 };
 

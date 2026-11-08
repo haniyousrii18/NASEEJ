@@ -3,7 +3,7 @@ import { query, withTransaction } from '../config/db.js';
 import { authenticate } from '../middleware/auth.js';
 import { requirePatient } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
-import { buildRecordItems, searchItems } from '../services/health/context.js';
+import { searchIds, searchRecords } from '../services/search/searchService.js';
 import { buildEvents } from '../services/health/timeline.js';
 import { ENTRY_KINDS, parseEntry, parseSymptom, type EntryKind } from '../services/health/input.js';
 import { apiError, clampInt, isUuid, serverError } from '../services/validation.js';
@@ -209,11 +209,13 @@ recordRouter.get('/symptoms', async (req: Request, res: Response): Promise<void>
       where += ` AND onset_date ${op} $${params.length}`;
     }
   }
-  if (typeof req.query.q === 'string' && req.query.q.trim()) {
-    params.push(`%${req.query.q.trim().replace(/[\\%_]/g, '\\$&')}%`);
-    where += ` AND (symptom_description ILIKE $${params.length} ESCAPE '\\' OR notes ILIKE $${params.length} ESCAPE '\\')`;
-  }
   try {
+    // The same bilingual, typo-tolerant search as everywhere else: the matching ids narrow this list.
+    const matched = await searchIds(pid(req), req.query.q, ['symptom']);
+    if (matched) {
+      params.push(matched);
+      where += ` AND id = ANY($${params.length}::uuid[])`;
+    }
     params.push(limit + 1, offset);
     const rows = await query(`SELECT ${SYMPTOM_COLS} FROM symptom_reports WHERE ${where} ORDER BY onset_date DESC LIMIT $${params.length - 1} OFFSET $${params.length}`, params);
     const page = rows.rows.slice(0, limit);
@@ -294,8 +296,8 @@ recordRouter.get('/search', async (req: Request, res: Response): Promise<void> =
   const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
   if (q.length < 2 || q.length > 100) return void res.status(400).json(apiError('VALIDATION_ERROR', 'Search for 2 to 100 characters.'));
   try {
-    const items = await buildRecordItems(pid(req), req.query.lang === 'en' ? 'en' : 'ar');
-    res.json({ success: true, data: searchItems(items, q).slice(0, 40) });
+    const { hits } = await searchRecords(pid(req), q, { limit: 40, lang: req.query.lang === 'en' ? 'en' : 'ar' });
+    res.json({ success: true, data: hits });
   } catch (err) {
     res.status(500).json(serverError(err));
   }

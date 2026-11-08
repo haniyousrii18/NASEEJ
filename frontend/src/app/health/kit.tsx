@@ -307,6 +307,7 @@ export function routeForRef(ref: string, documentId?: string): string {
   if (documentId || prefix === 'document' || prefix === 'fact') return 'patient/documents';
   if (prefix === 'symptom') return 'patient/symptoms';
   if (prefix === 'appt') return 'patient/appointments';
+  if (prefix === 'prep' || prefix === 'visit') return 'patient/visits';
   return 'patient/profile';
 }
 

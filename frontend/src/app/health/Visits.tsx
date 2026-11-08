@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { UserText } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
-import { fill, formatDate, todayIso } from '../format.js';
+import { fill, formatDate, localeOf, todayIso } from '../format.js';
 import type { TimelineItem } from '../record/Timeline.js';
-import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
+import { Async, Button, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { EntryForm, type Entry } from './forms.js';
 import { ConfirmDialog, Toast, useToast } from './kit.js';
 import { DatePicker } from '../DatePicker.js';
+import { failureMsg } from '../errors.js';
+import { useMsgState } from '../useMsg.js';
+import { Reveal } from '../../components/motion.js';
+import { AppIcon } from '../AppIcons.js';
 
 export interface Prep {
   id: string;
@@ -46,13 +50,15 @@ export const StartPrep: React.FC<{ presetDate?: string; onCreated: (id: string) 
   const [date, setDate] = useState(presetDate ?? '');
   const [reason, setReason] = useState('');
   const [lang, setLang] = useState<'ar' | 'en'>(A.lang);
-  const [error, setError] = useState('');
+  const [error, setError] = useMsgState();
+  const needsDate = !noDate && !date;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (pending || needsDate) return;
     setError('');
     const res = await run<Prep>('/api/prep', 'POST', { visit_date: noDate ? null : date || null, reason: reason.trim(), lang });
-    if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : A.health.common.failed);
+    if (!res.ok) return setError(failureMsg(res.error, undefined, false));
     onCreated(res.data.id);
   };
 
@@ -63,12 +69,12 @@ export const StartPrep: React.FC<{ presetDate?: string; onCreated: (id: string) 
         <span>{V.noDate}</span>
       </label>
       {!noDate && (
-        <Field label={V.date} htmlFor="pv-date">
+        <Field label={V.date} htmlFor="pv-date" help={needsDate ? V.dateRequired : undefined}>
           <DatePicker id="pv-date" value={date} min={undefined} onChange={(e) => setDate(e.target.value)} />
         </Field>
       )}
       <Field label={V.reason} htmlFor="pv-reason" help={V.reasonHelp}>
-        <textarea id="pv-reason" className="na-textarea" dir="auto" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
+        <textarea id="pv-reason" className="na-textarea" dir="auto" rows={3} maxLength={500} autoFocus value={reason} onChange={(e) => setReason(e.target.value)} />
       </Field>
       <Field label={V.language} htmlFor="pv-lang">
         <Select id="pv-lang" className="na-select" value={lang} onChange={(e) => setLang(e.target.value as 'ar' | 'en')}>
@@ -82,7 +88,7 @@ export const StartPrep: React.FC<{ presetDate?: string; onCreated: (id: string) 
         </Notice>
       )}
       <div className="na-form-actions">
-        <Button type="submit" variant="primary" disabled={pending}>
+        <Button type="submit" variant="primary" disabled={pending || needsDate}>
           {pending ? V.starting : V.start}
         </Button>
         {onCancel && (
@@ -94,6 +100,28 @@ export const StartPrep: React.FC<{ presetDate?: string; onCreated: (id: string) 
     </form>
   );
 };
+
+/** A calendar tile: the day large, the month small. A missing or unreadable date shows a calendar glyph instead. */
+const DateTile: React.FC<{ date: string | null; lang: 'ar' | 'en'; muted?: boolean }> = ({ date, lang, muted }) => {
+  const d = date ? new Date(`${date.slice(0, 10)}T00:00:00`) : null;
+  if (!d || Number.isNaN(d.getTime())) {
+    return (
+      <span className="hp-vx-tile hp-vx-tile--none" aria-hidden="true">
+        <AppIcon name="calendar" size={22} />
+      </span>
+    );
+  }
+  return (
+    <span className="hp-vx-tile" data-muted={muted || undefined} aria-hidden="true">
+      <b>{new Intl.DateTimeFormat(localeOf(lang), { day: 'numeric' }).format(d)}</b>
+      <small>{new Intl.DateTimeFormat(localeOf(lang), { month: 'short' }).format(d)}</small>
+    </span>
+  );
+};
+
+const daysUntil = (iso: string) => Math.round((new Date(`${iso.slice(0, 10)}T00:00:00`).getTime() - new Date(`${todayIso()}T00:00:00`).getTime()) / 86400000);
+
+const countItems = (p: Prep) => p.content.sections.filter((s) => s.included).reduce((n, s) => n + s.items.length, 0);
 
 export const PatientVisits: React.FC<{ navigate: (r: string) => void }> = ({ navigate }) => {
   const A = useA();
@@ -108,10 +136,32 @@ export const PatientVisits: React.FC<{ navigate: (r: string) => void }> = ({ nav
   const { toast, show, hide } = useToast();
   const today = todayIso();
 
-  const items = upcoming.state.status === 'ready' ? upcoming.state.data : [];
-  const future = items
-    .filter((i) => (i.type === 'appointment' && String(i.data.date) >= today && !['cancelled', 'completed'].includes(String(i.data.status))) || (i.type === 'patient_entry' && i.data.kind === 'visit' && i.occurredAt.slice(0, 10) >= today))
-    .sort((a, b) => (a.occurredAt < b.occurredAt ? -1 : 1));
+  const future = useMemo(() => {
+    const items = upcoming.state.status === 'ready' ? upcoming.state.data : [];
+    return items
+      .filter((i) => (i.type === 'appointment' && String(i.data.date) >= today && !['cancelled', 'completed'].includes(String(i.data.status))) || (i.type === 'patient_entry' && i.data.kind === 'visit' && i.occurredAt.slice(0, 10) >= today))
+      .sort((a, b) => (a.occurredAt < b.occurredAt ? -1 : 1));
+  }, [upcoming.state, today]);
+
+  const [upSort, setUpSort] = useState<'soonest' | 'latest'>('soonest');
+  const [prepSort, setPrepSort] = useState<'updated' | 'soonest' | 'latest' | 'drafts'>('updated');
+  const futureSorted = useMemo(() => (upSort === 'soonest' ? future : [...future].reverse()), [future, upSort]);
+
+  const prepList = preps.state.status === 'ready' ? preps.state.data : [];
+  // A summary with no date always goes last when ordering by visit date.
+  const prepsSorted = useMemo(() => {
+    const byUpdated = (a: Prep, b: Prep) => b.updatedAt.localeCompare(a.updatedAt);
+    const visit = (p: Prep) => p.visitDate?.slice(0, 10) ?? '';
+    const dated = (dir: 1 | -1) => (a: Prep, b: Prep) => (!visit(a) ? 1 : !visit(b) ? -1 : dir * visit(a).localeCompare(visit(b))) || byUpdated(a, b);
+    const by = {
+      updated: byUpdated,
+      soonest: dated(1),
+      latest: dated(-1),
+      drafts: (a: Prep, b: Prep) => Number(a.status === 'approved') - Number(b.status === 'approved') || byUpdated(a, b),
+    }[prepSort];
+    return [...prepList].sort(by);
+  }, [prepList, prepSort]);
+  const prepForDate = (date: string) => prepList.find((p) => p.visitDate?.slice(0, 10) === date);
 
   const doDelete = async (p: Prep) => {
     setAskDelete(null);
@@ -120,6 +170,11 @@ export const PatientVisits: React.FC<{ navigate: (r: string) => void }> = ({ nav
       setVersion((v) => v + 1);
       show({ text: A.health.common.deleted });
     } else show({ text: A.health.common.failed, tone: 'danger' });
+  };
+
+  const when = (date: string) => {
+    const n = daysUntil(date);
+    return n <= 0 ? V.today : n === 1 ? V.tomorrow : n < 15 ? fill(V.inDays, { n }) : '';
   };
 
   return (
@@ -133,66 +188,111 @@ export const PatientVisits: React.FC<{ navigate: (r: string) => void }> = ({ nav
           </Button>
         }
       />
-      <div className="hp-stack">
-        <Card title={V.myPreps}>
-          <Async state={preps.state} onRetry={preps.reload} isEmpty={(d) => d.length === 0} empty={<EmptyState title={V.prepsEmpty} body={V.prepareBody} action={<Button variant="primary" onClick={() => setStarting({})}>{V.prepareTitle}</Button>} />}>
-            {(list) => (
-              <ul className="na-list">
-                {list.map((p) => (
-                  <li key={p.id} className="na-list-item hp-prepitem">
-                    <div className="na-row na-row--between">
-                      <strong>{p.content.reason ? <UserText text={p.content.reason} /> : p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate}</strong>
-                      <Pill tone={p.status === 'approved' ? 'ok' : 'warn'}>
-                        <span aria-hidden="true">{p.status === 'approved' ? '✓' : '○'}</span> {p.status === 'approved' ? V.approved : V.draft}
-                      </Pill>
-                    </div>
-                    <span className="na-muted">
-                      {[p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate, fill(V.updated, { date: formatDate(A.lang, p.updatedAt) })].join(' · ')}
-                    </span>
-                    <div className="na-row">
-                      <Button small variant="primary" onClick={() => navigate(`patient/visits/prep/${p.id}`)}>
-                        {V.open}
-                      </Button>
-                      <Button small variant="quiet" onClick={() => setAskDelete(p)}>
-                        {V.deletePrep}
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Async>
-        </Card>
-        <Card
-          title={V.upcoming}
-          actions={
-            <Button small variant="quiet" icon="plus" onClick={() => setAdding(true)}>
-              {V.addVisit}
-            </Button>
-          }
-        >
-          <Async state={upcoming.state} onRetry={upcoming.reload} isEmpty={() => future.length === 0} empty={<EmptyState title={V.upcomingEmpty} />}>
+      <div className="hp-vx">
+        <section className="hp-vx-col" aria-labelledby="vx-up">
+          <header className="hp-vx-head">
+            <h2 id="vx-up">{V.upcoming}</h2>
+            <div className="hp-vx-tools">
+              {future.length > 1 && (
+                <Select className="na-select hp-vx-sort" value={upSort} aria-label={V.sortLabel} onChange={(e) => setUpSort(e.target.value as 'soonest' | 'latest')}>
+                  <option value="soonest">{V.sortUpcoming.soonest}</option>
+                  <option value="latest">{V.sortUpcoming.latest}</option>
+                </Select>
+              )}
+              <Button small variant="quiet" icon="plus" onClick={() => setAdding(true)}>
+                {V.addVisit}
+              </Button>
+            </div>
+          </header>
+          <Async state={upcoming.state} onRetry={upcoming.reload} isEmpty={() => future.length === 0} empty={<EmptyState title={V.upcomingEmpty} action={<Button small icon="plus" onClick={() => setAdding(true)}>{V.addVisit}</Button>} />}>
             {() => (
-              <ul className="na-list">
-                {future.map((i) => {
+              <ul className="hp-vx-list">
+                {futureSorted.map((i, idx) => {
                   const date = i.type === 'appointment' ? String(i.data.date) : i.occurredAt.slice(0, 10);
+                  const prep = prepForDate(date);
+                  const soon = when(date);
                   return (
-                    <li key={i.id} className="na-list-item">
-                      <strong><UserText text={i.type === 'appointment' ? i.data.reason || V.appointment : i.data.title} /></strong>
-                      <span className="na-muted">{[formatDate(A.lang, date), i.type === 'appointment' ? i.data.startTime : ''].filter(Boolean).join(' · ')}</span>
-                      <div className="na-row">
-                        <Pill>{i.type === 'appointment' ? V.appointment : V.myVisit}</Pill>
-                        <Button small onClick={() => setStarting({ date })}>
-                          {V.prepare}
-                        </Button>
+                    <Reveal as="li" y={10} i={idx} key={i.id} className="hp-vx-card" data-first={i.id === future[0]?.id || undefined}>
+                      <DateTile date={date} lang={A.lang} />
+                      <div className="hp-vx-body">
+                        {i.id === future[0]?.id && <span className="hp-vx-next">{V.next}</span>}
+                        <strong dir="auto">
+                          <UserText text={i.type === 'appointment' ? i.data.reason || V.appointment : i.data.title} />
+                        </strong>
+                        <span className="hp-vx-sub">
+                          {[formatDate(A.lang, date), i.type === 'appointment' ? i.data.startTime : '', soon].filter(Boolean).join(' · ')}
+                        </span>
+                        <span className="hp-vx-tags">
+                          <Pill>{i.type === 'appointment' ? V.appointment : V.myVisit}</Pill>
+                          {prep && <Pill tone={prep.status === 'approved' ? 'ok' : 'warn'}>{prep.status === 'approved' ? V.approved : V.draft}</Pill>}
+                        </span>
                       </div>
-                    </li>
+                      <div className="hp-vx-act">
+                        {prep ? (
+                          <Button small variant="primary" onClick={() => navigate(`patient/visits/prep/${prep.id}`)}>
+                            {V.openPrep}
+                          </Button>
+                        ) : (
+                          <Button small onClick={() => setStarting({ date })}>
+                            {V.prepare}
+                          </Button>
+                        )}
+                      </div>
+                    </Reveal>
                   );
                 })}
               </ul>
             )}
           </Async>
-        </Card>
+        </section>
+
+        <section className="hp-vx-col" aria-labelledby="vx-preps">
+          <header className="hp-vx-head">
+            <h2 id="vx-preps">{V.myPreps}</h2>
+            {prepList.length > 1 && (
+              <Select className="na-select hp-vx-sort" value={prepSort} aria-label={V.sortLabel} onChange={(e) => setPrepSort(e.target.value as typeof prepSort)}>
+                <option value="updated">{V.sortPreps.updated}</option>
+                <option value="soonest">{V.sortPreps.soonest}</option>
+                <option value="latest">{V.sortPreps.latest}</option>
+                <option value="drafts">{V.sortPreps.drafts}</option>
+              </Select>
+            )}
+          </header>
+          <Async state={preps.state} onRetry={preps.reload} isEmpty={(d) => d.length === 0} empty={<EmptyState title={V.prepsEmpty} body={V.prepareBody} action={<Button variant="primary" onClick={() => setStarting({})}>{V.prepareTitle}</Button>} />}>
+            {() => (
+              <ul className="hp-vx-list">
+                {prepsSorted.map((p, idx) => {
+                  const n = countItems(p);
+                  const title = p.content.reason ? <UserText text={p.content.reason} /> : p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate;
+                  return (
+                    <Reveal as="li" y={10} i={idx} key={p.id} className="hp-vx-card hp-prepitem" data-status={p.status}>
+                      <DateTile date={p.visitDate} lang={A.lang} muted={p.status === 'draft'} />
+                      <div className="hp-vx-body">
+                        <strong dir="auto">{title}</strong>
+                        <span className="hp-vx-sub">
+                          {[p.visitDate ? fill(V.forDate, { date: formatDate(A.lang, p.visitDate) }) : V.noVisitDate, n > 0 ? fill(V.itemsCount, { n }) : '', fill(V.updated, { date: formatDate(A.lang, p.updatedAt) })].filter(Boolean).join(' · ')}
+                        </span>
+                        <span className="hp-vx-tags">
+                          <Pill tone={p.status === 'approved' ? 'ok' : 'warn'}>
+                            <span aria-hidden="true">{p.status === 'approved' ? '✓' : '○'}</span> {p.status === 'approved' ? V.approved : V.draft}
+                          </Pill>
+                        </span>
+                      </div>
+                      <div className="hp-vx-act">
+                        <Button small variant="primary" onClick={() => navigate(`patient/visits/prep/${p.id}`)}>
+                          {V.open}
+                        </Button>
+                        <Button small variant="quiet" onClick={() => setAskDelete(p)}>
+                          {V.deletePrep}
+                        </Button>
+                      </div>
+                    </Reveal>
+                  );
+                })}
+              </ul>
+            )}
+          </Async>
+        </section>
       </div>
 
       {starting && (

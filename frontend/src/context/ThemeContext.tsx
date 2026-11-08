@@ -17,6 +17,8 @@ interface ThemeContextValue {
   resolved: ResolvedTheme;
   setPreference: (pref: ThemePreference) => void;
   toggleTheme: () => void;
+  /** Show this theme without saving it (null goes back to the saved choice). */
+  setTransient: (theme: ResolvedTheme | null) => void;
   workspace: {
     /** What the workspace is showing right now. */
     theme: ResolvedTheme;
@@ -81,6 +83,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     readStored(WORKSPACE_THEME_KEY, readStored(THEME_STORAGE_KEY)),
   );
   const [wsActive, setWsActive] = useState(false);
+  // A theme asked for by a link (the clinician's QR page). It wins while set and is never stored.
+  const [transient, setTransient] = useState<ResolvedTheme | null>(null);
 
   const resolved: ResolvedTheme = preference;
   const wsTheme: ResolvedTheme = wsPreference;
@@ -104,8 +108,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Apply whenever the resolved theme changes, or while a workspace is open, its own theme instead.
   useEffect(() => {
-    applyTheme(wsActive ? wsTheme : resolved, true);
-  }, [resolved, wsActive, wsTheme]);
+    applyTheme(transient ?? (wsActive ? wsTheme : resolved), true);
+  }, [transient, resolved, wsActive, wsTheme]);
 
   // Keep other open tabs in step with a change made in this one.
   useEffect(() => {
@@ -123,6 +127,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       resolved,
       setPreference,
       toggleTheme,
+      setTransient,
       workspace: { theme: wsTheme, preference: wsPreference, setPreference: setWsPreference, setTheme: setWsTheme, enter, leave },
     }),
     [preference, resolved, setPreference, toggleTheme, wsTheme, wsPreference, setWsPreference, setWsTheme, enter, leave],

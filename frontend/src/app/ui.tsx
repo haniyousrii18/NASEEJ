@@ -260,7 +260,7 @@ export const Dialog: React.FC<{ title: string; onClose: () => void; children: Re
  * A side sheet for a task that belongs to the page behind it (open an appointment, book one): it slides in from
  * the reading-end edge, keeps focus inside, closes on Escape or a click outside, and returns focus to the opener.
  */
-export const Drawer: React.FC<{ title: string; subtitle?: string; size?: 'md' | 'lg'; onClose: () => void; children: React.ReactNode }> = ({ title, subtitle, size = 'md', onClose, children }) => {
+export const Drawer: React.FC<{ title: string; subtitle?: React.ReactNode; size?: 'md' | 'lg'; onClose: () => void; children: React.ReactNode }> = ({ title, subtitle, size = 'md', onClose, children }) => {
   const A = useA();
   const ref = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);

@@ -20,19 +20,6 @@ const ar = {
     sessionExpired: 'انتهت الجلسة. سجّل الدخول من جديد للمتابعة.',
     breadcrumb: 'مسار التنقل',
   },
-  userText: {
-    automatic: 'ترجمة آلية قد لا تكون دقيقة تماماً',
-    showOriginal: 'عرض النص الأصلي',
-    hideOriginal: 'إخفاء النص الأصلي',
-    original: 'الأصل:',
-    reasons: {
-      no_provider: 'لا تتوفر ترجمة: خدمة الترجمة التلقائية غير مفعّلة على هذا الخادم. يُعرض النص كما كُتب.',
-      mixed: 'النص يجمع بين لغتين، لذلك يُعرض كما كُتب دون ترجمة.',
-      uncertain: 'لم نتمكن من ترجمة هذا النص بثقة كافية، لذلك يُعرض كما كُتب.',
-      failed: 'لا تتوفر ترجمة الآن. يُعرض النص كما كُتب.',
-      not_allowed: 'لا تتوفر ترجمة. يُعرض النص كما كُتب.',
-    },
-  },
   validation: {
     account: {
       'VALIDATION_ERROR:fullNameAr': 'اكتب اسمك بالعربية (من حرفين إلى 120 حرفاً).',
@@ -217,19 +204,6 @@ const en: typeof ar = {
     syntheticNote: 'Fully synthetic data',
     sessionExpired: 'Your session has ended. Sign in again to continue.',
     breadcrumb: 'Breadcrumb',
-  },
-  userText: {
-    automatic: 'Automatic translation, may not be exact',
-    showOriginal: 'Show original',
-    hideOriginal: 'Hide original',
-    original: 'Original:',
-    reasons: {
-      no_provider: 'No translation available: automatic translation is not set up on this server. Showing the text as written.',
-      mixed: 'This text mixes two languages, so it is shown as written, without a translation.',
-      uncertain: 'This text could not be translated reliably, so it is shown as written.',
-      failed: 'No translation available right now. Showing the text as written.',
-      not_allowed: 'No translation available. Showing the text as written.',
-    },
   },
   validation: {
     account: {

@@ -20,6 +20,9 @@
           var pref = localStorage.getItem(inApp ? 'naseej_ws_theme' : 'naseej_theme');
           if (inApp && pref !== 'light' && pref !== 'dark') pref = localStorage.getItem('naseej_theme');
           var dark = pref === 'dark' || (pref !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          // A QR link carries the theme the patient was in when sharing: the clinician's page opens in the same one.
+          var st = /^#\/share\/[A-Za-z0-9_-]+\?(?:[^#]*&)?t=(d|l)(?:&|$)/.exec(location.hash);
+          if (st) dark = st[1] === 'd';
           document.documentElement.dataset.theme = dark ? 'dark' : 'light';
           var m = document.querySelector('meta[name="theme-color"]');
           if (m && dark) m.setAttribute('content', '#101b22');

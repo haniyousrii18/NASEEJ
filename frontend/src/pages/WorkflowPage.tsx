@@ -36,9 +36,7 @@ export const WorkflowPage: React.FC<Props> = ({ setCurrentView }) => {
               {W.title}
             </h1>
             <p className="l-lead">
-              {isRtl
-                ? 'خمس خطوات تُبقي القرار بيدك في كل مرحلة: ما تسجّله، وما تعتمده، وما تشاركه.'
-                : 'Five steps that keep the decision in your hands at every stage: what you record, what you approve, and what you share.'}
+              {W.lead}
             </p>
             <button type="button" className="btn-pill btn-pill-charcoal hero-cta wf-cta" onClick={() => setCurrentView('login')}>
               {t.hero.ctaLogin}
