@@ -3,6 +3,7 @@ import { fill } from '../app/format.js';
 import { AlertIcon, CheckIcon, EyeIcon, LockIcon, MailIcon, UserIcon } from '../components/LineIcon.js';
 import { useLang } from '../context/LangContext.js';
 import type { translations } from '../i18n/translations.js';
+import { useSiteMsg, useSiteMsgState, type Msg, type SiteStrings } from '../app/useMsg.js';
 
 /**
  * The account screens that sit beside sign-in: create an account, forgot password, choose a new password, confirm an email,
@@ -36,6 +37,9 @@ export async function authPost(path: string, body: unknown): Promise<AuthResult>
     return { ok: false, status: 0, code: 'NETWORK' };
   }
 }
+
+/** The same wording as a recipe, so a stored error is re-worded when the site language changes. */
+export const authErrorMsg = (r: Pick<AuthResult, 'status' | 'code' | 'field'>): Msg<SiteStrings> => (t) => authErrorText(t.auth, r);
 
 /** The page-language wording for a failed auth request. */
 export function authErrorText(A: AuthStrings, r: Pick<AuthResult, 'status' | 'code' | 'field'>): string {
@@ -182,21 +186,22 @@ const ErrorBox: React.FC<{ message: string }> = ({ message }) =>
 export const RegisterForm: React.FC<{ onSent: (email: string) => void; onLogin: () => void }> = ({ onSent, onLogin }) => {
   const { t, lang } = useLang();
   const A = t.auth;
+  const say = useSiteMsg();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [fields, setFields] = useState<{ name?: string; email?: string; pw?: string; pw2?: string }>({});
+  const [error, setError] = useSiteMsgState();
+  const [fields, setFields] = useState<{ name?: Msg<SiteStrings>; email?: Msg<SiteStrings>; pw?: Msg<SiteStrings>; pw2?: Msg<SiteStrings> }>({});
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const next: typeof fields = {};
-    if (name.trim().length < 2) next.name = A.errors.nameInvalid;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) next.email = A.errors.emailInvalid;
-    if (!strongEnough(pw)) next.pw = A.errors.weakPassword;
-    else if (pw !== pw2) next.pw2 = A.errors.mismatch;
+    if (name.trim().length < 2) next.name = (X) => X.auth.errors.nameInvalid;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) next.email = (X) => X.auth.errors.emailInvalid;
+    if (!strongEnough(pw)) next.pw = (X) => X.auth.errors.weakPassword;
+    else if (pw !== pw2) next.pw2 = (X) => X.auth.errors.mismatch;
     setFields(next);
     setError('');
     if (Object.keys(next).length) return;
@@ -204,10 +209,10 @@ export const RegisterForm: React.FC<{ onSent: (email: string) => void; onLogin: 
     const r = await authPost('/register', { email: email.trim(), password: pw, fullName: name.trim(), lang });
     setBusy(false);
     if (r.ok) return onSent(email.trim());
-    if (r.field === 'email') setFields({ email: authErrorText(A, r) });
-    else if (r.field === 'fullName') setFields({ name: authErrorText(A, r) });
-    else if (r.field === 'password') setFields({ pw: authErrorText(A, r) });
-    else setError(authErrorText(A, r));
+    if (r.field === 'email') setFields({ email: authErrorMsg(r) });
+    else if (r.field === 'fullName') setFields({ name: authErrorMsg(r) });
+    else if (r.field === 'password') setFields({ pw: authErrorMsg(r) });
+    else setError(authErrorMsg(r));
   };
 
   return (
@@ -215,10 +220,10 @@ export const RegisterForm: React.FC<{ onSent: (email: string) => void; onLogin: 
       <MailBanner />
       <ErrorBox message={error} />
       <form className="auth-form" onSubmit={submit} noValidate>
-        <AuthField id="reg-name" label={A.fullName} icon="user" value={name} onChange={setName} autoComplete="name" maxLength={120} error={fields.name} autoFocus />
-        <AuthField id="reg-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="email" error={fields.email} />
-        <AuthField id="reg-pw" label={A.password} icon="lock" type="password" value={pw} onChange={setPw} autoComplete="new-password" hint={A.passwordRule} error={fields.pw} />
-        <AuthField id="reg-pw2" label={A.confirmPassword} icon="lock" type="password" value={pw2} onChange={setPw2} autoComplete="new-password" error={fields.pw2} />
+        <AuthField id="reg-name" label={A.fullName} icon="user" value={name} onChange={setName} autoComplete="name" maxLength={120} error={say(fields.name) || undefined} autoFocus />
+        <AuthField id="reg-email" label={A.email} icon="mail" type="email" value={email} onChange={setEmail} autoComplete="email" error={say(fields.email) || undefined} />
+        <AuthField id="reg-pw" label={A.password} icon="lock" type="password" value={pw} onChange={setPw} autoComplete="new-password" hint={A.passwordRule} error={say(fields.pw) || undefined} />
+        <AuthField id="reg-pw2" label={A.confirmPassword} icon="lock" type="password" value={pw2} onChange={setPw2} autoComplete="new-password" error={say(fields.pw2) || undefined} />
         <button type="submit" disabled={busy} className="auth-submit">
           {busy ? t.common.loading : A.registerBtn}
         </button>
@@ -239,17 +244,17 @@ export const ForgotForm: React.FC<{ onSent: (email: string) => void; onLogin: ()
   const A = t.auth;
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useSiteMsgState();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return setError(A.errors.emailInvalid);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return setError((X) => X.auth.errors.emailInvalid);
     setBusy(true);
     const r = await authPost('/forgot-password', { email: email.trim(), lang });
     setBusy(false);
     if (r.ok) onSent(email.trim());
-    else setError(authErrorText(A, r));
+    else setError(authErrorMsg(r));
   };
 
   return (
@@ -276,11 +281,12 @@ export const ForgotForm: React.FC<{ onSent: (email: string) => void; onLogin: ()
 export const ResetForm: React.FC<{ token: string; onDone: () => void; onAskAgain: () => void }> = ({ token, onDone, onAskAgain }) => {
   const { t, lang } = useLang();
   const A = t.auth;
+  const say = useSiteMsg();
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [fields, setFields] = useState<{ pw?: string; pw2?: string }>({});
+  const [error, setError] = useSiteMsgState();
+  const [fields, setFields] = useState<{ pw?: Msg<SiteStrings>; pw2?: Msg<SiteStrings> }>({});
   const [dead, setDead] = useState(false);
 
   if (dead) return <DeadLink onAskAgain={onAskAgain} />;
@@ -289,8 +295,8 @@ export const ResetForm: React.FC<{ token: string; onDone: () => void; onAskAgain
     e.preventDefault();
     setError('');
     const next: typeof fields = {};
-    if (!strongEnough(pw)) next.pw = A.errors.weakPassword;
-    else if (pw !== pw2) next.pw2 = A.errors.mismatch;
+    if (!strongEnough(pw)) next.pw = (X) => X.auth.errors.weakPassword;
+    else if (pw !== pw2) next.pw2 = (X) => X.auth.errors.mismatch;
     setFields(next);
     if (Object.keys(next).length) return;
     setBusy(true);
@@ -298,15 +304,15 @@ export const ResetForm: React.FC<{ token: string; onDone: () => void; onAskAgain
     setBusy(false);
     if (r.ok) return onDone();
     if (r.code === 'LINK_INVALID') return setDead(true);
-    setError(authErrorText(A, r));
+    setError(authErrorMsg(r));
   };
 
   return (
     <>
       <ErrorBox message={error} />
       <form className="auth-form" onSubmit={submit} noValidate>
-        <AuthField id="rs-pw" label={A.newPassword} icon="lock" type="password" value={pw} onChange={setPw} autoComplete="new-password" hint={A.passwordRule} error={fields.pw} autoFocus />
-        <AuthField id="rs-pw2" label={A.confirmPassword} icon="lock" type="password" value={pw2} onChange={setPw2} autoComplete="new-password" error={fields.pw2} />
+        <AuthField id="rs-pw" label={A.newPassword} icon="lock" type="password" value={pw} onChange={setPw} autoComplete="new-password" hint={A.passwordRule} error={say(fields.pw) || undefined} autoFocus />
+        <AuthField id="rs-pw2" label={A.confirmPassword} icon="lock" type="password" value={pw2} onChange={setPw2} autoComplete="new-password" error={say(fields.pw2) || undefined} />
         <button type="submit" disabled={busy} className="auth-submit">
           {busy ? t.common.loading : A.resetBtn}
         </button>
@@ -374,8 +380,8 @@ export const InboxPanel: React.FC<{ kind: 'register' | 'forgot'; email: string; 
   const { t, lang } = useLang();
   const A = t.auth;
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState('');
-  const [error, setError] = useState('');
+  const [note, setNote] = useSiteMsgState();
+  const [error, setError] = useSiteMsgState();
   const [dev, setDev] = useState(false);
 
   useEffect(() => {
@@ -391,8 +397,8 @@ export const InboxPanel: React.FC<{ kind: 'register' | 'forgot'; email: string; 
     setError('');
     const r = await authPost(kind === 'register' ? '/resend-verification' : '/forgot-password', { email, lang });
     setBusy(false);
-    if (r.ok) setNote(A.resent);
-    else setError(authErrorText(A, r));
+    if (r.ok) setNote((X) => X.auth.resent);
+    else setError(authErrorMsg(r));
   };
 
   return (

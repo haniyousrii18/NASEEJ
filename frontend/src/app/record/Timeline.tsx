@@ -6,6 +6,7 @@ import { fill, formatBytes, formatDate, nameOf } from '../format.js';
 import { Button, EmptyState, ErrorState, Field, Loading, Notice, Pill, Select } from '../ui.js';
 import { FilterBar } from '../health/filters.js';
 import { useA } from '../useA.js';
+import { useMsgState } from '../useMsg.js';
 import { ReviewPill } from './badges.js';
 import { DatePicker } from '../DatePicker.js';
 
@@ -74,7 +75,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
   const [error, setError] = useState<ApiFailure | null>(null);
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useMsgState();
   const [fresh, setFresh] = useState<string | null>(null);
   const focusPages = useRef(0);
   const seq = useRef(0);
@@ -261,7 +262,7 @@ export const Timeline: React.FC<Props> = ({ endpoint, audience, types, pageSize 
                     <div className="na-tl-detail">
                       <Details item={item} onDownload={!canDownload ? undefined : async () => {
                         const failure = await download(item.source.id, String(item.data.fileName || 'document'));
-                        setNotice(failure ? T.downloadFailed : '');
+                        setNotice(failure ? (X) => X.record.timeline.downloadFailed : '');
                       }} />
                       <dl className="na-dl">
                         <dt>{A.common.record.sourceCenter}</dt>
@@ -381,7 +382,7 @@ const Details: React.FC<{ item: TimelineItem; onDownload?: () => void }> = ({ it
       <div className="na-stack">
         <dl className="na-dl">
           {row(R.fileName, d.fileName)}
-          {row(R.fileSize, formatBytes(d.fileSize))}
+          {row(R.fileSize, formatBytes(d.fileSize, A.lang))}
         </dl>
         {onDownload && (
           <div>

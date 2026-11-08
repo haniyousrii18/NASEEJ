@@ -242,7 +242,7 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
                 </span>
                 <span className="hp-td-event-text">
                   <strong>
-                    <bdi>{e.title}</bdi>
+                    <UserText text={e.title} />
                   </strong>
                   <span className="hp-td-event-meta">
                     <time dateTime={e.date ?? undefined}>{formatDate(A.lang, e.date)}</time>

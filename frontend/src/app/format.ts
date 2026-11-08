@@ -35,11 +35,12 @@ export function formatDate(lang: Language, value: string | Date | null | undefin
 
 export const formatTime = (value: string | null | undefined) => (value ? value.slice(0, 5) : '');
 
-export function formatBytes(n: number): string {
+export function formatBytes(n: number, lang: 'ar' | 'en' = 'en'): string {
   if (!Number.isFinite(n) || n <= 0) return '';
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  const u = lang === 'ar' ? { b: 'بايت', kb: 'ك.ب', mb: 'م.ب' } : { b: 'B', kb: 'KB', mb: 'MB' };
+  if (n < 1024) return `${n} ${u.b}`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} ${u.kb}`;
+  return `${(n / 1024 / 1024).toFixed(1)} ${u.mb}`;
 }
 
 export const todayIso = () => {

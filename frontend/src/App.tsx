@@ -72,6 +72,10 @@ const MainContent: React.FC = () => {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+  // A public page opens at its top.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentView]);
   if (sharing) return <ShareView />;
 
   const isAuthView = AUTHENTICATED_VIEWS.has(currentView);

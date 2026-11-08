@@ -1,13 +1,16 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { validationMessage } from '../errors.js';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { failureMsg } from '../errors.js';
+import { useMsg, useMsgState, type Msg } from '../useMsg.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { useApiData, useDownload, useMutation } from '../api.js';
-import { fill, formatBytes, formatDate, todayIso } from '../format.js';
-import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
+import { fill, formatBytes, formatDate, localeOf, todayIso } from '../format.js';
+import { AppIcon, type IconName } from '../AppIcons.js';
+import { Reveal } from '../../components/motion.js';
+import { Async, Button, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
 import { useA } from '../useA.js';
 import { ENTRY_KINDS, type EntryKind } from './forms.js';
-import { FilterBar } from './filters.js';
 import { ConfirmDialog, MAX_BYTES, OriginPill, Toast, shrinkImage, toBase64, useToast } from './kit.js';
+import { UserText } from '../translate/UserText.js';
 import { DatePicker } from '../DatePicker.js';
 
 export interface VaultDoc {
@@ -73,24 +76,26 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
   const [v, setV] = useState({ title: '', type: '', date: todayIso(), provider: '' });
   const [allowAi, setAllowAi] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
-  const [msg, setMsg] = useState<{ tone: 'ok' | 'danger'; text: string } | null>(null);
-  const [fileError, setFileError] = useState('');
+  const [msg, setMsgState] = useState<{ tone: 'ok' | 'danger'; text: Msg } | null>(null);
+  const say = useMsg();
+  const setMsg = setMsgState;
+  const [fileError, setFileError] = useMsgState();
   const pending = progress !== null;
 
   const choose = async (f: File | undefined) => {
     setMsg(null);
     setFileError('');
     if (!f) return setFile(null);
-    if (f.type && !['application/pdf', 'image/png', 'image/jpeg'].includes(f.type)) return setFileError(V.badType);
+    if (f.type && !['application/pdf', 'image/png', 'image/jpeg'].includes(f.type)) return setFileError((X) => X.health.vault.badType);
     const small = await shrinkImage(f);
-    if (small.size > MAX_BYTES) return setFileError(V.tooBig);
+    if (small.size > MAX_BYTES) return setFileError((X) => X.health.vault.tooBig);
     setFile(small);
     setV((s) => ({ ...s, title: s.title || small.name.replace(/\.\w+$/, '') }));
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return setFileError(V.chooseFile);
+    if (!file) return setFileError((X) => X.health.vault.chooseFile);
     setMsg(null);
     setProgress(0);
     const body = {
@@ -106,8 +111,8 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
     if (token) headers.Authorization = `Bearer ${token}`;
     const res = await post('/api/vault/documents', body, headers, setProgress);
     setProgress(null);
-    if (!res.ok) return setMsg({ tone: 'danger', text: res.status === 415 ? V.badType : res.status === 413 ? V.tooBig : res.status === 0 ? A.health.common.offline : V.uploadFailed });
-    setMsg({ tone: 'ok', text: V.uploaded });
+    if (!res.ok) return setMsg({ tone: 'danger', text: (X) => (res.status === 415 ? X.health.vault.badType : res.status === 413 ? X.health.vault.tooBig : res.status === 0 ? X.health.common.offline : X.health.vault.uploadFailed) });
+    setMsg({ tone: 'ok', text: (X) => X.health.vault.uploaded });
     onUploaded();
   };
 
@@ -127,7 +132,7 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
           </div>
           {file && (
             <p className="na-help" dir="auto">
-              {fill(V.chosen, { name: file.name })} · {formatBytes(file.size)}
+              {fill(V.chosen, { name: file.name })} · {formatBytes(file.size, A.lang)}
             </p>
           )}
         </Field>
@@ -167,7 +172,7 @@ const Upload: React.FC<{ ai: AiInfo; onUploaded: () => void; onCancel: () => voi
         )}
         {msg && (
           <Notice tone={msg.tone} live>
-            {msg.text}
+            {say(msg.text)}
           </Notice>
         )}
         <div className="na-form-actions">
@@ -190,11 +195,11 @@ const EditDoc: React.FC<{ doc: VaultDoc; onDone: () => void; onSaved: () => void
   const V = A.health.vault;
   const { run, pending } = useMutation();
   const [v, setV] = useState({ title: doc.title, type: doc.docType ?? '', date: doc.documentDate ?? '', provider: doc.providerName ?? '' });
-  const [error, setError] = useState('');
+  const [error, setError] = useMsgState();
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await run(`/api/vault/documents/${doc.id}`, 'PATCH', { title: v.title.trim() || null, doc_type: v.type || null, document_date: v.date || null, provider_name: v.provider.trim() || null });
-    if (!res.ok) return setError(res.error.status === 0 ? A.health.common.offline : A.health.common.failed);
+    if (!res.ok) return setError((X) => (res.error.status === 0 ? X.health.common.offline : X.health.common.failed));
     onSaved();
   };
   return (
@@ -251,14 +256,14 @@ interface Fact {
 
 const DEFAULT_KIND: Record<string, EntryKind> = { condition: 'condition', medication: 'medication', allergy: 'allergy', procedure: 'procedure', lab_value: 'measurement' };
 
-const FactRow: React.FC<{ docId: string; fact: Fact; onDone: (msg: string) => void }> = ({ docId, fact, onDone }) => {
+const FactRow: React.FC<{ docId: string; fact: Fact; onDone: (msg: Msg) => void }> = ({ docId, fact, onDone }) => {
   const A = useA();
   const V = A.health.vault;
   const { run, pending } = useMutation();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<EntryKind>(DEFAULT_KIND[fact.kind] ?? 'measurement');
   const [v, setV] = useState({ title: fact.label, value: fact.value ?? '', unit: fact.unit ?? '', date: fact.date ?? '' });
-  const [error, setError] = useState('');
+  const [error, setError] = useMsgState();
 
   const confirm = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,13 +271,13 @@ const FactRow: React.FC<{ docId: string; fact: Fact; onDone: (msg: string) => vo
     if (kind === 'measurement') Object.assign(body, { value: v.value.trim() || undefined, unit: v.unit.trim() || undefined });
     if (kind === 'medication' && v.value.trim()) body.dose = `${v.value.trim()}${v.unit.trim() ? ` ${v.unit.trim()}` : ''}`;
     const res = await run(`/api/vault/documents/${docId}/suggestions/${fact.id}/confirm`, 'POST', body);
-    if (!res.ok) return setError(res.error.status === 400 ? validationMessage(A, res.error) : A.health.common.failed);
-    onDone(V.sugAdded);
+    if (!res.ok) return setError(failureMsg(res.error));
+    onDone((X) => X.health.vault.sugAdded);
   };
   const dismiss = async () => {
     const res = await run(`/api/vault/documents/${docId}/suggestions/${fact.id}/dismiss`, 'POST');
-    if (!res.ok) return setError(A.health.common.failed);
-    onDone(V.sugDismissed);
+    if (!res.ok) return setError((X) => X.health.common.failed);
+    onDone((X) => X.health.vault.sugDismissed);
   };
 
   return (
@@ -282,7 +287,7 @@ const FactRow: React.FC<{ docId: string; fact: Fact; onDone: (msg: string) => vo
         <Pill>{V.kinds[(DEFAULT_KIND[fact.kind] ?? 'measurement') as EntryKind]}</Pill>
         {fact.page && <span className="na-muted">{fill(V.sugPage, { n: fact.page })}</span>}
       </div>
-      <strong dir="auto">{fact.label}</strong>
+      <strong dir="auto"><UserText text={fact.label} /></strong>
       {(fact.value || fact.unit) && (
         <p dir="auto">
           {fact.value} {fact.unit}
@@ -354,12 +359,12 @@ const Suggestions: React.FC<{ doc: VaultDoc; onChanged: () => void }> = ({ doc, 
   const [version, setVersion] = useState(0);
   const data = useApiData<{ status: string | null; error: string | null; suggestedType: string | null; facts: Fact[] }>(`/api/vault/documents/${doc.id}/suggestions?v=${version}`);
   const { run } = useMutation();
-  const [note, setNote] = useState('');
+  const [note, setNote] = useMsgState();
 
   const useType = async (t: string) => {
     const res = await run(`/api/vault/documents/${doc.id}`, 'PATCH', { doc_type: t });
     if (res.ok) {
-      setNote(A.health.common.saved);
+      setNote((X) => X.health.common.saved);
       onChanged();
     }
   };
@@ -414,7 +419,7 @@ const Suggestions: React.FC<{ doc: VaultDoc; onChanged: () => void }> = ({ doc, 
 
 const AI_TONE = { queued: 'info', processing: 'info', failed: 'danger', completed: 'ok' } as const;
 
-const DocCard: React.FC<{ doc: VaultDoc; ai: AiInfo; trash: boolean; onChanged: () => void; toast: ReturnType<typeof useToast>['show'] }> = ({ doc, ai, trash, onChanged, toast }) => {
+const DocCard: React.FC<{ doc: VaultDoc; ai: AiInfo; trash: boolean; index: number; onChanged: () => void; toast: ReturnType<typeof useToast>['show'] }> = ({ doc, ai, trash, index, onChanged, toast }) => {
   const A = useA();
   const V = A.health.vault;
   const download = useDownload();
@@ -456,23 +461,51 @@ const DocCard: React.FC<{ doc: VaultDoc; ai: AiInfo; trash: boolean; onChanged: 
   const mine = doc.sourceType === 'patient_uploaded';
 
   return (
-    <li className="hp-doc">
+    <Reveal as="li" y={10} i={index % 4} className="hp-doc" data-type={doc.docType ?? 'other'}>
+      <span className="hp-doc-ico" aria-hidden="true">
+        <AppIcon name={TYPE_ICON[doc.docType ?? 'other'] ?? 'documents'} size={22} />
+      </span>
       <div className="hp-doc-main">
-        <strong dir="auto" className="hp-entry-title">
-          {doc.title}
+        <strong dir="auto" className="hp-doc-title">
+          <UserText text={doc.title} />
         </strong>
-        <span className="na-muted" dir="auto">
-          {[doc.docType ? (V.types as Record<string, string>)[doc.docType] ?? doc.docType : null, doc.documentDate ? formatDate(A.lang, doc.documentDate) : formatDate(A.lang, doc.createdAt), doc.providerName, formatBytes(doc.fileSize)].filter(Boolean).join(' · ')}
+        <span className="hp-doc-meta" dir="auto">
+          {[
+            <span key="type" className="hp-doc-type">{(V.types as Record<string, string>)[doc.docType ?? 'other'] ?? V.types.other}</span>,
+            doc.providerName ? <UserText key="provider" text={doc.providerName} /> : null,
+            doc.center ? <span key="center">{A.lang === 'ar' ? doc.center.name_ar : doc.center.name_en}</span> : null,
+          ]
+            .filter(Boolean)
+            .map((part, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="hp-doc-dot" aria-hidden="true">·</span>}
+                {part}
+              </React.Fragment>
+            ))}
         </span>
-        <span className="hp-source">
-          {mine ? <span>{V.byMe}</span> : <OriginPill origin="clinician" />}
-          {doc.center && <span>{A.lang === 'ar' ? doc.center.name_ar : doc.center.name_en}</span>}
+        <span className="hp-doc-tags">
+          {mine ? <span className="hp-doc-origin">{V.byMe}</span> : <OriginPill origin="clinician" />}
           {doc.aiStatus && <Pill tone={AI_TONE[doc.aiStatus]}>{V.ai_states[doc.aiStatus]}</Pill>}
+          {doc.openSuggestions > 0 && !trash && (
+            <button type="button" className="hp-doc-review" onClick={() => setPanel('suggestions')}>
+              {fill(V.library.toReview, { n: doc.openSuggestions })}
+            </button>
+          )}
         </span>
         {doc.aiStatus === 'failed' && (
           <Notice tone="danger" icon="alert" live>
             {failedText}
           </Notice>
+        )}
+      </div>
+      <div className="hp-doc-facts">
+        <time className="hp-doc-date" dateTime={doc.documentDate ?? doc.createdAt}>
+          {formatDate(A.lang, doc.documentDate ?? doc.createdAt)}
+        </time>
+        {formatBytes(doc.fileSize, A.lang) && (
+          <bdi className="hp-doc-size" dir="ltr">
+            {formatBytes(doc.fileSize, A.lang)}
+          </bdi>
         )}
       </div>
       <div className="hp-doc-actions">
@@ -522,45 +555,99 @@ const DocCard: React.FC<{ doc: VaultDoc; ai: AiInfo; trash: boolean; onChanged: 
         </Drawer>
       )}
       {panel === 'suggestions' && (
-        <Drawer title={V.sugTitle} subtitle={doc.title} onClose={() => setPanel(null)}>
+        <Drawer title={V.sugTitle} subtitle={<UserText text={doc.title} />} onClose={() => setPanel(null)}>
           <Suggestions doc={doc} onChanged={onChanged} />
         </Drawer>
       )}
       {askDelete && <ConfirmDialog title={A.health.common.deleteTitle} body={A.health.common.deleteBody} confirmLabel={A.health.common.remove} danger onConfirm={() => void remove()} onClose={() => setAskDelete(false)} />}
       {askAi && <ConfirmDialog title={V.analyze} body={fill(V.analyzeConfirm, { provider: ai.provider ?? '' })} confirmLabel={V.analyzeYes} onConfirm={() => void analyze()} onClose={() => setAskAi(false)} />}
-    </li>
+    </Reveal>
   );
 };
 
 // ---------------------------------------------------------------- page
 
+const TYPE_ICON: Record<string, IconName> = {
+  lab_report: 'flask',
+  imaging_report: 'pulse',
+  prescription: 'pill',
+  discharge_summary: 'summary',
+  clinical_note: 'scroll',
+  referral: 'link',
+  vaccination_record: 'shield',
+  administrative: 'folder',
+  other: 'documents',
+};
+
+type Sort = 'date_desc' | 'date_asc' | 'name' | 'type' | 'size';
+const SORTS: Sort[] = ['date_desc', 'date_asc', 'name', 'type', 'size'];
+type View = 'list' | 'grid';
+
+const VIEW_KEY = 'naseej_docs_view';
+const readView = (): View => {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'grid' ? 'grid' : 'list';
+  } catch {
+    return 'list';
+  }
+};
+
+const dayOf = (d: VaultDoc) => d.documentDate ?? d.createdAt.slice(0, 10);
+
 export const PatientVault: React.FC = () => {
   const A = useA();
   const V = A.health.vault;
+  const L = V.library;
   const [adding, setAdding] = useState(() => !!hashParam('new'));
   const [trash, setTrash] = useState(() => hashParam('trash') === '1');
   const [version, setVersion] = useState(0);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [datesOpen, setDatesOpen] = useState(false);
   const [q, setQ] = useState('');
   const [type, setType] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [sort, setSort] = useState<Sort>('date_desc');
+  const [view, setViewState] = useState<View>(readView);
   const { toast, show, hide } = useToast();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const datesId = useId();
+
+  const setView = (v: View) => {
+    setViewState(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* the choice just is not remembered */
+    }
+  };
 
   useEffect(() => {
     if (hashParam('new') || hashParam('trash')) window.history.replaceState(null, '', '#/patient/documents');
   }, []);
 
+  // "/" jumps to the search box from anywhere on the page, unless the person is already typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Search and dates are asked of the server; type and order are applied here, so the type counts and the sort answer at once.
   const path = useMemo(() => {
     const p = new URLSearchParams({ limit: '100' });
     if (q.trim()) p.set('q', q.trim());
-    if (type) p.set('type', type);
     if (from) p.set('from', from);
     if (to) p.set('to', to);
     if (trash) p.set('trash', '1');
     p.set('v', String(version));
     return `/api/vault/documents?${p.toString()}`;
-  }, [q, type, from, to, trash, version]);
+  }, [q, from, to, trash, version]);
 
   const docs = useApiData<VaultDoc[]>(path);
   const aiInfo = useApiData<{ configured: boolean; provider: string | null }>('/api/documents/ai/status');
@@ -576,6 +663,53 @@ export const PatientVault: React.FC = () => {
   }, [working, reload]);
 
   const changed = () => setVersion((v) => v + 1);
+  const all = useMemo(() => (docs.state.status === 'ready' ? docs.state.data : []), [docs.state]);
+
+  const typeCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const d of all) m.set(d.docType ?? 'other', (m.get(d.docType ?? 'other') ?? 0) + 1);
+    return m;
+  }, [all]);
+
+  const shown = useMemo(() => {
+    const list = type ? all.filter((d) => (d.docType ?? 'other') === type) : [...all];
+    const typeName = (d: VaultDoc) => (V.types as Record<string, string>)[d.docType ?? 'other'] ?? '';
+    const by: Record<Sort, (a: VaultDoc, b: VaultDoc) => number> = {
+      date_desc: (a, b) => dayOf(b).localeCompare(dayOf(a)),
+      date_asc: (a, b) => dayOf(a).localeCompare(dayOf(b)),
+      name: (a, b) => a.title.localeCompare(b.title, A.lang),
+      type: (a, b) => typeName(a).localeCompare(typeName(b), A.lang) || dayOf(b).localeCompare(dayOf(a)),
+      size: (a, b) => b.fileSize - a.fileSize,
+    };
+    return list.sort(by[sort]);
+  }, [all, type, sort, A.lang, V.types]);
+
+  // Dates read as months when the list is ordered by date; other orders are one flat run.
+  const groups = useMemo(() => {
+    if (sort !== 'date_desc' && sort !== 'date_asc') return [{ key: 'all', label: '', items: shown }];
+    const fmt = new Intl.DateTimeFormat(localeOf(A.lang), { month: 'long', year: 'numeric' });
+    const out: Array<{ key: string; label: string; items: VaultDoc[] }> = [];
+    for (const d of shown) {
+      const day = dayOf(d);
+      const key = day.slice(0, 7);
+      const last = out[out.length - 1];
+      if (last && last.key === key) last.items.push(d);
+      else {
+        const date = new Date(`${day}T00:00:00`);
+        out.push({ key, label: Number.isNaN(date.getTime()) ? L.undated : fmt.format(date), items: [d] });
+      }
+    }
+    return out;
+  }, [shown, sort, A.lang, L.undated]);
+
+  const filtered = !!(q || type || from || to);
+  const reset = () => {
+    setQ('');
+    setType('');
+    setFrom('');
+    setTo('');
+  };
+  const total = all.length;
 
   return (
     <>
@@ -590,7 +724,7 @@ export const PatientVault: React.FC = () => {
           )
         }
       />
-      <div className="na-stack">
+      <div className="hp-lib">
         {adding && !trash && (
           <Drawer title={V.add} onClose={() => setAdding(false)}>
             <Upload
@@ -604,47 +738,87 @@ export const PatientVault: React.FC = () => {
             />
           </Drawer>
         )}
-        <Card title={trash ? V.trash : undefined}>
-          {!trash && (
-            <FilterBar
-              search={{ id: 'vl-q', label: V.search, placeholder: V.searchShort, value: q, onChange: setQ }}
-              open={filtersOpen}
-              onToggle={() => setFiltersOpen((o) => !o)}
-              onReset={() => {
-                setQ('');
-                setType('');
-                setFrom('');
-                setTo('');
-              }}
-              active={[
-                ...(type ? [{ key: 'type', label: (V.types as Record<string, string>)[type] ?? type, onRemove: () => setType('') }] : []),
-                ...(from ? [{ key: 'from', label: `${V.from}: ${formatDate(A.lang, from)}`, onRemove: () => setFrom('') }] : []),
-                ...(to ? [{ key: 'to', label: `${V.to}: ${formatDate(A.lang, to)}`, onRemove: () => setTo('') }] : []),
-              ]}
-            >
-              <Field label={V.type} htmlFor="vl-type">
-                <Select id="vl-type" className="na-select" value={type} onChange={(e) => setType(e.target.value)}>
-                  <option value="">{V.allTypes}</option>
-                  {DOC_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {V.types[t]}
+
+        <div className="hp-lib-scope" role="tablist" aria-label={L.library}>
+          <button type="button" role="tab" aria-selected={!trash} className="hp-lib-tab" onClick={() => setTrash(false)}>
+            {L.library}
+          </button>
+          <button type="button" role="tab" aria-selected={trash} className="hp-lib-tab" onClick={() => setTrash(true)}>
+            {V.trash}
+          </button>
+        </div>
+
+        <section className="hp-lib-panel" aria-label={trash ? V.trash : L.library}>
+          <div className="hp-lib-bar">
+            <div className="hp-lib-search" role="search">
+              <label className="hp-visually-hidden" htmlFor="vl-q">
+                {V.search}
+              </label>
+              <AppIcon name="search" size={19} className="hp-lib-search-icon" />
+              <input ref={searchRef} id="vl-q" type="search" dir="auto" value={q} placeholder={V.searchShort} onChange={(e) => setQ(e.target.value)} />
+              {q ? (
+                <button type="button" className="hp-lib-clear" aria-label={A.health.common.searchClear} onClick={() => setQ('')}>
+                  <AppIcon name="close" size={16} />
+                </button>
+              ) : (
+                <kbd className="hp-lib-kbd" aria-hidden="true" title={L.shortcut}>
+                  /
+                </kbd>
+              )}
+            </div>
+            <div className="hp-lib-tools">
+              <label className="hp-lib-sort">
+                <span className="hp-visually-hidden">{L.sortLabel}</span>
+                <Select className="na-select" value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label={L.sortLabel}>
+                  {SORTS.map((k) => (
+                    <option key={k} value={k}>
+                      {L.sort[k]}
                     </option>
                   ))}
                 </Select>
+              </label>
+              <button type="button" className="hp-lib-btn" aria-expanded={datesOpen} aria-controls={datesId} data-on={!!(from || to) || undefined} onClick={() => setDatesOpen((o) => !o)}>
+                <AppIcon name="calendar" size={17} />
+                {L.dates}
+              </button>
+              <div className="hp-lib-seg" role="group" aria-label={L.viewLabel}>
+                <button type="button" aria-pressed={view === 'list'} aria-label={L.list} title={L.list} onClick={() => setView('list')}>
+                  <AppIcon name="list" size={18} />
+                </button>
+                <button type="button" aria-pressed={view === 'grid'} aria-label={L.grid} title={L.grid} onClick={() => setView('grid')}>
+                  <AppIcon name="grid" size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {datesOpen && (
+            <div className="hp-lib-dates" id={datesId} role="group" aria-label={A.health.common.dateRange}>
+              <Field label={V.from} htmlFor="vl-from">
+                <DatePicker id="vl-from" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
               </Field>
-              <fieldset className="hp-fieldset">
-                <legend>{A.health.common.dateRange}</legend>
-                <div className="hp-pair">
-                  <Field label={V.from} htmlFor="vl-from">
-                    <DatePicker id="vl-from" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
-                  </Field>
-                  <Field label={V.to} htmlFor="vl-to">
-                    <DatePicker id="vl-to" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
-                  </Field>
-                </div>
-              </fieldset>
-            </FilterBar>
+              <Field label={V.to} htmlFor="vl-to">
+                <DatePicker id="vl-to" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+              </Field>
+            </div>
           )}
+
+          {!trash && total > 0 && (
+            <div className="hp-lib-types" role="group" aria-label={L.typeFilter}>
+              <button type="button" className="hp-lib-chip" aria-pressed={!type} onClick={() => setType('')}>
+                {L.all}
+                <b>{total}</b>
+              </button>
+              {DOC_TYPES.filter((t) => typeCounts.get(t)).map((t) => (
+                <button key={t} type="button" className="hp-lib-chip" aria-pressed={type === t} onClick={() => setType(type === t ? '' : t)}>
+                  <AppIcon name={TYPE_ICON[t] ?? 'documents'} size={15} />
+                  {V.types[t]}
+                  <b>{typeCounts.get(t)}</b>
+                </button>
+              ))}
+            </div>
+          )}
+
           <Async
             state={docs.state}
             onRetry={docs.reload}
@@ -652,27 +826,63 @@ export const PatientVault: React.FC = () => {
             empty={
               trash ? (
                 <EmptyState title={V.trashEmpty} />
-              ) : q || type || from || to ? (
-                <EmptyState title={V.noMatch} />
+              ) : q || from || to ? (
+                <EmptyState
+                  title={V.noMatch}
+                  action={
+                    <Button small onClick={reset}>
+                      {L.clear}
+                    </Button>
+                  }
+                />
               ) : (
-                <EmptyState title={V.empty} body={V.emptyBody} />
+                <EmptyState
+                  title={V.empty}
+                  body={V.emptyBody}
+                  action={
+                    <Button small variant="primary" icon="plus" onClick={() => setAdding(true)}>
+                      {V.add}
+                    </Button>
+                  }
+                />
               )
             }
           >
-            {(items) => (
-              <ul className="hp-docs">
-                {items.map((d) => (
-                  <DocCard key={d.id} doc={d} ai={ai} trash={trash} onChanged={changed} toast={show} />
-                ))}
-              </ul>
+            {() => (
+              <>
+                <p className="hp-lib-count" role="status">
+                  <span>{filtered && shown.length !== total ? fill(L.countOf, { n: shown.length, total }) : fill(L.count, { n: shown.length })}</span>
+                  {filtered && (
+                    <button type="button" className="hp-lib-reset" onClick={reset}>
+                      {L.clear}
+                    </button>
+                  )}
+                </p>
+                {shown.length === 0 ? (
+                  <EmptyState
+                    title={V.noMatch}
+                    action={
+                      <Button small onClick={reset}>
+                        {L.clear}
+                      </Button>
+                    }
+                  />
+                ) : (
+                  groups.map((g) => (
+                    <div key={g.key} className="hp-lib-group">
+                      {g.label && <h2 className="hp-lib-month">{g.label}</h2>}
+                      <ul className={`hp-docs hp-docs--${view}`}>
+                        {g.items.map((d, i) => (
+                          <DocCard key={d.id} doc={d} ai={ai} trash={trash} index={i} onChanged={changed} toast={show} />
+                        ))}
+                      </ul>
+                    </div>
+                  ))
+                )}
+              </>
             )}
           </Async>
-        </Card>
-        <div>
-          <Button small variant="quiet" onClick={() => setTrash((t) => !t)}>
-            {trash ? V.back : V.trash}
-          </Button>
-        </div>
+        </section>
       </div>
       <Toast toast={toast} onClose={hide} />
     </>

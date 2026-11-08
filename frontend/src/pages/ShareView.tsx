@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SnapshotView, type Snapshot } from '../app/health/SnapshotView.js';
 import { appT } from '../app/i18n/index.js';
 import { AppIcon } from '../app/AppIcons.js';
 import { ShareTranslationProvider } from '../app/translate/TranslationContext.js';
 import { formatDate, fill } from '../app/format.js';
+import { useTheme } from '../context/ThemeContext.js';
 import '../styles/share.css';
 
 /**
@@ -18,8 +19,15 @@ type State =
   | { kind: 'error'; code: string };
 
 export const readShareToken = (): string | null => {
-  const m = /^#\/share\/([A-Za-z0-9_-]{20,64})$/.exec(window.location.hash);
+  const m = /^#\/share\/([A-Za-z0-9_-]{20,64})(?:\?[^#]*)?$/.exec(window.location.hash);
   return m ? m[1] : null;
+};
+
+/** The theme the patient was using when the link was made ("t=d" dark, "t=l" light), or null when the link says nothing. */
+const readShareTheme = (): 'light' | 'dark' | null => {
+  const q = window.location.hash.split('?')[1];
+  const t = q ? new URLSearchParams(q).get('t') : null;
+  return t === 'd' ? 'dark' : t === 'l' ? 'light' : null;
 };
 
 export const isShareRoute = () => window.location.hash.startsWith('#/share/');
@@ -29,6 +37,20 @@ export const ShareView: React.FC = () => {
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [docError, setDocError] = useState('');
   const [uiLang, setUiLang] = useState<'ar' | 'en'>(() => (document.documentElement.lang === 'en' ? 'en' : 'ar'));
+  // Once the reader picks a language it stays, whatever language the summary was approved in.
+  const chosen = useRef(false);
+  const { setTransient } = useTheme();
+
+  // Open in the patient's theme, without saving it as the clinician's own choice.
+  useEffect(() => {
+    const sync = () => setTransient(readShareTheme());
+    sync();
+    window.addEventListener('hashchange', sync);
+    return () => {
+      window.removeEventListener('hashchange', sync);
+      setTransient(null);
+    };
+  }, [setTransient]);
 
   const load = useCallback(async () => {
     if (!token) return setState({ kind: 'error', code: 'SHARE_NOT_FOUND' });
@@ -37,7 +59,7 @@ export const ShareView: React.FC = () => {
       const res = await fetch('/api/share-view/view', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ token }), cache: 'no-store', referrerPolicy: 'no-referrer' });
       const json = await res.json().catch(() => null);
       if (res.ok && json?.success) {
-        setUiLang(json.data.snapshot.lang === 'en' ? 'en' : 'ar');
+        if (!chosen.current) setUiLang(json.data.snapshot.lang === 'en' ? 'en' : 'ar');
         return setState({ kind: 'ready', snapshot: json.data.snapshot, expiresAt: json.data.expiresAt });
       }
       setState({ kind: 'error', code: json?.error?.code ?? 'default' });
@@ -64,6 +86,14 @@ export const ShareView: React.FC = () => {
 
   const T = appT[uiLang].health.shareView;
   const dir = uiLang === 'ar' ? 'rtl' : 'ltr';
+
+  // The page's language and direction belong to the document, so the browser, screen readers and print follow the choice too.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.lang = uiLang;
+    root.dir = dir;
+    document.title = `${T.sharedBy} | ${T.brand}`;
+  }, [uiLang, dir, T]);
 
   const openDoc = async (id: string) => {
     setDocError('');
@@ -92,9 +122,23 @@ export const ShareView: React.FC = () => {
           <img src="/logo-mark.svg" alt="" width={28} height={28} />
           {T.brand}
         </span>
-        <span className="sv-ro">
-          <AppIcon name="lock" size={14} />
-          {T.readOnly}
+        <span className="sv-bar-end">
+          <span className="sv-ro">
+            <AppIcon name="lock" size={14} />
+            {T.readOnly}
+          </span>
+          <button
+            type="button"
+            className="sv-lang sv-noprint"
+            lang={uiLang === 'ar' ? 'en' : 'ar'}
+            aria-label={T.langSwitchLabel}
+            onClick={() => {
+              chosen.current = true;
+              setUiLang(uiLang === 'ar' ? 'en' : 'ar');
+            }}
+          >
+            {T.langSwitch}
+          </button>
         </span>
       </header>
       <main className="sv-main" id="main" tabIndex={-1}>
@@ -140,7 +184,7 @@ export const ShareView: React.FC = () => {
               </button>
             </div>
             <ShareTranslationProvider token={token}>
-              <SnapshotView jump snapshot={state.snapshot} onOpenDoc={(id) => void openDoc(id)} docError={docError} />
+              <SnapshotView jump lang={uiLang} snapshot={state.snapshot} onOpenDoc={(id) => void openDoc(id)} docError={docError} />
             </ShareTranslationProvider>
           </>
         )}

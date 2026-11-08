@@ -6,7 +6,8 @@ import { logAuditEvent } from '../services/auditService.js';
 import { aiStatus, startProcessing } from '../services/documentProcessing.js';
 import { fileExists, saveFile, sniffFileType } from '../services/storageService.js';
 import { parseEntry, type EntryKind } from '../services/health/input.js';
-import { apiError, clampInt, escapeLike, isIsoDate, isUuid, serverError } from '../services/validation.js';
+import { apiError, clampInt, isIsoDate, isUuid, serverError } from '../services/validation.js';
+import { searchIds } from '../services/search/searchService.js';
 import { apiLimiter } from '../services/apiLimit.js';
 
 /**
@@ -92,10 +93,15 @@ vaultRouter.get('/documents', async (req: Request, res: Response): Promise<void>
   const offset = clampInt(req.query.offset, 0, 0, 100000);
   const params: unknown[] = [pid(req)];
   let where = `d.patient_id = $1 AND d.visible_to_patient = TRUE AND d.deleted_at ${req.query.trash === '1' ? 'IS NOT NULL' : 'IS NULL'}`;
-  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
-  if (q) {
-    params.push(`%${escapeLike(q.slice(0, 100))}%`);
-    where += ` AND (COALESCE(d.title, d.file_name) ILIKE $${params.length} ESCAPE '\\' OR d.provider_name ILIKE $${params.length} ESCAPE '\\')`;
+  try {
+    // Bilingual, typo-tolerant search (shared with the rest of the app): the matching ids narrow the list, other filters still apply.
+    const matched = await searchIds(pid(req), req.query.q, ['document'], { deleted: req.query.trash === '1' });
+    if (matched) {
+      params.push(matched);
+      where += ` AND d.id = ANY($${params.length}::uuid[])`;
+    }
+  } catch (err) {
+    return void res.status(500).json(serverError(err));
   }
   if (typeof req.query.type === 'string' && req.query.type) {
     if (!(DOC_TYPES as readonly string[]).includes(req.query.type)) return void res.status(400).json(apiError('VALIDATION_ERROR', 'Unknown document type.'));

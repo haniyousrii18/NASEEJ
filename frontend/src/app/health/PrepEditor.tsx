@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { UserText } from '../translate/UserText.js';
 import { validationMessage } from '../errors.js';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate } from '../format.js';
@@ -7,8 +8,10 @@ import { Async, Button, Card, Drawer, EmptyState, Field, Notice, PageHead, Pill 
 import { useA } from '../useA.js';
 import { ConfirmDialog, Toast, useToast } from './kit.js';
 import { SnapshotView, type Snapshot } from './SnapshotView.js';
+import { sourceText } from './sourceLabel.js';
 import { StartPrep, type Prep, type PrepContent, type PrepItem, type PrepSection } from './Visits.js';
 import type { VaultDoc } from './Vault.js';
+import { useMsgState } from '../useMsg.js';
 
 const ORDER = ['symptoms', 'conditions', 'medications', 'allergies', 'procedures', 'measurements', 'documents', 'questions', 'notes'];
 const FREE_TEXT = new Set(['questions', 'notes']);
@@ -69,7 +72,7 @@ const Section: React.FC<{
               className={`na-textarea hp-item-text${it.source.ref ? ' hp-item-locked' : ''}`}
               dir="auto"
               rows={Math.min(5, Math.max(1, Math.ceil(it.text.length / 60)))}
-              aria-label={it.source.ref ? it.source.label : E.editItem}
+              aria-label={it.source.ref ? sourceText(A.lang, it.source.label) : E.editItem}
               value={it.text}
               maxLength={600}
               readOnly={!!it.source.ref}
@@ -77,7 +80,7 @@ const Section: React.FC<{
             />
             <div className="na-row na-row--between">
               <span className="na-muted">
-                {it.source.label}
+                {sourceText(A.lang, it.source.label)}
                 {it.date ? ` · ${formatDate(A.lang, it.date)}` : ''}
                 {it.edited ? ` · ${E.edited}` : ''}
               </span>
@@ -137,7 +140,7 @@ const DocPicker: React.FC<{ chosen: string[]; onSave: (docs: VaultDoc[]) => void
                   <label className="cg-check">
                     <input type="checkbox" checked={sel.includes(d.id)} onChange={() => setSel((s) => (s.includes(d.id) ? s.filter((x) => x !== d.id) : [...s, d.id]))} />
                     <span dir="auto">
-                      <strong>{d.title}</strong>
+                      <strong><UserText text={d.title} /></strong>
                       <span className="na-help">{[(A.health.vault.types as Record<string, string>)[d.docType ?? ''], d.documentDate ? formatDate(A.lang, d.documentDate) : ''].filter(Boolean).join(' · ')}</span>
                     </span>
                   </label>
@@ -174,7 +177,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
   const [picking, setPicking] = useState(false);
   const [approving, setApproving] = useState(false);
   const [restart, setRestart] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useMsgState();
   const [suggestion, setSuggestion] = useState('');
   const [suggesting, setSuggesting] = useState(false);
   const { run, pending } = useMutation();
@@ -216,7 +219,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
     setError('');
     const res = await run<Prep>(`/api/prep/${id}`, 'PUT', { content, visit_date: visitDate });
     if (!res.ok) {
-      setError(res.error.status === 0 ? A.health.common.offline : res.error.code === 'INVALID_SOURCE' ? E.outdated : res.error.status === 400 ? validationMessage(A, res.error) : A.health.common.failed);
+      setError((X) => (res.error.status === 0 ? X.health.common.offline : res.error.code === 'INVALID_SOURCE' ? X.health.visits.editor.outdated : res.error.status === 400 ? validationMessage(X, res.error) : X.health.common.failed));
       return false;
     }
     setDirty(false);
@@ -229,7 +232,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
     setApproving(false);
     if (dirty && !(await save())) return;
     const res = await run<Prep>(`/api/prep/${id}/approve`, 'POST', { confirm: true });
-    if (!res.ok) return setError(res.error.code === 'PREP_OUTDATED' ? E.outdated : res.error.status === 400 ? validationMessage(A, res.error) : E.approveFailed);
+    if (!res.ok) return setError((X) => (res.error.code === 'PREP_OUTDATED' ? X.health.visits.editor.outdated : res.error.status === 400 ? validationMessage(X, res.error) : X.health.visits.editor.approveFailed));
     setStatus('approved');
     setVersion((v) => v + 1);
   };
@@ -259,7 +262,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
     setSuggestion('');
     const res = await run<{ overview: string }>('/api/assistant/overview', 'POST', { prep_id: id });
     setSuggesting(false);
-    if (!res.ok) return setError((A.health.assistant.errors as Record<string, string>)[res.error.code] ?? A.health.common.failed);
+    if (!res.ok) return setError((X) => (X.health.assistant.errors as Record<string, string>)[res.error.code] ?? X.health.common.failed);
     setSuggestion(res.data.overview);
   };
 
@@ -324,7 +327,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
 
         {preview ? (
           <Card title={E.preview}>
-            <SnapshotView snapshot={snapshot} />
+            <SnapshotView snapshot={snapshot} lang={A.lang} />
             <div className="na-form-actions hp-noprint">
               <Button icon="download" onClick={() => window.print()}>
                 {A.health.common.print}

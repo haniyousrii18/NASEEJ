@@ -3,6 +3,7 @@ import { UserText } from '../translate/UserText.js';
 import { formatDate } from '../format.js';
 import { appT } from '../i18n/index.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
+import { sourceText } from './sourceLabel.js';
 
 /**
  * The clinician-facing summary. The same component renders the patient's preview, the printed copy and the page a doctor
@@ -45,9 +46,14 @@ const jumpTo = (id: string) => {
   el.focus({ preventScroll: true });
 };
 
-export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: string) => void; docError?: string; jump?: boolean }> = ({ snapshot, onOpenDoc, docError, jump }) => {
-  const T = appT[snapshot.lang].health.shareView;
-  const V = appT[snapshot.lang].health.vault;
+/**
+ * `lang` is the language of the interface around the content (headings, labels, source sentences, dates). It defaults to the
+ * language the summary was approved in, and the QR page passes the reader's own choice. The patient's text is never rewritten.
+ */
+export const SnapshotView: React.FC<{ snapshot: Snapshot; lang?: 'ar' | 'en'; onOpenDoc?: (id: string) => void; docError?: string; jump?: boolean }> = ({ snapshot, lang, onOpenDoc, docError, jump }) => {
+  const L = lang ?? snapshot.lang;
+  const T = appT[L].health.shareView;
+  const V = appT[L].health.vault;
   const sections = [...snapshot.sections].sort((a, b) => SECTION_ORDER.indexOf(a.key) - SECTION_ORDER.indexOf(b.key));
   const sid = (key: string) => `sv-sec-${key}`;
   const hasDocs = snapshot.documents.length > 0;
@@ -63,11 +69,11 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
         {s.items.map((it, i) => (
           <li key={i}>
             <span className="hp-sv-item">
-              <UserText text={it.text} lang={snapshot.lang} />
+              <UserText text={it.text} lang={L} />
             </span>
             <span className="hp-sv-src">
-              {T.sourceLabel}: {it.source}
-              {it.date && s.key !== 'symptoms' ? ` · ${formatDate(snapshot.lang, it.date)}` : ''}
+              {T.sourceLabel}: {sourceText(L, it.source)}
+              {it.date && s.key !== 'symptoms' ? ` · ${formatDate(L, it.date)}` : ''}
             </span>
           </li>
         ))}
@@ -75,7 +81,7 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
     </section>
   );
   return (
-    <article className="hp-sv" dir={snapshot.lang === 'ar' ? 'rtl' : 'ltr'} lang={snapshot.lang}>
+    <article className="hp-sv" dir={L === 'ar' ? 'rtl' : 'ltr'} lang={L}>
       {(snapshot.patient || snapshot.visitDate) && (
         <section className="hp-sv-id" aria-label={T.patient}>
           {snapshot.patient && (
@@ -95,13 +101,13 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
             {snapshot.patient?.dateOfBirth && (
               <div>
                 <dt>{T.dob}</dt>
-                <dd>{formatDate(snapshot.lang, snapshot.patient.dateOfBirth)}</dd>
+                <dd>{formatDate(L, snapshot.patient.dateOfBirth)}</dd>
               </div>
             )}
             {snapshot.visitDate && (
               <div>
                 <dt>{T.visit}</dt>
-                <dd>{formatDate(snapshot.lang, snapshot.visitDate)}</dd>
+                <dd>{formatDate(L, snapshot.visitDate)}</dd>
               </div>
             )}
           </dl>
@@ -125,7 +131,7 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
         <section className="hp-sv-sec hp-sv-lead" aria-labelledby="sv-sec-reason">
           <h2 id="sv-sec-reason">{T.reason}</h2>
           <p className="hp-sv-reason">
-            <UserText text={snapshot.reason} lang={snapshot.lang} />
+            <UserText text={snapshot.reason} lang={L} />
           </p>
         </section>
       )}
@@ -133,7 +139,7 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
         <section className="hp-sv-sec" aria-labelledby="sv-sec-overview">
           <h2 id="sv-sec-overview">{T.overview}</h2>
           <p className="hp-sv-text">
-            <UserText text={snapshot.overview} lang={snapshot.lang} />
+            <UserText text={snapshot.overview} lang={L} />
           </p>
         </section>
       )}
@@ -151,9 +157,16 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; onOpenDoc?: (id: strin
             {snapshot.documents.map((d) => (
               <li key={d.id} className="hp-sv-doc">
                 <span className="hp-sv-item">
-                  <UserText text={d.title} lang={snapshot.lang} />
+                  <UserText text={d.title} lang={L} />
                   <span className="hp-sv-src">
-                    {[d.docType ? ((V.types as Record<string, string>)[d.docType] ?? d.docType) : null, d.documentDate ? formatDate(snapshot.lang, d.documentDate) : null, d.providerName].filter(Boolean).join(' · ')}
+                    {[d.docType ? ((V.types as Record<string, string>)[d.docType] ?? d.docType) : null, d.documentDate ? formatDate(L, d.documentDate) : null, d.providerName ? <UserText key="p" text={d.providerName} lang={L} /> : null]
+                      .filter(Boolean)
+                      .map((part, i) => (
+                        <React.Fragment key={i}>
+                          {i > 0 && ' · '}
+                          {part}
+                        </React.Fragment>
+                      ))}
                   </span>
                 </span>
                 {onOpenDoc && (

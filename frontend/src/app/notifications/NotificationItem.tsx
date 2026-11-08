@@ -5,6 +5,7 @@ import type { AppRole } from '../nav.js';
 import { Button } from '../ui.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { useA } from '../useA.js';
+import { useMsg, useMsgState, type Msg } from '../useMsg.js';
 import { destinationRoute, eventKey, type ActionId, type NotificationDto } from './model.js';
 
 interface Props {
@@ -34,7 +35,8 @@ export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate,
   const request = useRequest();
   const [busy, setBusy] = useState(false);
   const [asking, setAsking] = useState(false);
-  const [message, setMessage] = useState<{ tone: 'ok' | 'danger'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ tone: 'ok' | 'danger'; text: Msg } | null>(null);
+  const say = useMsg();
 
   const key = eventKey(n);
   const words = (T.events as Record<string, { title: string; body: string }>)[key] ?? (T.events as Record<string, { title: string; body: string }>)[n.eventType];
@@ -61,7 +63,7 @@ export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate,
     try {
       await markRead();
       if (!route) {
-        setMessage({ tone: 'danger', text: T.destinationMissing });
+        setMessage({ tone: 'danger', text: (X) => X.notifications.destinationMissing });
         return;
       }
       onNavigated?.();
@@ -86,12 +88,12 @@ export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate,
       const res = await request(`/api/appointments/${n.relatedId}/status`, { method: 'PATCH', body: { status: 'confirmed' }, orgId: n.organizationId });
       if (res.ok) {
         await refresh();
-        setMessage({ tone: 'ok', text: T.actions.confirmed });
+        setMessage({ tone: 'ok', text: (X) => X.notifications.actions.confirmed });
       } else if (res.error.status === 409 || res.error.status === 404) {
         await refresh();
-        setMessage({ tone: 'danger', text: T.actions.stale });
+        setMessage({ tone: 'danger', text: (X) => X.notifications.actions.stale });
       } else {
-        setMessage({ tone: 'danger', text: T.actions.failed });
+        setMessage({ tone: 'danger', text: (X) => X.notifications.actions.failed });
       }
     } finally {
       setBusy(false);
@@ -174,7 +176,7 @@ export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate,
         </div>
         {message && (
           <p className="na-nt-msg" data-tone={message.tone} role={message.tone === 'danger' ? 'alert' : 'status'}>
-            {message.text}
+            {say(message.text)}
           </p>
         )}
       </li>
@@ -229,7 +231,7 @@ export const NotificationItem: React.FC<Props> = ({ n, archived, role, navigate,
       {message && (
         <p className="na-nt-msg" data-tone={message.tone} role={message.tone === 'danger' ? 'alert' : 'status'}>
           {message.tone === 'danger' ? '! ' : '✓ '}
-          {message.text}
+          {say(message.text)}
         </p>
       )}
     </li>

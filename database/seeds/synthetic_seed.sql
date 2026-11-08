@@ -32,18 +32,18 @@ VALUES ('10000000-0000-0000-0000-000000000001', 'eeeeeeee-eeee-eeee-eeee-eeeeeee
 INSERT INTO health_entries (patient_id, kind, title, status, start_date, event_date, dose, frequency, reaction, severity, value, unit, provider_name, notes, source, review_status, confirmed_at)
 VALUES
 -- conditions
-('10000000-0000-0000-0000-000000000001', 'condition', 'ارتفاع ضغط الدم (Hypertension)', 'active', CURRENT_DATE - 380, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'أتابع مع طبيب القلب كل ثلاثة أشهر.', 'patient', 'confirmed', NOW()),
-('10000000-0000-0000-0000-000000000001', 'condition', 'صداع نصفي (Migraine)', 'past', CURRENT_DATE - 2200, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
+('10000000-0000-0000-0000-000000000001', 'condition', 'ارتفاع ضغط الدم', 'active', CURRENT_DATE - 380, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'أتابع مع طبيب القلب كل ثلاثة أشهر.', 'patient', 'confirmed', NOW()),
+('10000000-0000-0000-0000-000000000001', 'condition', 'صداع نصفي', 'past', CURRENT_DATE - 2200, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
 -- medications
-('10000000-0000-0000-0000-000000000001', 'medication', 'أملوديبين (Amlodipine)', 'active', CURRENT_DATE - 14, NULL, '5 mg', 'مرة واحدة يوميًا صباحًا', NULL, NULL, NULL, NULL, 'د. فيصل الشمري', NULL, 'patient', 'confirmed', NOW()),
-('10000000-0000-0000-0000-000000000001', 'medication', 'باراسيتامول (Paracetamol)', 'active', CURRENT_DATE - 200, NULL, '500 mg', 'عند الحاجة، لا يزيد عن 3 مرات يوميًا', NULL, NULL, NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
+('10000000-0000-0000-0000-000000000001', 'medication', 'أملوديبين', 'active', CURRENT_DATE - 14, NULL, '5 mg', 'مرة واحدة يوميًا صباحًا', NULL, NULL, NULL, NULL, 'د. فيصل الشمري', NULL, 'patient', 'confirmed', NOW()),
+('10000000-0000-0000-0000-000000000001', 'medication', 'باراسيتامول', 'active', CURRENT_DATE - 200, NULL, '500 mg', 'عند الحاجة، لا يزيد عن 3 مرات يوميًا', NULL, NULL, NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
 -- allergies
-('10000000-0000-0000-0000-000000000001', 'allergy', 'بنسلين (Penicillin)', NULL, NULL, NULL, NULL, NULL, 'طفح جلدي شديد وضيق في التنفس', 'severe', NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
-('10000000-0000-0000-0000-000000000001', 'allergy', 'غبار الطلع (Pollen)', NULL, NULL, NULL, NULL, NULL, 'عطاس وسيلان في الأنف في الربيع', 'mild', NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
+('10000000-0000-0000-0000-000000000001', 'allergy', 'بنسلين', NULL, NULL, NULL, NULL, NULL, 'طفح جلدي شديد وضيق في التنفس', 'severe', NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
+('10000000-0000-0000-0000-000000000001', 'allergy', 'غبار الطلع', NULL, NULL, NULL, NULL, NULL, 'عطاس وسيلان في الأنف في الربيع', 'mild', NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
 -- procedure
-('10000000-0000-0000-0000-000000000001', 'procedure', 'استئصال الزائدة الدودية (Appendectomy)', NULL, NULL, CURRENT_DATE - 4900, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
+('10000000-0000-0000-0000-000000000001', 'procedure', 'استئصال الزائدة الدودية', NULL, NULL, CURRENT_DATE - 4900, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'patient', 'confirmed', NOW()),
 -- measurements
-('10000000-0000-0000-0000-000000000001', 'measurement', 'ضغط الدم (Blood pressure)', NULL, NULL, CURRENT_DATE - 5, NULL, NULL, NULL, NULL, '138/88', 'mmHg', NULL, 'قياس في المنزل صباحًا.', 'patient', 'confirmed', NOW()),
+('10000000-0000-0000-0000-000000000001', 'measurement', 'ضغط الدم', NULL, NULL, CURRENT_DATE - 5, NULL, NULL, NULL, NULL, '138/88', 'mmHg', NULL, 'قياس في المنزل صباحًا.', 'patient', 'confirmed', NOW()),
 -- a visit the patient keeps
 ('10000000-0000-0000-0000-000000000001', 'visit', 'متابعة ضغط الدم', NULL, NULL, CURRENT_DATE - 14, NULL, NULL, NULL, NULL, NULL, NULL, 'د. فيصل الشمري — مركز النور', 'بدأ أملوديبين وطُلبت تحاليل دم.', 'patient', 'confirmed', NOW()),
 ('10000000-0000-0000-0000-000000000001', 'visit', 'زيارة متابعة القلب', NULL, NULL, CURRENT_DATE + 5, NULL, NULL, NULL, NULL, NULL, NULL, 'د. فيصل الشمري — مركز النور', 'موعد المتابعة بعد أسبوعين من بدء الدواء.', 'patient', 'confirmed', NOW());
@@ -76,8 +76,8 @@ VALUES ('80000000-0000-0000-0000-000000000001', NULL, 'completed', 'synthetic', 
 
 INSERT INTO document_facts (document_id, organization_id, patient_id, kind, label, value, unit, fact_date, source_page, source_passage)
 VALUES
-('80000000-0000-0000-0000-000000000001', NULL, '10000000-0000-0000-0000-000000000001', 'lab_value', 'الكوليسترول الضار (LDL)', '162', 'mg/dL', CURRENT_DATE - 13, 1, 'LDL cholesterol 162 mg/dL'),
-('80000000-0000-0000-0000-000000000001', NULL, '10000000-0000-0000-0000-000000000001', 'lab_value', 'فيتامين د (Vitamin D)', '18', 'ng/mL', CURRENT_DATE - 13, 1, 'Vitamin D 18 ng/mL');
+('80000000-0000-0000-0000-000000000001', NULL, '10000000-0000-0000-0000-000000000001', 'lab_value', 'الكوليسترول الضار', '162', 'mg/dL', CURRENT_DATE - 13, 1, 'LDL cholesterol 162 mg/dL'),
+('80000000-0000-0000-0000-000000000001', NULL, '10000000-0000-0000-0000-000000000001', 'lab_value', 'فيتامين د', '18', 'ng/mL', CURRENT_DATE - 13, 1, 'Vitamin D 18 ng/mL');
 
 -- -----------------------------------------------------------------------------
 -- 6. Notifications (two)
@@ -86,3 +86,54 @@ INSERT INTO notifications (recipient_user_id, recipient_role, organization_id, e
 VALUES
 ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'patient', NULL, 'document.released', 'records', '{}'::jsonb, 'document', '80000000-0000-0000-0000-000000000002', 'document', '80000000-0000-0000-0000-000000000002', 'seed:document.released:2', NOW() - INTERVAL '2 hours', NULL),
 ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'patient', NULL, 'account.password_changed', 'account', '{}'::jsonb, NULL, NULL, 'account_security', NULL, 'seed:account.password_changed', NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days');
+
+-- -----------------------------------------------------------------------------
+-- 7. English wording for the patient's Arabic text. The page shows text in the language of the page, and the translation
+-- store is keyed by a SHA-256 of the original, exactly as the server computes it. Written here so the demo account reads
+-- in English without any translation service configured. Editing a text changes its hash, so a stale row is never shown.
+-- -----------------------------------------------------------------------------
+INSERT INTO content_translations (patient_id, source_hash, target_lang, source_lang, translated_text, provider)
+SELECT '10000000-0000-0000-0000-000000000001', encode(sha256(convert_to(t.ar, 'UTF8')), 'hex'), 'en', 'ar', t.en, 'seed'
+FROM (VALUES
+  ('ارتفاع ضغط الدم', 'High blood pressure'),
+  ('صداع نصفي', 'Migraine'),
+  ('أملوديبين', 'Amlodipine'),
+  ('باراسيتامول', 'Paracetamol'),
+  ('بنسلين', 'Penicillin'),
+  ('غبار الطلع', 'Pollen'),
+  ('استئصال الزائدة الدودية', 'Appendectomy'),
+  ('ضغط الدم', 'Blood pressure'),
+  ('الكوليسترول الضار', 'LDL cholesterol'),
+  ('فيتامين د', 'Vitamin D'),
+  ('أتابع مع طبيب القلب كل ثلاثة أشهر.', 'I follow up with the cardiologist every three months.'),
+  ('مرة واحدة يوميًا صباحًا', 'Once daily in the morning'),
+  ('د. فيصل الشمري', 'Dr. Faisal Al-Shammari'),
+  ('عند الحاجة، لا يزيد عن 3 مرات يوميًا', 'As needed, no more than 3 times a day'),
+  ('طفح جلدي شديد وضيق في التنفس', 'Severe skin rash and shortness of breath'),
+  ('عطاس وسيلان في الأنف في الربيع', 'Sneezing and a runny nose in spring'),
+  ('قياس في المنزل صباحًا.', 'Measured at home in the morning.'),
+  ('متابعة ضغط الدم', 'Blood pressure follow-up'),
+  ('د. فيصل الشمري — مركز النور', 'Dr. Faisal Al-Shammari — Al Noor Center'),
+  ('بدأ أملوديبين وطُلبت تحاليل دم.', 'Started amlodipine and blood tests were requested.'),
+  ('زيارة متابعة القلب', 'Heart follow-up visit'),
+  ('موعد المتابعة بعد أسبوعين من بدء الدواء.', 'Follow-up appointment two weeks after starting the medicine.'),
+  ('صداع في الجهة اليمنى مع دوخة خفيفة', 'Headache on the right side with mild dizziness'),
+  ('يظهر غالبًا بعد الظهر.', 'Usually appears in the afternoon.'),
+  ('ساعتان تقريبًا', 'About two hours'),
+  ('الراحة في غرفة هادئة', 'Rest in a quiet room'),
+  ('قلة النوم والإجهاد', 'Lack of sleep and stress'),
+  ('ضيق في التنفس عند صعود الدرج', 'Shortness of breath when climbing stairs'),
+  ('دقائق قليلة', 'A few minutes'),
+  ('التوقف والراحة', 'Stopping and resting'),
+  ('صعود أكثر من طابقين', 'Climbing more than two floors'),
+  ('ألم أسفل الظهر', 'Lower back pain'),
+  ('أسوأ بعد الجلوس الطويل.', 'Worse after sitting for a long time.'),
+  ('المشي الخفيف', 'Light walking'),
+  ('الجلوس الطويل', 'Sitting for a long time'),
+  ('تقرير تحاليل الدم', 'Blood test report'),
+  ('مختبر النور', 'Al Noor Laboratory'),
+  ('وصفة أملوديبين', 'Amlodipine prescription'),
+  ('تقرير أشعة الصدر', 'Chest X-ray report'),
+  ('مركز الأشعة الحديث', 'Modern Radiology Center')
+) AS t(ar, en)
+ON CONFLICT (patient_id, source_hash, target_lang) DO NOTHING;

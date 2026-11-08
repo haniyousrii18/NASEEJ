@@ -317,3 +317,37 @@
     animation: none;
   }
 }
+
+.sv-bar-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sv-lang {
+  min-block-size: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 620;
+  cursor: pointer;
+}
+
+.sv-lang:hover {
+  background: var(--color-bg-subtle);
+}
+
+.sv-lang:focus-visible {
+  outline: 2px solid var(--color-focus, currentColor);
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .sv-bar-end .sv-ro {
+    padding: 0 9px;
+  }
+}

@@ -1,6 +1,7 @@
 import type { ApiFailure } from './api.js';
 import { fill } from './format.js';
 import type { appT } from './i18n/index.js';
+import type { AppStrings } from './useMsg.js';
 
 type Strings = (typeof appT)['ar'] | (typeof appT)['en'];
 
@@ -20,3 +21,12 @@ export function validationMessage(A: Strings, error: ApiFailure): string {
   const field = typeof error.details?.field === 'string' ? V.fields[error.details.field] ?? error.details.field : '';
   return fill(template, { field, max: error.details?.max ?? '' });
 }
+
+/**
+ * The usual outcome of a failed save, as a message that is worded when it is shown (see useMsg): offline, a rejected field,
+ * or the screen's own fallback. Pass `validation: false` where the server never sends field rules.
+ */
+export const failureMsg =
+  (error: ApiFailure, fallback: (A: AppStrings) => string = (A) => A.health.common.failed, validation = true) =>
+  (A: AppStrings): string =>
+    error.status === 0 ? A.health.common.offline : validation && error.status === 400 ? validationMessage(A, error) : fallback(A);

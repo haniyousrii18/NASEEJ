@@ -13,7 +13,9 @@
    do not write a colour literal in a component rule.
    ============================================================================= */
 
-:root {
+/* .hp-preview is a sheet of paper (the summary exactly as the clinician reads it): it keeps the light tokens in dark mode too. */
+:root,
+.hp-preview {
   /* ---- layer 1: light ---- */
   --background: #f7f9f8;
   --surface: #ffffff;
@@ -127,7 +129,8 @@
 }
 
 /* ---- layer 2: component names, aliases of layer 1 (identical in both themes) ---- */
-:root {
+:root,
+.hp-preview {
   /* Fonts */
   --font-arabic: 'Cairo', sans-serif;
   --font-latin: 'Inter', 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -357,6 +360,8 @@
 
 html {
   overflow-x: clip;
+  /* The scrollbar's space is always reserved, so a page that scrolls and one that does not have the same width and edges. */
+  scrollbar-gutter: stable;
   background-color: var(--color-bg-canvas);
   color: var(--color-ink);
   font-family: var(--font-arabic);
@@ -831,7 +836,6 @@ strong, b {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1149,10 +1153,10 @@ svg {
    Motion: staggered entrances, scroll-in blocks, row cascades, gentle lifts.
    Public pages always play these. The workspace shortens them under prefers-reduced-motion (end of file).
    ============================================================================= */
+/* Content never slides or arrives piece by piece while a page opens: it is in place and simply fades in together. */
 @keyframes riseIn {
   from {
     opacity: 0;
-    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -1165,25 +1169,25 @@ svg {
   animation: riseIn 460ms var(--motion-ease-out) both;
 }
 .motion-stagger > *:nth-child(1) { animation-delay: 0ms; }
-.motion-stagger > *:nth-child(2) { animation-delay: 70ms; }
-.motion-stagger > *:nth-child(3) { animation-delay: 140ms; }
-.motion-stagger > *:nth-child(4) { animation-delay: 210ms; }
-.motion-stagger > *:nth-child(5) { animation-delay: 280ms; }
-.motion-stagger > *:nth-child(6) { animation-delay: 350ms; }
-.motion-stagger > *:nth-child(7) { animation-delay: 420ms; }
-.motion-stagger > *:nth-child(n + 8) { animation-delay: 490ms; }
+.motion-stagger > *:nth-child(2) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(3) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(4) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(5) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(6) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(7) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(n + 8) { animation-delay: 0ms; }
 
 /* Table rows cascade in. */
 .data-table tbody tr {
   animation: riseIn 380ms var(--motion-ease-out) both;
 }
 .data-table tbody tr:nth-child(1) { animation-delay: 0ms; }
-.data-table tbody tr:nth-child(2) { animation-delay: 45ms; }
-.data-table tbody tr:nth-child(3) { animation-delay: 90ms; }
-.data-table tbody tr:nth-child(4) { animation-delay: 135ms; }
-.data-table tbody tr:nth-child(5) { animation-delay: 180ms; }
-.data-table tbody tr:nth-child(6) { animation-delay: 225ms; }
-.data-table tbody tr:nth-child(n + 7) { animation-delay: 270ms; }
+.data-table tbody tr:nth-child(2) { animation-delay: 0ms; }
+.data-table tbody tr:nth-child(3) { animation-delay: 0ms; }
+.data-table tbody tr:nth-child(4) { animation-delay: 0ms; }
+.data-table tbody tr:nth-child(5) { animation-delay: 0ms; }
+.data-table tbody tr:nth-child(6) { animation-delay: 0ms; }
+.data-table tbody tr:nth-child(n + 7) { animation-delay: 0ms; }
 
 /* Slightly longer, more visible view and tab entrances. */
 .motion-view-enter {

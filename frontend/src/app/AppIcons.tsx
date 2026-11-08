@@ -4,9 +4,11 @@ export type IconName =
   | 'home' | 'summary' | 'timeline' | 'documents' | 'pill' | 'calendar' | 'message' | 'shield' | 'search' | 'checks'
   | 'folder' | 'link' | 'clock' | 'plus' | 'door' | 'building' | 'chart' | 'users' | 'scroll' | 'inbox' | 'menu'
   | 'close' | 'chevron' | 'logout' | 'globe' | 'collapse' | 'sun' | 'moon' | 'system' | 'user' | 'alert' | 'check'
-  | 'visit' | 'flask' | 'download' | 'external' | 'refresh' | 'lock' | 'pulse' | 'upload' | 'settings' | 'bell' | 'archive';
+  | 'visit' | 'flask' | 'download' | 'external' | 'refresh' | 'lock' | 'pulse' | 'upload' | 'settings' | 'bell' | 'archive' | 'list' | 'grid';
 
 const paths: Record<IconName, React.ReactNode> = {
+  list: <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />,
+  grid: <><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></>,
   archive: <><rect x="3" y="4" width="18" height="5" rx="1.5" /><path d="M5 9v9a2 2 0 002 2h10a2 2 0 002-2V9M10 13h4" /></>,
   bell: <><path d="M6 17V11a6 6 0 0112 0v6l1.5 2h-15z" /><path d="M10 21a2 2 0 004 0" /></>,
   settings: <><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></>,

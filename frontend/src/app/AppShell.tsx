@@ -49,7 +49,8 @@ interface Props {
  */
 const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   const { user, currentRole, currentOrgId, logout } = useAuth();
-  const { lang, setLang, isRtl } = useLang();
+  const { lang, setLang, isRtl, t: site } = useLang();
+  const brandName = site.brand.name;
   const { workspace } = useTheme();
   const wsTheme = workspace.theme;
   const { enter: enterWorkspace, leave: leaveWorkspace } = workspace;
@@ -113,17 +114,19 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
       firstRender.current = false;
       return;
     }
+    // A new page opens at its top, not wherever the previous one was scrolled to.
+    window.scrollTo(0, 0);
     const raf = requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-page-title]')?.focus({ preventScroll: true }));
     return () => cancelAnimationFrame(raf);
   }, [route]);
 
   useEffect(() => {
     const previous = document.title;
-    if (pageLabel) document.title = `${pageLabel} | ${isRtl ? 'نَسيج' : 'Naseej'}`;
+    if (pageLabel) document.title = `${pageLabel} | ${brandName}`;
     return () => {
       document.title = previous;
     };
-  }, [pageLabel, isRtl]);
+  }, [pageLabel, brandName]);
 
   // The drawer only exists below 1024px; if the window grows past that, it closes.
   useEffect(() => {
@@ -233,7 +236,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
           <div className="na-brand">
             <img src="/logo-mark.svg" alt="" width={40} height={40} />
             <span className="na-brand-text">
-              <span className="na-brand-name">{isRtl ? 'نَسيج' : 'Naseej'}</span>
+              <span className="na-brand-name">{brandName}</span>
               <span className="na-brand-role">{roleLabel}</span>
             </span>
           </div>

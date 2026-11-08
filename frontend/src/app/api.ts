@@ -27,7 +27,7 @@ export function useRequest() {
   const { token, currentOrgId } = useAuth();
 
   return useCallback(
-    async <T = any>(path: string, init: { method?: string; body?: unknown; orgId?: string | null } = {}): Promise<ApiResult<T>> => {
+    async <T = any>(path: string, init: { method?: string; body?: unknown; orgId?: string | null; signal?: AbortSignal } = {}): Promise<ApiResult<T>> => {
       const headers: Record<string, string> = { Accept: 'application/json' };
       if (init.body !== undefined) headers['Content-Type'] = 'application/json';
       if (token) headers.Authorization = `Bearer ${token}`;
@@ -37,8 +37,9 @@ export function useRequest() {
 
       let res: Response;
       try {
-        res = await fetch(path, { method: init.method || 'GET', headers, body: init.body === undefined ? undefined : JSON.stringify(init.body) });
+        res = await fetch(path, { method: init.method || 'GET', headers, body: init.body === undefined ? undefined : JSON.stringify(init.body), signal: init.signal });
       } catch {
+        if (init.signal?.aborted) return { ok: false, error: { status: 0, code: 'ABORTED', message: 'Aborted' } };
         return { ok: false, error: { status: 0, code: 'NETWORK', message: 'Network error' } };
       }
 
@@ -80,8 +81,13 @@ export function useApiData<T = any>(path: string | null) {
     setState(res.ok ? { status: 'ready', data: res.data, meta: res.meta } : { status: 'error', error: res.error });
   }, [path, request]);
 
+  // The same data asked again for another language (?lang=) keeps what is on screen until the answer arrives, so the page does
+  // not flash to a skeleton and back. A different resource starts from loading.
+  const resource = path?.split('?')[0] ?? null;
+  const lastResource = useRef<string | null>(null);
   useEffect(() => {
-    setState({ status: 'loading' });
+    if (lastResource.current !== resource) setState({ status: 'loading' });
+    lastResource.current = resource;
     void load();
     return () => {
       seq.current += 1;

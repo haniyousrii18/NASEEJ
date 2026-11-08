@@ -10,6 +10,7 @@ import { AppIcon, type IconName } from '../AppIcons.js';
 import { Async, Button, Dialog, EmptyState, Field, Notice, PageHead, Pill } from '../ui.js';
 import { PrivacySection } from '../health/PrivacyPanel.js';
 import { useA } from '../useA.js';
+import { useMsg, type Msg } from '../useMsg.js';
 
 /**
  * Settings for the signed-in account. One page per role (`<role>/settings`), composed from the sections that role
@@ -44,7 +45,7 @@ interface AccountData {
   patient: { phone: string; email: string | null; emergency_contact_name: string | null; emergency_contact_phone: string | null } | null;
 }
 
-type Flash = { tone: 'ok' | 'danger'; text: string } | null;
+type Flash = { tone: 'ok' | 'danger'; text: Msg } | null;
 
 const PHONE_RE = /^\+?[0-9][0-9\s-]{5,18}[0-9]$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -95,21 +96,22 @@ const ReadRow: React.FC<{ label: string; children: React.ReactNode; ltr?: boolea
 const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ data, onSaved }) => {
   const A = useA();
   const S = A.settings;
+  const say = useMsg();
   const { updateUser } = useAuth();
   const save = useMutation();
   const [form, setForm] = useState({ nameAr: data.fullNameAr, nameEn: data.fullNameEn, phone: data.phone ?? '' });
   const [flash, setFlash] = useState<Flash>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, Msg>>({});
 
   const dirty = data.nameEditable && (form.nameAr !== data.fullNameAr || form.nameEn !== data.fullNameEn || form.phone !== (data.phone ?? ''));
   useUnsavedGuard(dirty, S.leave);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const next: Record<string, string> = {};
-    if (form.nameAr.trim().length < 2) next.nameAr = S.account.invalidName;
-    if (form.nameEn.trim().length < 2) next.nameEn = S.account.invalidName;
-    if (form.phone.trim() && !PHONE_RE.test(form.phone.trim())) next.phone = S.account.invalidPhone;
+    const next: Record<string, Msg> = {};
+    if (form.nameAr.trim().length < 2) next.nameAr = (X) => X.settings.account.invalidName;
+    if (form.nameEn.trim().length < 2) next.nameEn = (X) => X.settings.account.invalidName;
+    if (form.phone.trim() && !PHONE_RE.test(form.phone.trim())) next.phone = (X) => X.settings.account.invalidPhone;
     setErrors(next);
     if (Object.keys(next).length) return;
     const res = await save.run<{ fullNameAr: string; fullNameEn: string }>('/api/account/profile', 'PATCH', {
@@ -119,12 +121,12 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
     });
     if (res.ok) {
       updateUser({ fullNameAr: res.data.fullNameAr, fullNameEn: res.data.fullNameEn });
-      setFlash({ tone: 'ok', text: S.account.saved });
+      setFlash({ tone: 'ok', text: (X) => X.settings.account.saved });
       onSaved();
     } else {
       const field = res.error.details?.field as string | undefined;
-      if (field) setErrors({ [field]: validationMessage(A, res.error) });
-      setFlash({ tone: 'danger', text: validationMessage(A, res.error) });
+      if (field) setErrors({ [field]: (X) => validationMessage(X, res.error) });
+      setFlash({ tone: 'danger', text: (X) => validationMessage(X, res.error) });
     }
   };
 
@@ -135,21 +137,21 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
           <div className="na-grid na-grid--2">
             <Field label={S.account.nameAr} htmlFor="set-name-ar">
               <input id="set-name-ar" className="na-input" lang="ar" dir="rtl" maxLength={120} value={form.nameAr} aria-invalid={!!errors.nameAr} aria-describedby={errors.nameAr ? 'set-name-ar-err' : undefined} onChange={(e) => setForm({ ...form, nameAr: e.target.value })} />
-              {errors.nameAr && <p id="set-name-ar-err" className="na-set-error">{errors.nameAr}</p>}
+              {errors.nameAr && <p id="set-name-ar-err" className="na-set-error">{say(errors.nameAr)}</p>}
             </Field>
             <Field label={S.account.nameEn} htmlFor="set-name-en">
               <input id="set-name-en" className="na-input" lang="en" dir="ltr" maxLength={120} value={form.nameEn} aria-invalid={!!errors.nameEn} aria-describedby={errors.nameEn ? 'set-name-en-err' : undefined} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} />
-              {errors.nameEn && <p id="set-name-en-err" className="na-set-error">{errors.nameEn}</p>}
+              {errors.nameEn && <p id="set-name-en-err" className="na-set-error">{say(errors.nameEn)}</p>}
             </Field>
             <Field label={S.account.phone} htmlFor="set-phone">
               <input id="set-phone" type="tel" className="na-input" dir="ltr" autoComplete="tel" maxLength={20} value={form.phone} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'set-phone-err' : undefined} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              {errors.phone && <p id="set-phone-err" className="na-set-error">{errors.phone}</p>}
+              {errors.phone && <p id="set-phone-err" className="na-set-error">{say(errors.phone)}</p>}
             </Field>
             <Field label={S.account.email} htmlFor="set-email">
               <input id="set-email" className="na-input" dir="ltr" value={data.email} readOnly aria-readonly="true" />
             </Field>
           </div>
-          {flash && <Notice tone={flash.tone} live>{flash.text}</Notice>}
+          {flash && <Notice tone={flash.tone} live>{say(flash.text)}</Notice>}
           <div className="na-set-actions">
             <Button type="submit" variant="primary" disabled={!dirty || save.pending}>
               {save.pending ? S.actions.saving : S.actions.save}
@@ -178,21 +180,22 @@ const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ 
 const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ data, onSaved }) => {
   const A = useA();
   const S = A.settings;
+  const say = useMsg();
   const save = useMutation();
   const p = data.patient!;
   const initial = { phone: p.phone ?? '', email: p.email ?? '', ecName: p.emergency_contact_name ?? '', ecPhone: p.emergency_contact_phone ?? '' };
   const [form, setForm] = useState(initial);
   const [flash, setFlash] = useState<Flash>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, Msg>>({});
   const dirty = (Object.keys(initial) as Array<keyof typeof initial>).some((k) => form[k] !== initial[k]);
   useUnsavedGuard(dirty, S.leave);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const next: Record<string, string> = {};
-    if (!PHONE_RE.test(form.phone.trim())) next.phone = S.account.invalidPhone;
-    if (form.email.trim() && !EMAIL_RE.test(form.email.trim())) next.email = S.contact.invalidEmail;
-    if (form.ecPhone.trim() && !PHONE_RE.test(form.ecPhone.trim())) next.ecPhone = S.account.invalidPhone;
+    const next: Record<string, Msg> = {};
+    if (!PHONE_RE.test(form.phone.trim())) next.phone = (X) => X.settings.account.invalidPhone;
+    if (form.email.trim() && !EMAIL_RE.test(form.email.trim())) next.email = (X) => X.settings.contact.invalidEmail;
+    if (form.ecPhone.trim() && !PHONE_RE.test(form.ecPhone.trim())) next.ecPhone = (X) => X.settings.account.invalidPhone;
     setErrors(next);
     if (Object.keys(next).length) return;
     // Only the fields the person changed are sent.
@@ -203,10 +206,10 @@ const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }
     if (form.ecPhone !== initial.ecPhone) body.emergencyContactPhone = form.ecPhone.trim() || null;
     const res = await save.run('/api/account/patient-contact', 'PATCH', body);
     if (res.ok) {
-      setFlash({ tone: 'ok', text: S.contact.saved });
+      setFlash({ tone: 'ok', text: (X) => X.settings.contact.saved });
       onSaved();
     } else {
-      setFlash({ tone: 'danger', text: validationMessage(A, res.error) });
+      setFlash({ tone: 'danger', text: (X) => validationMessage(X, res.error) });
     }
   };
 
@@ -216,21 +219,21 @@ const PatientContactSection: React.FC<{ data: AccountData; onSaved: () => void }
         <div className="na-grid na-grid--2">
           <Field label={S.contact.phone} htmlFor="set-pc-phone">
             <input id="set-pc-phone" type="tel" className="na-input" dir="ltr" autoComplete="tel" maxLength={20} value={form.phone} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'set-pc-phone-err' : undefined} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            {errors.phone && <p id="set-pc-phone-err" className="na-set-error">{errors.phone}</p>}
+            {errors.phone && <p id="set-pc-phone-err" className="na-set-error">{say(errors.phone)}</p>}
           </Field>
           <Field label={S.contact.email} htmlFor="set-pc-email">
             <input id="set-pc-email" type="email" className="na-input" dir="ltr" autoComplete="email" maxLength={255} value={form.email} aria-invalid={!!errors.email} aria-describedby={errors.email ? 'set-pc-email-err' : undefined} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            {errors.email && <p id="set-pc-email-err" className="na-set-error">{errors.email}</p>}
+            {errors.email && <p id="set-pc-email-err" className="na-set-error">{say(errors.email)}</p>}
           </Field>
           <Field label={S.contact.emergencyName} htmlFor="set-pc-ecn">
             <input id="set-pc-ecn" className="na-input" maxLength={255} value={form.ecName} onChange={(e) => setForm({ ...form, ecName: e.target.value })} />
           </Field>
           <Field label={S.contact.emergencyPhone} htmlFor="set-pc-ecp">
             <input id="set-pc-ecp" type="tel" className="na-input" dir="ltr" maxLength={20} value={form.ecPhone} aria-invalid={!!errors.ecPhone} aria-describedby={errors.ecPhone ? 'set-pc-ecp-err' : undefined} onChange={(e) => setForm({ ...form, ecPhone: e.target.value })} />
-            {errors.ecPhone && <p id="set-pc-ecp-err" className="na-set-error">{errors.ecPhone}</p>}
+            {errors.ecPhone && <p id="set-pc-ecp-err" className="na-set-error">{say(errors.ecPhone)}</p>}
           </Field>
         </div>
-        {flash && <Notice tone={flash.tone} live>{flash.text}</Notice>}
+        {flash && <Notice tone={flash.tone} live>{say(flash.text)}</Notice>}
         <div className="na-set-actions">
           <Button type="submit" variant="primary" disabled={!dirty || save.pending}>
             {save.pending ? S.actions.saving : S.actions.save}
@@ -280,32 +283,33 @@ const PreferencesSection: React.FC = () => {
 const SecuritySection: React.FC = () => {
   const A = useA();
   const S = A.settings;
+  const say = useMsg();
   const { logout } = useAuth();
   const change = useMutation();
   const empty = { current: '', next: '', confirm: '' };
   const [form, setForm] = useState(empty);
   const [flash, setFlash] = useState<Flash>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, Msg>>({});
   const dirty = form.current !== '' || form.next !== '' || form.confirm !== '';
   useUnsavedGuard(dirty, S.leave);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const next: Record<string, string> = {};
-    if (!form.current) next.current = S.security.wrongCurrent;
-    if (form.next.length < 8 || !/[A-Za-z؀-ۿ]/.test(form.next) || !/[0-9]/.test(form.next)) next.next = S.security.rule;
-    else if (form.next !== form.confirm) next.confirm = S.security.mismatch;
+    const next: Record<string, Msg> = {};
+    if (!form.current) next.current = (X) => X.settings.security.wrongCurrent;
+    if (form.next.length < 8 || !/[A-Za-z؀-ۿ]/.test(form.next) || !/[0-9]/.test(form.next)) next.next = (X) => X.settings.security.rule;
+    else if (form.next !== form.confirm) next.confirm = (X) => X.settings.security.mismatch;
     setErrors(next);
     setFlash(null);
     if (Object.keys(next).length) return;
     const res = await change.run('/api/account/password', 'POST', { currentPassword: form.current, newPassword: form.next });
     if (res.ok) {
       setForm(empty);
-      setFlash({ tone: 'ok', text: S.security.changed });
+      setFlash({ tone: 'ok', text: (X) => X.settings.security.changed });
     } else if (res.error.code === 'CURRENT_PASSWORD_INCORRECT') {
-      setErrors({ current: S.security.wrongCurrent });
+      setErrors({ current: (X) => X.settings.security.wrongCurrent });
     } else {
-      setFlash({ tone: 'danger', text: validationMessage(A, res.error) });
+      setFlash({ tone: 'danger', text: (X) => validationMessage(X, res.error) });
     }
   };
 
@@ -322,7 +326,7 @@ const SecuritySection: React.FC = () => {
         aria-describedby={errors[id] ? `set-pw-${id}-err` : undefined}
         onChange={(e) => setForm({ ...form, [id]: e.target.value })}
       />
-      {errors[id] && <p id={`set-pw-${id}-err`} className="na-set-error">{errors[id]}</p>}
+      {errors[id] && <p id={`set-pw-${id}-err`} className="na-set-error">{say(errors[id])}</p>}
     </Field>
   );
 
@@ -334,7 +338,7 @@ const SecuritySection: React.FC = () => {
           {field('next', S.security.next)}
           {field('confirm', S.security.confirm)}
         </div>
-        {flash && <Notice tone={flash.tone} live>{flash.text}</Notice>}
+        {flash && <Notice tone={flash.tone} live>{say(flash.text)}</Notice>}
         <div className="na-set-actions">
           <Button type="submit" variant="primary" disabled={!dirty || change.pending}>
             {change.pending ? S.actions.saving : S.actions.change}

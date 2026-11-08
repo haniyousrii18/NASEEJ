@@ -1402,7 +1402,7 @@
 
 /* ------------------------------------------------------------------ motion */
 .na-rise {
-  animation: naRise 0.45s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
+  animation: naRise 0.2s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
 }
 
 .na-rise:nth-child(2) {
@@ -1420,13 +1420,18 @@
 @keyframes naRise {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
 
   to {
     opacity: 1;
-    transform: none;
   }
+}
+
+/* A language switch crossfades the page (View Transitions API) instead of repainting it in one jump. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.18s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ------------------------------------------------------------------ background: the quiet weave
@@ -2923,15 +2928,13 @@ th[data-today] .na-sched-daybtn {
 }
 
 /* ------------------------------------------------------------------ settings pages (workspace only) */
-/* A compact tabbed layout: tab list on the reading side, one content card beside it. Type is deliberately small and
-   fluid; the tab list folds into a scrolling row on narrow screens. */
+/* Tab list on the reading side, one content card beside it; the tab list folds into a scrolling row on narrow screens.
+   Width and type are the page's own, the same as every other page. */
 .na-set-shell {
   display: grid;
   grid-template-columns: clamp(170px, 21vw, 250px) minmax(0, 1fr);
   gap: clamp(14px, 2.4vw, 28px);
   align-items: start;
-  max-width: 1040px;
-  font-size: clamp(12.5px, 0.3vw + 11.8px, 14px);
 }
 
 .na-set-nav {
@@ -2991,10 +2994,10 @@ th[data-today] .na-sched-daybtn {
   display: grid;
   gap: clamp(14px, 2vw, 20px);
   align-content: start;
-  padding: clamp(14px, 2.4vw, 26px);
+  padding: clamp(16px, 2vw, 24px);
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 20px;
+  border-radius: var(--na-radius);
   box-shadow: var(--na-card-shadow, none);
 }
 
@@ -3013,9 +3016,9 @@ th[data-today] .na-sched-daybtn {
 
 .na-set-panel-title {
   margin: 0;
-  font-size: clamp(16px, 0.6vw + 14.5px, 19px);
-  font-weight: 620;
-  letter-spacing: -0.01em;
+  font-size: 17px;
+  font-weight: 640;
+  letter-spacing: -0.015em;
 }
 
 .na-set-id {
@@ -3281,7 +3284,7 @@ th[data-today] .na-sched-daybtn {
 }
 
 .na-nt-list--page {
-  max-inline-size: 760px;
+  max-inline-size: none;
   border: 1px solid var(--color-border-subtle);
   border-radius: 18px;
   background: var(--color-bg-elevated);
@@ -3529,16 +3532,6 @@ th[data-today] .na-sched-daybtn {
   font-weight: 600;
   color: var(--color-text-secondary);
 }
-.na-ut-toggle {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  color: var(--color-text-primary);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 .na-ut-auto {
   font-style: italic;
 }

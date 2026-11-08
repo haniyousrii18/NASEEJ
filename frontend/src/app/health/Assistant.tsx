@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { UserText } from '../translate/UserText.js';
 import { useApiData, useMutation, useRequest } from '../api.js';
 import { fill, formatDate, todayIso, addDays } from '../format.js';
 import { AppIcon } from '../AppIcons.js';
 import { Button, Drawer, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { SymptomForm, SYMPTOM_FREQ, type SymptomValue } from './forms.js';
+import { SearchCombobox } from '../search/SearchCombobox.js';
 import { MicButton, OriginPill, SeverityPicker, Toast, UrgentNotice, routeForRef, useOnline, useSafetyCheck, useSpeech, useToast, type Origin } from './kit.js';
 import { DatePicker } from '../DatePicker.js';
 
@@ -122,7 +124,7 @@ const Bubble: React.FC<{ m: Msg; navigate: (r: string) => void; onDraft: (d: Rec
               <li key={c.ref}>
                 <OriginPill origin={c.origin} />
                 <span dir="auto">
-                  {c.title}
+                  <UserText text={c.title} />
                   {c.date ? ` · ${formatDate(A.lang, c.date)}` : ''}
                 </span>
                 <button type="button" className="na-link" onClick={() => navigate(routeForRef(c.ref, c.documentId))}>
@@ -213,7 +215,7 @@ const Guided: React.FC<{ onReview: (v: SymptomValue, voiced: boolean) => void; o
         <strong>{G.review}</strong>
         <dl className="na-dl">
           <dt>{S.what}</dt>
-          <dd dir="auto">{a.description}</dd>
+          <dd dir="auto"><UserText text={a.description} /></dd>
           <dt>{S.start}</dt>
           <dd>{a.onsetDate ? formatDate(A.lang, a.onsetDate) : ''}</dd>
           {a.severity && (
@@ -243,7 +245,7 @@ const Guided: React.FC<{ onReview: (v: SymptomValue, voiced: boolean) => void; o
           {a.notes && (
             <>
               <dt>{S.notes}</dt>
-              <dd dir="auto">{a.notes}</dd>
+              <dd dir="auto"><UserText text={a.notes} /></dd>
             </>
           )}
         </dl>
@@ -342,69 +344,10 @@ const Guided: React.FC<{ onReview: (v: SymptomValue, voiced: boolean) => void; o
 const Search: React.FC<{ navigate: (r: string) => void }> = ({ navigate }) => {
   const A = useA();
   const T = A.health.assistant.search;
-  const request = useRequest();
-  const [q, setQ] = useState('');
-  const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle');
-  const [results, setResults] = useState<Array<{ ref: string; type: string; title: string; summary: string; date: string | null; origin: Origin; documentId?: string }> | null>(null);
-
-  const go = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (q.trim().length < 2) return;
-    setState('loading');
-    const res = await request<any[]>(`/api/record/search?q=${encodeURIComponent(q.trim())}&lang=${A.lang}`);
-    if (!res.ok) return setState('error');
-    setResults(res.data);
-    setState('idle');
-  };
   return (
     <div className="na-stack">
-      <form className="hp-add" onSubmit={go} role="search">
-        <label className="hp-visually-hidden" htmlFor="sr-q">
-          {T.title}
-        </label>
-        <input id="sr-q" type="search" className="na-input" dir="auto" placeholder={T.placeholder} value={q} onChange={(e) => setQ(e.target.value)} maxLength={100} />
-        <Button type="submit" disabled={q.trim().length < 2 || state === 'loading'}>
-          {T.go}
-        </Button>
-      </form>
+      <SearchCombobox label={T.title} placeholder={T.placeholder} limit={20} onSelect={(hit) => navigate(routeForRef(hit.ref, hit.documentId))} />
       <p className="na-help">{T.hint}</p>
-      {state === 'error' && (
-        <Notice tone="danger" icon="alert" live>
-          {A.health.common.failed}
-        </Notice>
-      )}
-      {results && (
-        <div aria-live="polite">
-          {results.length === 0 ? (
-            <p className="na-muted">{T.none}</p>
-          ) : (
-            <>
-              <p className="na-help">{fill(T.results, { n: results.length })}</p>
-              <ul className="na-list">
-                {results.map((r) => (
-                  <li key={r.ref} className="na-list-item">
-                    <div className="na-row">
-                      <OriginPill origin={r.origin} />
-                      {r.date && <span className="na-muted">{formatDate(A.lang, r.date)}</span>}
-                    </div>
-                    <strong dir="auto">{r.title}</strong>
-                    {r.summary && (
-                      <span className="na-muted" dir="auto">
-                        {r.summary}
-                      </span>
-                    )}
-                    <div>
-                      <Button small variant="quiet" onClick={() => navigate(routeForRef(r.ref, r.documentId))}>
-                        {A.health.common.open}
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 };
@@ -424,7 +367,7 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState<{ code: string; text: string } | null>(null);
+  const [error, setError] = useState<{ code: string } | null>(null);
   const [editing, setEditing] = useState<{ id: number | null; value: SymptomValue; origin: 'assistant' | 'form' | 'voice' } | null>(null);
   const [saved, setSaved] = useState<Set<number>>(new Set());
   const [discarded, setDiscarded] = useState<Set<number>>(new Set());
@@ -467,7 +410,7 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
     setSending(false);
     if (!res.ok) {
       const code = res.error.status === 0 ? 'NETWORK' : res.error.code;
-      return setError({ code, text: (T.errors as Record<string, string>)[code] ?? T.errors.default });
+      return setError({ code });
     }
     const r = res.data;
     setMsgs((m) => [...m, { id: nextId++, role: 'assistant', content: r.kind === 'reply' ? r.message : r.message, reply: r }]);
@@ -569,7 +512,7 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
 
             {error && (
               <Notice tone="danger" icon="alert" live>
-                {error.text}{' '}
+                {(T.errors as Record<string, string>)[error.code] ?? T.errors.default}{' '}
                 {error.code !== 'AI_CONSENT_REQUIRED' && error.code !== 'AI_NOT_CONFIGURED' && (
                   <button type="button" className="na-link" onClick={retry}>
                     {A.health.common.retry}

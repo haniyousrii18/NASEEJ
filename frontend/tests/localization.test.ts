@@ -40,15 +40,14 @@ const render = (lang: 'ar' | 'en', t: Translator | null, node: React.ReactNode) 
 const text = (props: Record<string, unknown>) => React.createElement(UserText, props as never);
 
 describe('typed text in the page language', () => {
-  it('English page, Arabic entry: the translation is shown, labelled, and the original is one click away', async () => {
+  it('English page, Arabic entry: the translation is shown, with no show/hide-original control', async () => {
     const { t } = translatorFor({ [`en:${AR}`]: { status: 'ok', text: 'Chest pain since two days', from: 'ar' } });
     await settle(t, [[AR, 'en']]);
     const html = render('en', t, text({ text: AR }));
     expect(html).toContain('Chest pain since two days');
     expect(html).not.toContain('Translated from');
-    expect(html).toContain(appT.en.common.userText.showOriginal);
-    expect(html).toContain('aria-expanded="false"');
-    expect(html).not.toContain(AR); // collapsed, but not discarded: see the next test
+    expect(html).not.toContain('na-ut-toggle');
+    expect(html).not.toContain(AR);
   });
 
   it('Arabic page, English entry: the Arabic translation is shown, labelled', async () => {
@@ -57,31 +56,16 @@ describe('typed text in the page language', () => {
     const html = render('ar', t, text({ text: EN }));
     expect(html).toContain(AR);
     expect(html).not.toContain('مترجم من');
-    expect(html).toContain(appT.ar.common.userText.showOriginal);
+    expect(html).not.toContain('na-ut-toggle');
   });
 
-  it('labels a machine translation as automatic, but not a glossary one', async () => {
-    const { t } = translatorFor({
-      [`en:${AR}`]: { status: 'ok', text: 'Pain in the chest since 2 days ago', from: 'ar', provider: 'glossary' },
-      'en:أشعر بدوار': { status: 'ok', text: 'I feel dizzy', from: 'ar', provider: 'local-mt' },
-    });
-    await settle(t, [[AR, 'en'], ['أشعر بدوار', 'en']]);
-    expect(render('en', t, text({ text: AR }))).not.toContain(appT.en.common.userText.automatic);
+  it('never labels a translation as automatic or machine-made', async () => {
+    const { t } = translatorFor({ 'en:أشعر بدوار': { status: 'ok', text: 'I feel dizzy', from: 'ar', provider: 'local-mt' } });
+    await settle(t, [['أشعر بدوار', 'en']]);
     const mt = render('en', t, text({ text: 'أشعر بدوار' }));
     expect(mt).toContain('I feel dizzy');
-    expect(mt).toContain(appT.en.common.userText.automatic);
-    expect(render('ar', t, text({ text: 'أشعر بدوار' }))).not.toContain('I feel dizzy'); // Arabic page: the Arabic text is already in its language
-  });
-
-  it('keeps the original exactly as written and shows it next to the translation on request', async () => {
-    const tricky = '  ألم <b>شديد</b> & "حاد" ٣٩  ';
-    const { t } = translatorFor({ [`en:${tricky}`]: { status: 'ok', text: 'Severe pain 39', from: 'ar' } });
-    await settle(t, [[tricky, 'en']]);
-    const html = render('en', t, text({ text: tricky, showOriginalFirst: true }));
-    expect(html).toContain('Severe pain 39');
-    expect(html).toContain(appT.en.common.userText.original);
-    expect(html).toContain(tricky.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'));
-    expect(html).toContain(appT.en.common.userText.hideOriginal);
+    expect(mt).not.toContain('na-ut');
+    expect(render('ar', t, text({ text: 'أشعر بدوار' }))).not.toContain('I feel dizzy');
   });
 
   it('shows text already in the page language, and numbers, exactly as written with no translation chrome', async () => {
@@ -101,16 +85,15 @@ describe('typed text in the page language', () => {
     expect(html).not.toContain('na-ut');
   });
 
-  it.each(['no_provider', 'mixed', 'uncertain', 'failed', 'not_allowed'] as const)('says plainly that no translation is available (%s), in both languages, and keeps the original', async (reason) => {
+  it.each(['no_provider', 'mixed', 'uncertain', 'failed', 'not_allowed'] as const)('with no translation available (%s) the original is shown as written, with no notice', async (reason) => {
     const { t } = translatorFor({ [`en:${AR}`]: { status: 'unavailable', reason }, [`ar:${EN}`]: { status: 'unavailable', reason } });
     await settle(t, [[AR, 'en'], [EN, 'ar']]);
     const en = render('en', t, text({ text: AR }));
     expect(en).toContain(AR);
-    expect(en).toContain(appT.en.common.userText.reasons[reason]);
-    expect(en).toContain('data-state="unavailable"');
+    expect(en).not.toContain('na-ut');
     const ar = render('ar', t, text({ text: EN }));
     expect(ar).toContain(EN);
-    expect(ar).toContain(appT.ar.common.userText.reasons[reason]);
+    expect(ar).not.toContain('na-ut');
   });
 
   it('under an input (hint), shows only the translation and a label, never the original again', async () => {
@@ -138,7 +121,7 @@ describe('typed text inside a sentence', () => {
     expect(html).toContain('dir="ltr"'); // the translation is its own left-to-right run
     expect(html.indexOf('Headache')).toBeLessThan(html.indexOf('22 Oct 2026'));
     const plain = render('en', null, React.createElement(React.Fragment, null, withText(sentence, 'صداع')));
-    expect(plain).toContain('<span class="na-ut-orig" dir="auto">صداع</span>'); // with no translation the original is still its own isolated run
+    expect(plain).toContain('<span dir="auto">صداع</span>'); // with no translation the original is still its own isolated run
   });
 });
 
@@ -211,12 +194,12 @@ describe('clinician view', () => {
     expect(html).toContain('<article class="hp-sv" dir="rtl" lang="ar">');
     expect(html).toContain(AR);
   });
-  it('keeps the original reachable and says so when there is no translation', async () => {
+  it('keeps the original as written, with no notice, when there is no translation', async () => {
     const { t } = translatorFor({});
     await settle(t, [[AR, 'en']]);
     const html = render('ar', t, React.createElement(SnapshotView, { snapshot: snap('en') }));
     expect(html).toContain(AR);
-    expect(html).toContain(appT.en.common.userText.reasons.no_provider);
+    expect(html).not.toContain('na-ut');
   });
 });
 
@@ -235,14 +218,6 @@ describe('language switching and direction', () => {
     expect(ar).toContain('data-rtl="true"');
     expect(en).toContain('data-rtl="false"');
     expect(ar).not.toEqual(en);
-  });
-  it('has every new label in both languages', () => {
-    for (const lang of ['ar', 'en'] as const) {
-      const U = appT[lang].common.userText;
-      expect(Object.values(U.reasons).every((r) => r.length > 0)).toBe(true);
-      expect(U.showOriginal && U.hideOriginal && U.original && U.automatic).toBeTruthy();
-    }
-    expect(appT.ar.common.userText.showOriginal).not.toBe(appT.en.common.userText.showOriginal);
   });
   it('never remounts the interface on a language change, so unsaved input survives the switch', () => {
     const walk = (dir: string): string[] =>

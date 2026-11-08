@@ -49,8 +49,8 @@ export const Footer: React.FC = () => {
             © 2026 {t.brand.fullName}. {L.footerRights}
           </p>
           <ul className="sf-meta">
-            <li>PostgreSQL Multi-Tenant</li>
-            <li>Role-Based Security</li>
+            <li>{L.footerStack1}</li>
+            <li>{L.footerStack2}</li>
           </ul>
         </div>
       </div>
