@@ -1,0 +1,124 @@
+/*
+ * Patient app refinement layer. Loaded last, scoped to .na-app, tokens only: it fixes what the earlier sheets leave
+ * rough at the edges (the phone tab bar, press feedback, long-text safety) without redefining any colour.
+ */
+
+/* ------------------------------------------------------------------ phone tab bar */
+@media (max-width: 1023px) {
+  /* a global button rule at 15px was beating the 11px label size, so Arabic labels were cut to "لوحة الت…" */
+  .na-app .hp-tab {
+    position: relative;
+    align-content: start;
+    gap: 3px;
+    min-block-size: 56px;
+    padding: 6px 2px 5px;
+    font-size: 12px;
+    line-height: 1.2;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .na-app .hp-tab span {
+    display: block;
+    overflow-wrap: anywhere;
+    text-align: center;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  /* the icon sits in a pill that fills in for the current page: shape plus weight, never colour alone */
+  .na-app .hp-tab svg {
+    box-sizing: content-box;
+    padding: 3px 16px;
+    border-radius: 999px;
+    transition: background-color var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease);
+  }
+
+  .na-app .hp-tab[aria-current='page'] svg {
+    background: var(--accent-surface);
+  }
+
+  .na-app .hp-tab:active svg {
+    background: color-mix(in srgb, var(--accent-surface) 70%, transparent);
+  }
+
+  .na-app .hp-tabbar {
+    box-shadow: 0 -6px 18px -12px rgba(var(--shadow-color), 0.35);
+  }
+}
+
+/* ------------------------------------------------------------------ press feedback: instant, small, one rule for all */
+@media (prefers-reduced-motion: no-preference) {
+  .na-app .na-btn,
+  .na-app .hp-row,
+  .na-app .hp-action,
+  .na-app .na-chip {
+    transition-property: background-color, border-color, color, transform, box-shadow;
+    transition-duration: var(--motion-duration-fast, 160ms);
+    transition-timing-function: var(--motion-ease-out, ease);
+  }
+
+  .na-app .na-btn:active:not(:disabled),
+  .na-app .hp-action:active,
+  .na-app .na-chip:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ------------------------------------------------------------------ long text and numerals */
+.na-app .na-title,
+.na-app .hp-h2 {
+  overflow-wrap: anywhere;
+}
+
+.na-app time,
+.na-app .na-ltr {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ empty and error states: a glyph tile, then the words */
+.na-app .na-state:has(> .na-state-icon) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: 16px;
+  row-gap: 6px;
+}
+
+.na-app .na-state-icon {
+  display: grid;
+  grid-row: 1 / span 4;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.na-app .na-state > .na-state-icon ~ * {
+  grid-column: 2;
+}
+
+.na-app .na-state > .na-state-icon ~ .na-btn {
+  justify-self: start;
+  margin-block-start: 6px;
+}
+
+.na-app .na-state[data-tone='error'] .na-state-icon {
+  color: var(--danger-text);
+  box-shadow: 0 0 0 1px var(--danger-border);
+}
+
+@media (max-width: 420px) {
+  .na-app .na-state:has(> .na-state-icon) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .na-app .na-state-icon {
+    grid-row: auto;
+    margin-block-end: 4px;
+  }
+  .na-app .na-state > .na-state-icon ~ * {
+    grid-column: 1;
+  }
+}

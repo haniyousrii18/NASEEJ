@@ -953,70 +953,280 @@
 
 /* ------------------------------------------------------------------ the clinician-facing summary (preview, print, QR page) */
 .hp-sv {
+  --sv-edge: color-mix(in srgb, currentColor 14%, transparent);
   display: grid;
-  gap: 18px;
+  gap: 14px;
   color: inherit;
   line-height: 1.6;
 }
 
+/* who and when: the first thing a clinician checks */
 .hp-sv-id {
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: color-mix(in srgb, currentColor 5%, transparent);
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--sv-edge);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--accent-surface, currentColor) 38%, var(--surface, transparent));
+}
+
+.hp-sv-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+.hp-sv-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--primary);
+}
+
+.hp-sv-k {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 560;
+  opacity: 0.75;
+}
+
+.hp-sv-name {
+  margin: 0;
+  font-size: clamp(20px, 5.4vw, 24px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.hp-sv-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--sv-edge);
+}
+
+.hp-sv-facts > div {
+  min-inline-size: 0;
+}
+
+.hp-sv-facts dt {
+  font-size: 12.5px;
+  font-weight: 560;
+  opacity: 0.75;
+}
+
+.hp-sv-facts dd {
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+/* jump chips: one tap to a section on a long summary */
+.hp-sv-jump {
+  display: flex;
+  gap: 8px;
+  margin-inline: -4px;
+  padding: 2px 4px 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.hp-sv-jump::-webkit-scrollbar {
+  display: none;
+}
+
+.hp-sv-chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 8px;
+  min-block-size: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--sv-edge);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 580;
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: background-color var(--motion-duration-fast, 160ms) var(--motion-ease-out, ease), transform var(--motion-duration-instant, 100ms) var(--motion-ease-out, ease);
+}
+
+.hp-sv-chip b {
+  display: grid;
+  place-items: center;
+  min-inline-size: 22px;
+  block-size: 22px;
+  padding-inline: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-sv-chip:hover {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.hp-sv-chip:active {
+  transform: scale(0.97);
+}
+
+.hp-sv-chip.is-alert {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.hp-sv-sec {
+  scroll-margin-block-start: 76px;
+  padding: 16px;
+  border: 1px solid var(--sv-edge);
+  border-radius: 20px;
+  outline: none;
 }
 
 .hp-sv-sec h2 {
-  margin: 0 0 6px;
-  padding-block-end: 4px;
-  border-block-end: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  font-size: 15px;
-  font-weight: 650;
-  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 15.5px;
+  font-weight: 680;
+  letter-spacing: 0;
+}
+
+.hp-sv-sec h2 svg {
+  flex: none;
+  opacity: 0.8;
+}
+
+.hp-sv-count {
+  margin-inline-start: auto;
+  min-inline-size: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  font-size: 12.5px;
+  font-weight: 640;
+  line-height: 24px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .hp-sv-sec p {
   margin: 0;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.hp-sv-text {
+  max-inline-size: 68ch;
+}
+
+/* why the patient is here: the lead of the page */
+.hp-sv-lead {
+  border-color: transparent;
+  background: var(--accent-surface);
+  color: var(--text-primary);
 }
 
 .hp-sv-reason {
-  font-size: 17px;
-  font-weight: 560;
+  max-inline-size: 60ch;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* allergies are the item a clinician must not miss: tinted with the warning tokens, named in words and a glyph */
+.hp-sv-sec--allergies {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 
 .hp-sv-list {
   display: grid;
-  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .hp-sv-list li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 12px;
+  display: grid;
+  gap: 2px;
+  padding-block: 10px;
+  border-block-start: 1px solid var(--sv-edge);
 }
 
-.hp-sv-list li > span:first-child {
-  flex: 1 1 60%;
+.hp-sv-list li:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+.hp-sv-list li:last-child {
+  padding-block-end: 0;
+}
+
+.hp-sv-item {
   min-inline-size: 0;
+  font-size: 16px;
+  font-weight: 560;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .hp-sv-src {
-  flex: 0 1 auto;
-  font-size: 12.5px;
-  opacity: 0.72;
+  display: block;
+  font-size: 13px;
+  font-weight: 450;
+  opacity: 0.78;
+}
+
+.hp-sv-doc {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px !important;
+}
+
+.hp-sv-open {
+  gap: 6px;
+  min-block-size: 44px !important;
+}
+
+.hp-sv-err {
+  margin-block-start: 10px !important;
+  color: var(--danger-text);
+  font-weight: 600;
 }
 
 .hp-sv-disclaimer {
-  margin: 0;
-  padding-block-start: 12px;
-  border-block-start: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  font-size: 12.5px;
-  opacity: 0.8;
+  display: flex;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 4px 4px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  opacity: 0.82;
+}
+
+.hp-sv-disclaimer svg {
+  flex: none;
+  margin-block-start: 2px;
 }
 
 /* ------------------------------------------------------------------ print: the summary alone */
@@ -1039,6 +1249,13 @@
   .hp-sv-sec,
   .hp-sv-list li {
     break-inside: avoid;
+  }
+  .hp-sv-sec,
+  .hp-sv-id,
+  .hp-sv-lead {
+    border-color: color-mix(in srgb, var(--paper-ink) 35%, transparent);
+    background: none !important;
+    color: var(--paper-ink) !important;
   }
   .hp-qr {
     break-inside: avoid;

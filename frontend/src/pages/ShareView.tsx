@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SnapshotView, type Snapshot } from '../app/health/SnapshotView.js';
 import { appT } from '../app/i18n/index.js';
+import { AppIcon } from '../app/AppIcons.js';
 import { ShareTranslationProvider } from '../app/translate/TranslationContext.js';
 import { formatDate, fill } from '../app/format.js';
 import '../styles/share.css';
@@ -91,20 +92,33 @@ export const ShareView: React.FC = () => {
           <img src="/logo-mark.svg" alt="" width={28} height={28} />
           {T.brand}
         </span>
-        <span className="sv-ro">{T.readOnly}</span>
+        <span className="sv-ro">
+          <AppIcon name="lock" size={14} />
+          {T.readOnly}
+        </span>
       </header>
       <main className="sv-main" id="main" tabIndex={-1}>
         {state.kind === 'loading' && (
-          <p className="sv-state" role="status">
-            {T.loading}
-          </p>
+          <div className="sv-state sv-state--loading" role="status" aria-live="polite">
+            <p>{T.loading}</p>
+            <div className="sv-skel" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+              <i />
+            </div>
+          </div>
         )}
         {state.kind === 'error' && (
           <div className="sv-state sv-state--error" role="alert">
+            <span className="sv-state-icon" aria-hidden="true">
+              <AppIcon name={state.code === 'NETWORK' ? 'refresh' : state.code === 'SHARE_EXPIRED' ? 'clock' : state.code === 'SHARE_REVOKED' ? 'lock' : 'alert'} size={26} />
+            </span>
             <h1>{((T.errors as Record<string, { title: string; body: string }>)[state.code] ?? T.errors.default).title}</h1>
             <p>{((T.errors as Record<string, { title: string; body: string }>)[state.code] ?? T.errors.default).body}</p>
             {(state.code === 'NETWORK' || state.code === 'RATE_LIMITED' || state.code === 'default') && (
               <button type="button" className="sv-btn" onClick={() => void load()}>
+                <AppIcon name="refresh" size={16} />
                 {appT[uiLang].health.common.retry}
               </button>
             )}
@@ -115,14 +129,18 @@ export const ShareView: React.FC = () => {
             <div className="sv-head">
               <div>
                 <h1>{T.sharedBy}</h1>
-                <p className="sv-until">{fill(T.until, { date: formatDate(uiLang, state.expiresAt, true) })}</p>
+                <p className="sv-until">
+                  <AppIcon name="clock" size={15} />
+                  {fill(T.until, { date: formatDate(uiLang, state.expiresAt, true) })}
+                </p>
               </div>
               <button type="button" className="sv-btn sv-noprint" onClick={() => window.print()}>
+                <AppIcon name="download" size={16} />
                 {T.print}
               </button>
             </div>
             <ShareTranslationProvider token={token}>
-              <SnapshotView snapshot={state.snapshot} onOpenDoc={(id) => void openDoc(id)} docError={docError} />
+              <SnapshotView jump snapshot={state.snapshot} onOpenDoc={(id) => void openDoc(id)} docError={docError} />
             </ShareTranslationProvider>
           </>
         )}

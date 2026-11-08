@@ -264,7 +264,7 @@ const PreferencesSection: React.FC = () => {
         <div role="group" aria-labelledby="set-theme-label">
           <p id="set-theme-label" className="na-label">{S.theme}</p>
           <div className="na-row">
-            {(['light', 'dark', 'system'] as const).map((t) => (
+            {(['light', 'dark'] as const).map((t) => (
               <Button key={t} small variant={workspace.preference === t ? 'primary' : undefined} aria-pressed={workspace.preference === t} onClick={() => workspace.setPreference(t)}>
                 {workspace.preference === t ? '✓ ' : ''}{S[t]}
               </Button>
