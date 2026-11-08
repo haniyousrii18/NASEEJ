@@ -18,6 +18,7 @@ import './styles/auth.css';
 import './styles/app.css';
 import './styles/ui-kit.css';
 import './styles/health.css';
+import './styles/polish.css';
 import { AppShell } from './app/AppShell.js';
 import { AUTHENTICATED_VIEWS } from './app/nav.js';
 

@@ -130,8 +130,11 @@ export const Field: React.FC<{ label: string; htmlFor: string; help?: string; er
 };
 
 /** A neutral message block for the "nothing here yet" state. */
-export const EmptyState: React.FC<{ title: string; body?: string; action?: React.ReactNode }> = ({ title, body, action }) => (
+export const EmptyState: React.FC<{ title: string; body?: string; action?: React.ReactNode; icon?: IconName }> = ({ title, body, action, icon = 'inbox' }) => (
   <div className="na-state">
+    <span className="na-state-icon" aria-hidden="true">
+      <AppIcon name={icon} size={22} />
+    </span>
     <h3 className="na-state-title">{title}</h3>
     {body && <p>{body}</p>}
     {action}
@@ -162,6 +165,9 @@ export const ErrorState: React.FC<{ error: ApiFailure; onRetry?: () => void }> =
   const retryable = error.status !== 403 && error.status !== 404;
   return (
     <div className="na-state" data-tone="error" role="alert">
+      <span className="na-state-icon" aria-hidden="true">
+        <AppIcon name={error.status === 0 ? 'refresh' : error.status === 403 ? 'lock' : 'alert'} size={22} />
+      </span>
       <h3 className="na-state-title">{title}</h3>
       <p>{body}</p>
       {retryable && onRetry && (

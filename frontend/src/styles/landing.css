@@ -603,6 +603,78 @@
   }
 }
 
+/* narrow phones: the record card gets the middle of the scene, the three nodes sit around it, and nothing overlaps */
+@media (max-width: 559px) {
+  .scene {
+    max-width: 420px;
+    margin-inline: auto;
+    aspect-ratio: 1 / 1.25;
+  }
+
+  .scene-disc {
+    left: 8%;
+    top: 6%;
+    width: 84%;
+  }
+
+  .scene-links {
+    display: none;
+  }
+
+  .scene-node[style] {
+    inset-inline-start: 13% !important;
+  }
+
+  .scene-node[style*='22%'] {
+    inset-inline-start: 80% !important;
+    top: 15% !important;
+  }
+
+  .scene-node[style*='77%'] {
+    inset-inline-start: 72% !important;
+    top: 84% !important;
+  }
+
+  .scene-node[style*='50%'] {
+    top: 56% !important;
+  }
+
+  .scene-node-label {
+    padding: 2px 8px;
+    font-size: 11.5px;
+  }
+
+  .scene-card {
+    inset-inline-start: 24%;
+    top: 24%;
+    width: 52%;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .scene-card-head {
+    gap: 8px;
+  }
+
+  .scene-card-name {
+    font-size: 13px;
+  }
+
+  .scene-badge {
+    max-width: 100%;
+    padding: 3px 9px;
+    font-size: 11px;
+    text-wrap: balance;
+  }
+
+  .scene-ecg {
+    inset-inline-start: 0;
+    width: 100%;
+    height: 7%;
+  }
+}
+
 /* ------------------------------------------------------------------ sections: sequences on one thread */
 /* The product is a weave: each sequence (values, steps) hangs on a single orange thread that draws itself as it scrolls in. */
 .l-split {
@@ -743,6 +815,10 @@
     display: none;
   }
 
+  .l-steps--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .l-card-title {
     font-size: 1.1rem;
   }
@@ -750,6 +826,34 @@
   .l-step .l-card-text {
     font-size: 14.5px;
   }
+}
+
+/* a quiet reassurance line under the human-context lead */
+.l-note {
+  margin: 8px 0 0;
+  max-width: 52ch;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--color-border-strong);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--color-body-gray);
+}
+
+.l-steps-more {
+  display: flex;
+  margin-block-start: clamp(28px, 4vw, 40px);
+}
+
+.l-section :is(h2, h3)[tabindex='-1'] {
+  scroll-margin-block-start: calc(var(--bar-h, 72px) + 24px);
+}
+
+.l-section :is(h2, h3)[tabindex='-1']:focus {
+  outline: none;
+}
+
+.l-node svg {
+  display: block;
 }
 
 /* ------------------------------------------------------------------ trust band */
