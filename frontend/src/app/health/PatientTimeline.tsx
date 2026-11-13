@@ -326,15 +326,26 @@ const Skeleton: React.FC = () => {
 /**
  * An event's detail line is several pieces joined with " · " by the server (dose, provider, notes...). Translation works on
  * one piece of typed text at a time, and a line mixing two languages is never translated, so each piece is shown on its own.
+ * When a piece has a prefix label (e.g. "better: المشي الخفيف" or "diagnosis: ..."), the label and the value are separated
+ * so the typed text can be translated independently without being blocked as mixed-language text.
  */
 const DetailText: React.FC<{ text: string }> = ({ text }) => (
   <>
-    {text.split(' · ').map((part, i) => (
-      <React.Fragment key={i}>
-        {i > 0 && ' · '}
-        <UserText text={part} />
-      </React.Fragment>
-    ))}
+    {text.split(' · ').map((part, i) => {
+      const match = part.match(/^([^:]+):\s+(.+)$/);
+      return (
+        <React.Fragment key={i}>
+          {i > 0 && ' · '}
+          {match ? (
+            <>
+              {match[1]}: <UserText text={match[2]} />
+            </>
+          ) : (
+            <UserText text={part} />
+          )}
+        </React.Fragment>
+      );
+    })}
   </>
 );
 
