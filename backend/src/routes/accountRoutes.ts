@@ -7,6 +7,7 @@ import { requirePatient } from '../middleware/rbac.js';
 import { logAuditEvent } from '../services/auditService.js';
 import { apiError, serverError, trimmed } from '../services/validation.js';
 import { onPasswordChanged, type NotificationRole } from '../services/notificationService.js';
+import { completeName, hasArabic, hasLatin } from '../services/names/transliterate.js';
 
 /**
  * /api/account: the signed-in person's own account settings.
@@ -20,6 +21,28 @@ accountRouter.use(authenticate);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9][0-9\s-]{5,18}[0-9]$/;
+/** Letters (any script), combining marks, spaces and the punctuation names use: O'Neil, Al-Mansoor, Jr. */
+const NAME_RE = /^[\p{L}\p{M}\s'’.-]+$/u;
+
+/** After a name change, the next one is allowed this many days later. */
+export const NAME_LOCK_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** When the name may next be changed, or null when it may be changed now. */
+function nameLockedUntil(changedAt: Date | string | null | undefined, now = Date.now()): string | null {
+  if (!changedAt) return null;
+  const until = new Date(changedAt).getTime() + NAME_LOCK_DAYS * DAY_MS;
+  return until > now ? new Date(until).toISOString() : null;
+}
+
+/** A name field from the request, checked: 2 to 120 characters, letters only, written in the field's own script. */
+function readName(value: unknown, script: 'ar' | 'en'): { ok: true; value: string } | { ok: false } {
+  const v = trimmed(value, 120);
+  if (!v || v.length < 2 || !NAME_RE.test(v)) return { ok: false };
+  if (script === 'ar' && (!hasArabic(v) || hasLatin(v))) return { ok: false };
+  if (script === 'en' && (!hasLatin(v) || hasArabic(v))) return { ok: false };
+  return { ok: true, value: v.replace(/\s+/g, ' ') };
+}
 
 const roleOf = (req: Request): string => (req.user!.system_role === 'platform_admin' ? 'platform_admin' : req.user!.patientProfileId ? 'patient' : req.user!.memberships[0]?.role ?? 'user');
 
@@ -60,6 +83,7 @@ accountRouter.get('/', async (req: Request, res: Response): Promise<void> => {
       );
       patient = p.rows[0] ?? null;
     }
+    const changed = (await query('SELECT name_changed_at FROM users WHERE id = $1', [user.id])).rows[0]?.name_changed_at ?? null;
 
     res.json({
       success: true,
@@ -71,8 +95,11 @@ accountRouter.get('/', async (req: Request, res: Response): Promise<void> => {
         phone: user.phone ?? null,
         systemRole: user.system_role,
         isPatient: !!user.patientProfileId,
-        // Patients' names come from their registered identity; staff names are personal display names.
-        nameEditable: !user.patientProfileId,
+        // Anyone may change their own name, once every NAME_LOCK_DAYS days.
+        nameEditable: true,
+        nameChangedAt: changed,
+        nameLockedUntil: nameLockedUntil(changed),
+        nameLockDays: NAME_LOCK_DAYS,
         centers,
         patient,
       },
@@ -82,32 +109,50 @@ accountRouter.get('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// PATCH /api/account/profile  { fullNameAr?, fullNameEn?, phone? }   (staff and administrators)
+// POST /api/account/name-preview  { name }  ->  { ar, en }
+// The name in both scripts, as a change would save it, so the person sees (and can correct) the other version first.
+accountRouter.post('/name-preview', (req: Request, res: Response): void => {
+  const name = trimmed(req.body?.name, 120);
+  if (!name || !NAME_RE.test(name)) {
+    res.status(400).json(apiError('VALIDATION_ERROR', 'Enter a name of 2 to 120 letters.', { field: 'name' }));
+    return;
+  }
+  res.json({ success: true, data: completeName(hasArabic(name) ? { ar: name } : { en: name }) });
+});
+
+// PATCH /api/account/profile  { fullNameAr?, fullNameEn?, phone? }
+// A name may be sent in one script or both; a missing side is written from the other. Changing the name is allowed once
+// every NAME_LOCK_DAYS days. Sending the current name again is not a change and does not start the wait.
 accountRouter.patch('/profile', async (req: Request, res: Response): Promise<void> => {
   const user = req.user!;
   const body = req.body || {};
   const changes: Record<string, string | null> = {};
+  let nameChanged = false;
 
   if (body.fullNameAr !== undefined || body.fullNameEn !== undefined) {
-    if (user.patientProfileId) {
-      res.status(403).json(apiError('FIELD_MANAGED_ELSEWHERE', 'A patient’s name comes from the registered identity and is changed by the registering center.'));
-      return;
-    }
+    let ar: string | undefined;
+    let en: string | undefined;
     if (body.fullNameAr !== undefined) {
-      const v = trimmed(body.fullNameAr, 120);
-      if (!v || v.length < 2) {
-        res.status(400).json(apiError('VALIDATION_ERROR', 'Enter your name in Arabic (2 to 120 characters).', { field: 'fullNameAr' }));
+      const r = readName(body.fullNameAr, 'ar');
+      if (!r.ok) {
+        res.status(400).json(apiError('VALIDATION_ERROR', 'Enter your name in Arabic letters (2 to 120 characters).', { field: 'fullNameAr' }));
         return;
       }
-      changes.full_name_ar = v;
+      ar = r.value;
     }
     if (body.fullNameEn !== undefined) {
-      const v = trimmed(body.fullNameEn, 120);
-      if (!v || v.length < 2) {
-        res.status(400).json(apiError('VALIDATION_ERROR', 'Enter your name in English (2 to 120 characters).', { field: 'fullNameEn' }));
+      const r = readName(body.fullNameEn, 'en');
+      if (!r.ok) {
+        res.status(400).json(apiError('VALIDATION_ERROR', 'Enter your name in English letters (2 to 120 characters).', { field: 'fullNameEn' }));
         return;
       }
-      changes.full_name_en = v;
+      en = r.value;
+    }
+    const next = completeName({ ar, en });
+    if (next.ar !== user.full_name_ar || next.en !== user.full_name_en) {
+      changes.full_name_ar = next.ar;
+      changes.full_name_en = next.en;
+      nameChanged = true;
     }
   }
   if (body.phone !== undefined) {
@@ -118,21 +163,43 @@ accountRouter.patch('/profile', async (req: Request, res: Response): Promise<voi
     }
     changes.phone = raw;
   }
-  if (Object.keys(changes).length === 0) {
+  const nameSent = body.fullNameAr !== undefined || body.fullNameEn !== undefined;
+  if (Object.keys(changes).length === 0 && !nameSent) {
     res.status(400).json(apiError('VALIDATION_ERROR', 'Nothing to update.'));
     return;
   }
 
   try {
+    if (Object.keys(changes).length === 0) {
+      // The current name sent again is a successful no-op: it does not start the wait.
+      const changed = (await query('SELECT name_changed_at FROM users WHERE id = $1', [user.id])).rows[0]?.name_changed_at ?? null;
+      res.json({ success: true, data: { fullNameAr: user.full_name_ar, fullNameEn: user.full_name_en, phone: user.phone ?? null, nameChangedAt: changed, nameLockedUntil: nameLockedUntil(changed) } });
+      return;
+    }
     const cols = Object.keys(changes);
     const set = cols.map((c, i) => `${c} = $${i + 2}`).join(', ');
+    // The wait is checked in the same statement that writes, so two saves at once cannot both change the name.
     const upd = await query(
-      `UPDATE users SET ${set}, updated_at = NOW() WHERE id = $1 RETURNING full_name_ar, full_name_en, phone`,
+      `UPDATE users SET ${set}${nameChanged ? ', name_changed_at = NOW()' : ''}, updated_at = NOW()
+       WHERE id = $1${nameChanged ? ` AND (name_changed_at IS NULL OR name_changed_at <= NOW() - INTERVAL '${NAME_LOCK_DAYS} days')` : ''}
+       RETURNING full_name_ar, full_name_en, phone, name_changed_at`,
       [user.id, ...cols.map((c) => changes[c])]
     );
+    if (upd.rowCount === 0) {
+      const changed = (await query('SELECT name_changed_at FROM users WHERE id = $1', [user.id])).rows[0]?.name_changed_at ?? null;
+      res.status(409).json(apiError('NAME_CHANGE_LOCKED', `Your name can be changed once every ${NAME_LOCK_DAYS} days.`, { field: 'fullNameAr', availableAt: nameLockedUntil(changed) }));
+      return;
+    }
+    // A patient's record carries the name too (shares, visit summaries); it follows the account.
+    if (nameChanged && user.patientProfileId) {
+      await query('UPDATE patient_profiles SET full_name_ar = $2, full_name_en = $3, updated_at = NOW() WHERE id = $1', [user.patientProfileId, changes.full_name_ar, changes.full_name_en]);
+    }
     audit(req, 'ACCOUNT_PROFILE_UPDATED', { fields: cols });
     const r = upd.rows[0];
-    res.json({ success: true, data: { fullNameAr: r.full_name_ar, fullNameEn: r.full_name_en, phone: r.phone } });
+    res.json({
+      success: true,
+      data: { fullNameAr: r.full_name_ar, fullNameEn: r.full_name_en, phone: r.phone, nameChangedAt: r.name_changed_at, nameLockedUntil: nameLockedUntil(r.name_changed_at) },
+    });
   } catch (err) {
     res.status(500).json(serverError(err));
   }

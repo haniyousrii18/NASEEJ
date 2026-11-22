@@ -10,6 +10,7 @@ import { alreadyRegisteredMail, mailLang, passwordChangedMail, resetPasswordMail
 import { isEmailAddress, isStrongPassword, normalizeEmail } from '../services/passwordPolicy.js';
 import { rateLimit } from '../services/rateLimit.js';
 import { apiError, serverError } from '../services/validation.js';
+import { completeName, hasArabic } from '../services/names/transliterate.js';
 
 /**
  * Self-service account access, mounted next to login at /api/auth:
@@ -73,6 +74,8 @@ accessRouter.post('/register', perIp(60 * 60_000, 20), perEmail('register', 60 *
   if (mailMode() === 'off') return void mailOff(res);
 
   const name = fullName.trim();
+  // One name is typed at sign-up; the other script is written from it so the workspace shows it in either language.
+  const names = completeName(hasArabic(name) ? { ar: name } : { en: name });
   try {
     const existing = await query('SELECT id, email_verified_at, auth_provider_id FROM users WHERE LOWER(email) = $1', [email]);
     const row = existing.rows[0];
@@ -83,8 +86,8 @@ accessRouter.post('/register', perIp(60 * 60_000, 20), perEmail('register', 60 *
     } else if (row && String(row.auth_provider_id).startsWith('local_signup_')) {
       // Registered earlier and never confirmed: the latest registration wins, so nobody can squat on someone else's address.
       const hash = await authProvider.hashPassword(password);
-      await query('UPDATE users SET password_hash = $2, full_name_ar = $3, full_name_en = $3, updated_at = NOW() WHERE id = $1', [row.id, hash, name]);
-      await query('UPDATE patient_profiles SET full_name_ar = $2, full_name_en = $2, updated_at = NOW() WHERE user_id = $1', [row.id, name]);
+      await query('UPDATE users SET password_hash = $2, full_name_ar = $3, full_name_en = $4, updated_at = NOW() WHERE id = $1', [row.id, hash, names.ar, names.en]);
+      await query('UPDATE patient_profiles SET full_name_ar = $2, full_name_en = $3, updated_at = NOW() WHERE user_id = $1', [row.id, names.ar, names.en]);
       mail = verifyEmailMail(email, lang, name, await issueToken(row.id, 'verify_email', VERIFY_HOURS));
     } else if (row) {
       // An account made by an administrator or the seed: not ours to change.
@@ -97,11 +100,11 @@ accessRouter.post('/register', perIp(60 * 60_000, 20), perEmail('register', 60 *
         await client.query('BEGIN');
         const u = await client.query(
           `INSERT INTO users (auth_provider_id, email, password_hash, full_name_ar, full_name_en, system_role, is_active, email_verified_at)
-           VALUES ($1,$2,$3,$4,$4,'user',true,NULL) RETURNING id`,
-          [`local_signup_${randomUUID()}`, email, hash, name],
+           VALUES ($1,$2,$3,$4,$5,'user',true,NULL) RETURNING id`,
+          [`local_signup_${randomUUID()}`, email, hash, names.ar, names.en],
         );
         userId = u.rows[0].id;
-        await client.query(`INSERT INTO patient_profiles (user_id, full_name_ar, full_name_en, email) VALUES ($1,$2,$2,$3)`, [userId, name, email]);
+        await client.query(`INSERT INTO patient_profiles (user_id, full_name_ar, full_name_en, email) VALUES ($1,$2,$3,$4)`, [userId, names.ar, names.en, email]);
         await client.query('COMMIT');
       } catch (err) {
         await client.query('ROLLBACK');

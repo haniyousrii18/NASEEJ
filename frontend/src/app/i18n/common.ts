@@ -22,8 +22,9 @@ const ar = {
   },
   validation: {
     account: {
-      'VALIDATION_ERROR:fullNameAr': 'اكتب اسمك بالعربية (من حرفين إلى 120 حرفاً).',
-      'VALIDATION_ERROR:fullNameEn': 'اكتب اسمك بالإنجليزية (من حرفين إلى 120 حرفاً).',
+      'VALIDATION_ERROR:fullNameAr': 'اكتب اسمك بحروف عربية (من حرفين إلى 120 حرفاً).',
+      'VALIDATION_ERROR:fullNameEn': 'اكتب اسمك بحروف إنجليزية (من حرفين إلى 120 حرفاً).',
+      NAME_CHANGE_LOCKED: 'غيّرت اسمك خلال آخر 30 يوماً. يمكنك تغييره مرة واحدة كل 30 يوماً.',
       'VALIDATION_ERROR:phone': 'اكتب رقم هاتف صحيحاً.',
       'VALIDATION_ERROR:email': 'اكتب بريداً إلكترونياً صحيحاً.',
       'VALIDATION_ERROR:emergencyContactName': 'اسم جهة الاتصال للطوارئ طويل جداً.',
@@ -207,8 +208,9 @@ const en: typeof ar = {
   },
   validation: {
     account: {
-      'VALIDATION_ERROR:fullNameAr': 'Enter your name in Arabic (2 to 120 characters).',
-      'VALIDATION_ERROR:fullNameEn': 'Enter your name in English (2 to 120 characters).',
+      'VALIDATION_ERROR:fullNameAr': 'Enter your name in Arabic letters (2 to 120 characters).',
+      'VALIDATION_ERROR:fullNameEn': 'Enter your name in English letters (2 to 120 characters).',
+      NAME_CHANGE_LOCKED: 'You changed your name in the last 30 days. You can change it once every 30 days.',
       'VALIDATION_ERROR:phone': 'Enter a valid phone number.',
       'VALIDATION_ERROR:email': 'Enter a valid email address.',
       'VALIDATION_ERROR:emergencyContactName': 'The emergency contact name is too long.',

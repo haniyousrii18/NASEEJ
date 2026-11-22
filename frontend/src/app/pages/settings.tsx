@@ -41,6 +41,10 @@ interface AccountData {
   phone: string | null;
   isPatient: boolean;
   nameEditable: boolean;
+  nameChangedAt: string | null;
+  /** When the name may next be changed; null when it may be changed now. */
+  nameLockedUntil: string | null;
+  nameLockDays: number;
   centers: Center[];
   patient: { phone: string; email: string | null; emergency_contact_name: string | null; emergency_contact_phone: string | null } | null;
 }
@@ -92,85 +96,166 @@ const ReadRow: React.FC<{ label: string; children: React.ReactNode; ltr?: boolea
   </>
 );
 
-/* ------------------------------------------------------------------ Account (every role) */
+/* ------------------------------------------------------------------ Account: name (once every N days) and sign-in email */
+const ARABIC = /[ء-ي]/;
+const LATIN = /[A-Za-z]/;
+const NAME_CHARS = /^[\p{L}\p{M}\s'’.-]+$/u;
+const nameOk = (v: string, script: 'ar' | 'en') => {
+  const t = v.trim();
+  if (t.length < 2 || !NAME_CHARS.test(t)) return false;
+  return script === 'ar' ? ARABIC.test(t) && !LATIN.test(t) : LATIN.test(t) && !ARABIC.test(t);
+};
+
+type Side = 'ar' | 'en';
+
 const AccountSection: React.FC<{ data: AccountData; onSaved: () => void }> = ({ data, onSaved }) => {
   const A = useA();
   const S = A.settings;
   const say = useMsg();
   const { updateUser } = useAuth();
   const save = useMutation();
-  const [form, setForm] = useState({ nameAr: data.fullNameAr, nameEn: data.fullNameEn, phone: data.phone ?? '' });
+  const preview = useMutation();
+  const initial = { ar: data.fullNameAr, en: data.fullNameEn };
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(initial);
+  // The side written from the other one, and the sides the person typed in themself (never overwritten).
+  const [auto, setAuto] = useState<Side | null>(null);
+  const typed = useRef<Set<Side>>(new Set());
+  const [confirming, setConfirming] = useState(false);
   const [flash, setFlash] = useState<Flash>(null);
-  const [errors, setErrors] = useState<Record<string, Msg>>({});
+  const [errors, setErrors] = useState<Partial<Record<Side, Msg>>>({});
+  const timer = useRef<number | undefined>(undefined);
 
-  const dirty = data.nameEditable && (form.nameAr !== data.fullNameAr || form.nameEn !== data.fullNameEn || form.phone !== (data.phone ?? ''));
+  const dirty = editing && (form.ar.trim() !== data.fullNameAr || form.en.trim() !== data.fullNameEn);
   useUnsavedGuard(dirty, S.leave);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  const submit = async (e: React.FormEvent) => {
+  const locked = data.nameLockedUntil;
+  const nextAllowed = new Date(Date.now() + data.nameLockDays * 24 * 60 * 60 * 1000);
+
+  const reset = () => {
+    window.clearTimeout(timer.current);
+    setForm(initial);
+    setAuto(null);
+    typed.current = new Set();
+    setErrors({});
+    setEditing(false);
+  };
+
+  const onType = (side: Side, value: string) => {
+    typed.current.add(side);
+    if (auto === side) setAuto(null);
+    setForm((f) => ({ ...f, [side]: value }));
+    setErrors((e) => ({ ...e, [side]: undefined }));
+    const other: Side = side === 'ar' ? 'en' : 'ar';
+    if (typed.current.has(other)) return;
+    // Write the other script from this one shortly after typing stops.
+    window.clearTimeout(timer.current);
+    if (!nameOk(value, side)) return;
+    timer.current = window.setTimeout(async () => {
+      const res = await preview.run<{ ar: string; en: string }>('/api/account/name-preview', 'POST', { name: value.trim() });
+      if (!res.ok || typed.current.has(other)) return;
+      setForm((f) => (f[side].trim() === value.trim() ? { ...f, [other]: res.data[other] } : f));
+      setAuto(other);
+    }, 350);
+  };
+
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const next: Record<string, Msg> = {};
-    if (form.nameAr.trim().length < 2) next.nameAr = (X) => X.settings.account.invalidName;
-    if (form.nameEn.trim().length < 2) next.nameEn = (X) => X.settings.account.invalidName;
-    if (form.phone.trim() && !PHONE_RE.test(form.phone.trim())) next.phone = (X) => X.settings.account.invalidPhone;
+    const next: Partial<Record<Side, Msg>> = {};
+    if (!nameOk(form.ar, 'ar')) next.ar = (X) => X.settings.account.invalidNameAr;
+    if (!nameOk(form.en, 'en')) next.en = (X) => X.settings.account.invalidNameEn;
     setErrors(next);
-    if (Object.keys(next).length) return;
+    setFlash(null);
+    if (Object.keys(next).length === 0) setConfirming(true);
+  };
+
+  const commit = async () => {
     const res = await save.run<{ fullNameAr: string; fullNameEn: string }>('/api/account/profile', 'PATCH', {
-      fullNameAr: form.nameAr.trim(),
-      fullNameEn: form.nameEn.trim(),
-      phone: form.phone.trim() || null,
+      fullNameAr: form.ar.trim(),
+      fullNameEn: form.en.trim(),
     });
+    setConfirming(false);
     if (res.ok) {
       updateUser({ fullNameAr: res.data.fullNameAr, fullNameEn: res.data.fullNameEn });
-      setFlash({ tone: 'ok', text: (X) => X.settings.account.saved });
+      setFlash({ tone: 'ok', text: (X) => X.settings.account.nameSaved });
+      reset();
       onSaved();
     } else {
       const field = res.error.details?.field as string | undefined;
-      if (field) setErrors({ [field]: (X) => validationMessage(X, res.error) });
+      const msg: Msg = (X) => validationMessage(X, res.error);
+      // A lock is about the whole name, not one field: it is shown once, below the form.
+      if (res.error.code !== 'NAME_CHANGE_LOCKED' && (field === 'fullNameAr' || field === 'fullNameEn')) setErrors({ [field === 'fullNameAr' ? 'ar' : 'en']: msg });
       setFlash({ tone: 'danger', text: (X) => validationMessage(X, res.error) });
     }
   };
 
+  const help = (side: Side) => (auto === side ? (preview.pending ? S.account.writing : side === 'en' ? S.account.autoFromAr : S.account.autoFromEn) : undefined);
+
+  if (!editing) {
+    return (
+      <Block>
+        <dl className="na-dl">
+          <ReadRow label={S.account.nameAr}>{data.fullNameAr}</ReadRow>
+          <ReadRow label={S.account.nameEn} ltr>{data.fullNameEn}</ReadRow>
+          <ReadRow label={S.account.email} ltr>{data.email}</ReadRow>
+        </dl>
+        {flash && <Notice tone={flash.tone} live>{say(flash.text)}</Notice>}
+        {locked ? (
+          <Notice icon="clock">
+            {fill(S.account.nameLocked, { changed: formatDate(A.lang, data.nameChangedAt), date: formatDate(A.lang, locked) })}
+          </Notice>
+        ) : (
+          <div className="na-set-actions">
+            <Button small icon="user" onClick={() => { setFlash(null); setEditing(true); }}>
+              {S.account.editName}
+            </Button>
+            <span className="na-muted">{fill(S.account.nameRule, { days: data.nameLockDays })}</span>
+          </div>
+        )}
+      </Block>
+    );
+  }
+
   return (
     <Block>
-      {data.nameEditable ? (
-        <form onSubmit={submit} noValidate className="na-set-form">
-          <div className="na-grid na-grid--2">
-            <Field label={S.account.nameAr} htmlFor="set-name-ar">
-              <input id="set-name-ar" className="na-input" lang="ar" dir="rtl" maxLength={120} value={form.nameAr} aria-invalid={!!errors.nameAr} aria-describedby={errors.nameAr ? 'set-name-ar-err' : undefined} onChange={(e) => setForm({ ...form, nameAr: e.target.value })} />
-              {errors.nameAr && <p id="set-name-ar-err" className="na-set-error">{say(errors.nameAr)}</p>}
-            </Field>
-            <Field label={S.account.nameEn} htmlFor="set-name-en">
-              <input id="set-name-en" className="na-input" lang="en" dir="ltr" maxLength={120} value={form.nameEn} aria-invalid={!!errors.nameEn} aria-describedby={errors.nameEn ? 'set-name-en-err' : undefined} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} />
-              {errors.nameEn && <p id="set-name-en-err" className="na-set-error">{say(errors.nameEn)}</p>}
-            </Field>
-            <Field label={S.account.phone} htmlFor="set-phone">
-              <input id="set-phone" type="tel" className="na-input" dir="ltr" autoComplete="tel" maxLength={20} value={form.phone} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'set-phone-err' : undefined} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              {errors.phone && <p id="set-phone-err" className="na-set-error">{say(errors.phone)}</p>}
-            </Field>
-            <Field label={S.account.email} htmlFor="set-email">
-              <input id="set-email" className="na-input" dir="ltr" value={data.email} readOnly aria-readonly="true" />
-            </Field>
-          </div>
-          {flash && <Notice tone={flash.tone} live>{say(flash.text)}</Notice>}
-          <div className="na-set-actions">
-            <Button type="submit" variant="primary" disabled={!dirty || save.pending}>
-              {save.pending ? S.actions.saving : S.actions.save}
-            </Button>
-            {dirty && (
-              <Button variant="quiet" onClick={() => { setForm({ nameAr: data.fullNameAr, nameEn: data.fullNameEn, phone: data.phone ?? '' }); setErrors({}); }}>
-                {S.actions.discard}
-              </Button>
-            )}
-          </div>
-        </form>
-      ) : (
-        <>
-          <dl className="na-dl">
-            <ReadRow label={S.account.nameAr}>{data.fullNameAr}</ReadRow>
-            <ReadRow label={S.account.nameEn} ltr>{data.fullNameEn}</ReadRow>
-            <ReadRow label={S.account.email} ltr>{data.email}</ReadRow>
+      <form onSubmit={submit} noValidate className="na-set-form">
+        <div className="na-grid na-grid--2">
+          <Field label={S.account.nameAr} htmlFor="set-name-ar" help={help('ar')} error={errors.ar ? say(errors.ar) : undefined}>
+            <input id="set-name-ar" className="na-input" lang="ar" dir="rtl" maxLength={120} autoComplete="name" value={form.ar} onChange={(e) => onType('ar', e.target.value)} />
+          </Field>
+          <Field label={S.account.nameEn} htmlFor="set-name-en" help={help('en')} error={errors.en ? say(errors.en) : undefined}>
+            <input id="set-name-en" className="na-input" lang="en" dir="ltr" maxLength={120} value={form.en} onChange={(e) => onType('en', e.target.value)} />
+          </Field>
+        </div>
+        <Notice icon="clock">{fill(S.account.nameRule, { days: data.nameLockDays })}</Notice>
+        {flash && <Notice tone={flash.tone} live>{say(flash.text)}</Notice>}
+        <div className="na-set-actions">
+          <Button type="submit" variant="primary" disabled={!dirty || save.pending}>
+            {save.pending ? S.actions.saving : S.actions.save}
+          </Button>
+          <Button variant="quiet" onClick={reset}>
+            {S.account.cancel}
+          </Button>
+        </div>
+      </form>
+      {confirming && (
+        <Dialog title={S.account.confirmTitle} onClose={() => setConfirming(false)}>
+          <p>{S.account.confirmIntro}</p>
+          <dl className="na-dl na-set-confirm-names">
+            <ReadRow label={S.account.nameAr}>{form.ar.trim()}</ReadRow>
+            <ReadRow label={S.account.nameEn} ltr>{form.en.trim()}</ReadRow>
           </dl>
-        </>
+          <p>{fill(S.account.confirmLock, { date: formatDate(A.lang, nextAllowed) })}</p>
+          <div className="na-form-actions">
+            <Button variant="primary" onClick={commit} disabled={save.pending}>
+              {save.pending ? S.actions.saving : S.account.confirmSave}
+            </Button>
+            <Button variant="quiet" onClick={() => setConfirming(false)}>
+              {S.account.cancel}
+            </Button>
+          </div>
+        </Dialog>
       )}
     </Block>
   );

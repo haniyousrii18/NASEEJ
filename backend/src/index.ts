@@ -4,6 +4,7 @@ import { pool } from './config/db.js';
 import { scrubDeadShares } from './routes/shareRoutes.js';
 import { pruneStaleTranslations } from './services/translation/service.js';
 import { registerBuiltInProviders } from './services/translation/providers.js';
+import { backfillNameScripts } from './services/names/backfill.js';
 
 async function startServer() {
   try {
@@ -21,6 +22,11 @@ async function startServer() {
     void scrub();
     const scrubTimer = setInterval(scrub, 60 * 60 * 1000);
     scrubTimer.unref();
+
+    // Names stored in one script only get the other script written, once, at start.
+    backfillNameScripts()
+      .then((n) => n && console.log(`[Names] wrote the missing script for ${n} name(s)`))
+      .catch((err) => console.error('[Names] backfill failed:', err?.message));
 
     // Stored translations nobody has looked up for 90 days are dropped.
     const prune = () => pruneStaleTranslations().catch((err) => console.error('[Translations] prune failed:', err?.message));

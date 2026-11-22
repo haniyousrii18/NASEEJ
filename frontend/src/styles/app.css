@@ -28,6 +28,14 @@
   isolation: isolate;
 }
 
+/* The workspace scrolls the document. At either end, touchpads and touch screens would rubber-band it: the
+   sidebar, top bar and page slide away from the fixed background and leave a gap. The frame stays put instead.
+   Applies only while a workspace is on the page, so the public pages keep the browser's default. */
+:root:has(.na-app),
+:root:has(.na-app) body {
+  overscroll-behavior-y: none;
+}
+
 .na-app[data-collapsed='true'] {
   --na-side: 76px;
 }
@@ -3096,6 +3104,11 @@ th[data-today] .na-sched-daybtn {
 .na-set-error::before {
   content: '! ';
   font-weight: 700;
+}
+
+/* The name a person is about to save, in both scripts, set apart from the sentences around it. */
+.na-set-confirm-names {
+  margin-block: 10px 14px;
 }
 
 /* Compact type for everything inside the panel. Inputs stay at 16px on phones so browsers do not zoom on focus. */
