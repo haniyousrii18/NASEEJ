@@ -7,6 +7,8 @@ import { AppIcon, type IconName } from '../AppIcons.js';
 import { Button, ErrorState, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { routeForRef } from './kit.js';
+import { WovenField } from '../../components/WovenField.js';
+import { CountUp } from '../../components/motion.js';
 
 interface HomeData {
   counts: { entries: number; symptoms: number; documents: number };
@@ -147,15 +149,20 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
         <div className="hp-td-next-body">
           <p className="hp-td-lead">{up.kind === 'appointment' ? fill(H.appointment, { date: formatDate(A.lang, up.date), time: up.time }) : <UserText text={up.title} />}</p>
           <p className="hp-td-meta">
-            <Pill tone="info">{H.upcomingTag}</Pill>
-            <span>
-              {formatDate(A.lang, up.date)} · {when(up.date)}
+            <span className="hp-hero-chip">
+              <AppIcon name="calendar" size={15} />
+              {formatDate(A.lang, up.date)}
+            </span>
+            <span className="hp-hero-chip hp-hero-chip--count">
+              <AppIcon name="clock" size={15} />
+              {when(up.date)}
             </span>
           </p>
         </div>
-        <Button variant="primary" className="hp-td-next-cta" onClick={() => navigate('patient/timeline?select=1')}>
+        <button type="button" className="hp-hero-cta" onClick={() => navigate('patient/timeline?select=1')}>
+          <span className="hp-hero-cta-dot" aria-hidden="true" />
           {H.prepareThis}
-        </Button>
+        </button>
       </div>
     );
   };
@@ -281,79 +288,100 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
     if (d.activeShares > 0) attention.push({ key: 'shares', icon: 'link', title: H.sharesTitle, body: fill(H.sharesBody, { n: d.activeShares }), go: 'patient/sharing' });
   }
 
+  const quick: Array<{ key: string; icon: IconName; title: string; body: string; go: string }> = [
+    { key: 'prep', icon: 'calendar', title: H.prepTitle, body: H.prepChoose, go: 'patient/timeline?select=1' },
+    { key: 'assistant', icon: 'message', title: H.actions.assistant.title, body: H.actions.assistant.body, go: 'patient/assistant' },
+    { key: 'symptom', icon: 'summary', title: H.actions.symptom.title, body: H.actions.symptom.body, go: 'patient/symptoms?new=1' },
+    { key: 'document', icon: 'documents', title: H.actions.document.title, body: H.actions.document.body, go: 'patient/documents?new=1' },
+  ];
+
   return (
     <>
       <PageHead title={fill(H.greeting, { name: first })} />
       <div className="hp-td">
-        <div className="hp-td-main">
-          <Block id="td-next" i={0} className="hp-td-hero">
-            <h2 id="td-next" className="hp-h2">
-              {H.nextCare}
-            </h2>
-            {nextCare()}
-          </Block>
+        {/* Up next: the one time-sensitive thing, on the brand gradient with silk threads moving behind it. */}
+        <Block id="td-next" i={0} className="hp-td-hero">
+          <WovenField variant="waves" tone="light" intensity={0.9} className="hp-hero-weave" />
+          <span className="hp-hero-kicker">
+            <span className="hp-hero-pulse" aria-hidden="true" />
+            <span id="td-next">{H.nextCare}</span>
+          </span>
+          {nextCare()}
+        </Block>
 
-          <Block id="td-prep" i={2}>
-            <h2 id="td-prep" className="hp-h2">
-              {H.prepTitle}
-            </h2>
-            {prep()}
-          </Block>
+        <ul className="hp-quick" aria-label={H.quick}>
+          {quick.map((q, i) => (
+            <li key={q.key} style={{ '--i': i + 1 } as React.CSSProperties}>
+              <button type="button" className="hp-quick-tile" onClick={() => navigate(q.go)}>
+                <span className="hp-quick-icon" aria-hidden="true">
+                  <AppIcon name={q.icon} size={22} />
+                </span>
+                <span className="hp-quick-text">
+                  <strong>{q.title}</strong>
+                  <span>{q.body}</span>
+                </span>
+                <AppIcon name="chevron" size={16} className="hp-row-go" />
+              </button>
+            </li>
+          ))}
+        </ul>
 
-          <Block id="td-recent" i={3}>
-            <div className="hp-section-h">
-              <h2 id="td-recent" className="hp-h2">
-                {H.timelineTitle}
-              </h2>
-              <Button small variant="quiet" onClick={() => navigate('patient/timeline')}>
-                {H.seeAll}
-              </Button>
-            </div>
-            {recentList()}
-          </Block>
-        </div>
-
-        <div className="hp-td-side">
-          {attention.length > 0 && (
-            <Block id="td-attn" i={1} className="hp-td-attn">
-              <h2 id="td-attn" className="hp-h2">
-                {H.attention}
-              </h2>
-              <ul className="hp-rows">
-                {attention.map((a) => (
-                  <Row key={a.key} icon={a.icon} title={a.title} body={a.body} onClick={() => navigate(a.go)} />
-                ))}
-              </ul>
+        <div className="hp-td-grid">
+          <div className="hp-td-main">
+            <Block id="td-recent" i={3}>
+              <div className="hp-section-h">
+                <h2 id="td-recent" className="hp-h2">
+                  {H.timelineTitle}
+                </h2>
+                <Button small variant="quiet" onClick={() => navigate('patient/timeline')}>
+                  {H.seeAll}
+                </Button>
+              </div>
+              {recentList()}
             </Block>
-          )}
 
-          {d && (
-            <Block id="td-glance" i={4}>
-              <h2 id="td-glance" className="hp-h2">
-                {H.glanceTitle}
+            <Block id="td-prep" i={4}>
+              <h2 id="td-prep" className="hp-h2">
+                {H.prepTitle}
               </h2>
-              <dl className="hp-td-glance">
-                {(['entries', 'symptoms', 'documents'] as const).map((k) => (
-                  <div key={k}>
-                    <dt>{H.glance[k]}</dt>
-                    <dd className="na-ltr">{d.counts[k]}</dd>
-                  </div>
-                ))}
-              </dl>
-              {d.lastSymptom && <p className="na-muted">{fill(H.lastSymptom, { date: formatDate(A.lang, d.lastSymptom.onsetDate) })}</p>}
+              {prep()}
             </Block>
-          )}
+          </div>
 
-          <Block id="td-quick" i={5}>
-            <h2 id="td-quick" className="hp-h2">
-              {H.quick}
-            </h2>
-            <ul className="hp-rows">
-              <Row icon="plus" title={H.actions.symptom.title} body={H.actions.symptom.body} onClick={() => navigate('patient/symptoms?new=1')} />
-              <Row icon="upload" title={H.actions.document.title} body={H.actions.document.body} onClick={() => navigate('patient/documents?new=1')} />
-              <Row icon="pulse" title={H.actions.assistant.title} body={H.actions.assistant.body} onClick={() => navigate('patient/assistant')} />
-            </ul>
-          </Block>
+          <div className="hp-td-side">
+            {attention.length > 0 && (
+              <Block id="td-attn" i={2} className="hp-td-attn">
+                <h2 id="td-attn" className="hp-h2">
+                  <span className="hp-review-glyph" aria-hidden="true">◌</span>
+                  {H.attention}
+                </h2>
+                <ul className="hp-rows">
+                  {attention.map((a) => (
+                    <Row key={a.key} icon={a.icon} title={a.title} body={a.body} onClick={() => navigate(a.go)} />
+                  ))}
+                </ul>
+              </Block>
+            )}
+
+            {d && (
+              <Block id="td-glance" i={5}>
+                <h2 id="td-glance" className="hp-h2">
+                  {H.glanceTitle}
+                </h2>
+                <dl className="hp-td-glance">
+                  {(['entries', 'symptoms', 'documents'] as const).map((k) => (
+                    <div key={k}>
+                      <dt>{H.glance[k]}</dt>
+                      <dd className="na-ltr">
+                        <CountUp value={d.counts[k]} />
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                {d.lastSymptom && <p className="na-muted">{fill(H.lastSymptom, { date: formatDate(A.lang, d.lastSymptom.onsetDate) })}</p>}
+              </Block>
+            )}
+          </div>
         </div>
       </div>
     </>

@@ -96,7 +96,7 @@ const EventCard: React.FC<{
   const band = confidenceBand(e.confidence);
 
   return (
-    <Reveal as="li" y={16} i={index % 5} id={`tl-${e.ref.replace(':', '-')}`} className="hp-tl-item" data-origin={e.origin} data-flag={flag ?? undefined} data-chosen={chosen || undefined}>
+    <Reveal as="li" y={16} i={index % 5} id={`tl-${e.ref.replace(':', '-')}`} className="hp-tl-item" data-origin={e.origin} data-flag={flag ?? undefined} data-chosen={chosen || undefined} data-review={e.origin === 'record_ai' && !e.confirmedByPatient ? 'pending' : 'settled'}>
       <Pop className="hp-tl-dot l-node" i={index % 5} aria-hidden="true">
         <AppIcon name={CATEGORY_ICON[e.category]} size={19} />
       </Pop>

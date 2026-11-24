@@ -7,6 +7,7 @@ import { Button, Drawer, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { SymptomForm, SYMPTOM_FREQ, type SymptomValue } from './forms.js';
 import { SearchCombobox } from '../search/SearchCombobox.js';
+import { WovenField } from '../../components/WovenField.js';
 import { MicButton, OriginPill, SeverityPicker, Toast, UrgentNotice, routeForRef, useOnline, useSafetyCheck, useSpeech, useToast, type Origin } from './kit.js';
 import { DatePicker } from '../DatePicker.js';
 
@@ -120,8 +121,11 @@ const Bubble: React.FC<{ m: Msg; navigate: (r: string) => void; onDraft: (d: Rec
         <div className="hp-cites">
           <span className="na-label">{T.sources}</span>
           <ul>
-            {r.citations.map((c) => (
+            {r.citations.map((c, i) => (
               <li key={c.ref}>
+                <span className="hp-cite-n na-ltr" aria-hidden="true">
+                  {(i + 1).toLocaleString(A.lang === 'ar' ? 'ar-EG' : 'en-GB')}
+                </span>
                 <OriginPill origin={c.origin} />
                 <span dir="auto">
                   <UserText text={c.title} />
@@ -478,7 +482,8 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
         </div>
 
         {mode === 'ask' && (
-          <section className="hp-panel" id="as-panel-ask" role="tabpanel" aria-labelledby="as-tab-ask">
+          <section className="hp-panel hp-panel--ask" id="as-panel-ask" role="tabpanel" aria-labelledby="as-tab-ask">
+            <WovenField variant="waves" className="hp-ask-weave" intensity={0.7} />
             <p className="hp-scope">
               <AppIcon name="shield" size={16} className="hp-scope-icon" />
               {T.scope}
@@ -502,9 +507,16 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
                 />
               ))}
               {sending && (
-                <li className="hp-msg" role="status">
+                <li className="hp-msg hp-msg--typing" role="status">
                   <span className="hp-msg-who">{T.assistant}</span>
-                  <p className="na-muted">{T.thinking}</p>
+                  <p className="na-muted">
+                    <span className="hp-typing" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    {T.thinking}
+                  </p>
                 </li>
               )}
             </ol>
