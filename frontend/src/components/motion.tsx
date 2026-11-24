@@ -8,7 +8,7 @@
 // Only opacity and transform are animated, and nothing loops.
 
 import React from 'react';
-import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m } from 'motion/react';
+import { AnimatePresence, LazyMotion, MotionConfig, domMax, m } from 'motion/react';
 
 export { AnimatePresence };
 export const EASE = [0.22, 1, 0.36, 1] as const;
@@ -16,7 +16,8 @@ const EASE_IN = [0.7, 0, 0.84, 0] as const;
 export const SPRING = { type: 'spring', stiffness: 520, damping: 38 } as const;
 export const SPRING_SOFT = { type: 'spring', stiffness: 320, damping: 30 } as const;
 
-const STAGGER_STEP = 0.05;
+const STAGGER_STEP = 0.055;
+export const EMPHASIZED = [0.2, 0, 0, 1] as const;
 const STAGGER_CAP = 8;
 
 type Tag = keyof React.JSX.IntrinsicElements;
@@ -32,7 +33,7 @@ const tagOf = (as: Tag) => (m as unknown as Record<string, React.ElementType>)[a
 // <WorkspaceMotion>, which goes back to honouring the system "reduce motion" setting.
 export const MotionRoot: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <MotionConfig reducedMotion="never">
-    <LazyMotion features={domAnimation} strict>
+    <LazyMotion features={domMax} strict>
       {children}
     </LazyMotion>
   </MotionConfig>
@@ -46,17 +47,17 @@ export const WorkspaceMotion: React.FC<{ children: React.ReactNode }> = ({ child
 export const PageTransition: React.FC<BoxProps> = ({ children, as = 'div', ...rest }) => {
   const Tag = tagOf(as);
   return (
-    <Tag {...rest} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, ease: EASE }}>
+    <Tag {...rest} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: EASE }}>
       {children}
     </Tag>
   );
 };
 
 const riseVariants = {
-  // Cards and rows are in place from the first frame: the page fades in as one piece (PageTransition), so nothing slides or
-  // arrives one after another while the person is navigating.
-  hidden: { opacity: 1, y: 0 },
-  show: () => ({ opacity: 1, y: 0, transition: { duration: 0 } }),
+  // Cards and rows rise 12px and fade in, 55ms apart (capped), on the emphasized curve. Clinical data never bounces,
+  // and <WorkspaceMotion> turns all of this off when the system asks to reduce motion.
+  hidden: { opacity: 0, y: 12 },
+  show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: Math.min(i, STAGGER_CAP) * STAGGER_STEP, duration: 0.42, ease: EMPHASIZED } }),
   now: { opacity: 1, y: 0, transition: { duration: 0 } },
 };
 
@@ -118,7 +119,7 @@ export const Pop: React.FC<BoxProps & { i?: number }> = ({ as = 'span', i = 0, c
       initial={{ opacity: 0, scale: 0.5 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true, margin: '0px 0px -60px 0px' }}
-      transition={{ delay: 0.15 + Math.min(i, 6) * 0.18, type: 'spring', stiffness: 380, damping: 20 }}
+      transition={{ delay: 0.1 + Math.min(i, 6) * 0.11, duration: 0.42, ease: EMPHASIZED }}
     >
       {children}
     </Tag>

@@ -7,7 +7,11 @@ import { AppIcon } from './AppIcons.js';
 import { UNAUTHORIZED_EVENT } from './api.js';
 import { NAV, ROLE_BASE, appRoleOf, belongsToRole, currentItem, homeRoute, isActive } from './nav.js';
 import { resolvePage } from './routes.js';
-import { WorkspaceMotion } from '../components/motion.js';
+import { EMPHASIZED, WorkspaceMotion } from '../components/motion.js';
+import { WovenField } from '../components/WovenField.js';
+import { m } from 'motion/react';
+import { SearchCombobox } from './search/SearchCombobox.js';
+import { routeForRef } from './health/kit.js';
 import { NotificationBell } from './notifications/NotificationBell.js';
 import { NotificationsProvider, useUnreadCount } from './notifications/NotificationsContext.js';
 import { useA } from './useA.js';
@@ -75,6 +79,8 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   // focus is inside it. Touch has no reliable hover, so there the toggle button is the way to expand it.
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const canHover = useMediaQuery('(hover: hover) and (pointer: fine)');
+  // Between 1024 and 1279px the sidebar is always the 84px icon rail (it still opens over the page on hover or focus).
+  const narrowDesktop = useMediaQuery('(min-width: 1024px) and (max-width: 1279px)');
   const [hoverPeek, setHoverPeek] = useState(false);
   const [focusPeek, setFocusPeek] = useState(false);
   const peekTimer = useRef<number | undefined>(undefined);
@@ -199,15 +205,19 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
 
   if (!user) return null;
 
-  const peeking = collapsed && isDesktop && ((canHover && hoverPeek) || focusPeek);
-  const rail = collapsed && isDesktop && !peeking;
+  const compact = collapsed || narrowDesktop;
+  const peeking = compact && isDesktop && ((canHover && hoverPeek) || focusPeek);
+  const rail = compact && isDesktop && !peeking;
 
   const otherLang = lang === 'ar' ? 'en' : 'ar';
   const otherLangName = lang === 'ar' ? 'English' : 'العربية';
   const themeLabel = wsTheme === 'dark' ? A.care.theme.toLight : A.care.theme.toDark;
 
   return (
-    <div className="na-app" data-collapsed={collapsed} data-peek={peeking} data-rail={rail} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'} data-ws-theme={wsTheme}>
+    <div className="na-app" data-collapsed={compact} data-peek={peeking} data-rail={rail} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'} data-ws-theme={wsTheme}>
+      <div className="na-ambient" aria-hidden="true">
+        <WovenField variant="field" intensity={wsTheme === 'dark' ? 0.75 : 0.5} />
+      </div>
       <a className="na-skip" href="#na-main">
         {A.common.shell.skip}
       </a>
@@ -220,13 +230,13 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
         aria-modal={drawer ? 'true' : undefined}
         role={drawer ? 'dialog' : 'complementary'}
         onPointerEnter={(e) => {
-          if (canHover && collapsed && e.pointerType !== 'touch') schedulePeek(true);
+          if (canHover && compact && e.pointerType !== 'touch') schedulePeek(true);
         }}
         onPointerLeave={(e) => {
           if (e.pointerType !== 'touch') schedulePeek(false);
         }}
         onFocus={(e) => {
-          if (collapsed && (e.target as HTMLElement).matches(':focus-visible')) setFocusPeek(true);
+          if (compact && (e.target as HTMLElement).matches(':focus-visible')) setFocusPeek(true);
         }}
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusPeek(false);
@@ -272,6 +282,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                           setDrawer(false);
                         }}
                       >
+                        {isActive(item, route) && <m.span layoutId="na-nav-pill" className="na-nav-pill" aria-hidden="true" transition={{ duration: 0.42, ease: EMPHASIZED }} />}
                         <AppIcon name={item.icon} className="na-icon" />
                         <span className="na-nav-label">{A.nav.items[item.label]}</span>
                       </button>
@@ -303,6 +314,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                             setDrawer(false);
                           }}
                         >
+                          {isActive(item, route) && <m.span layoutId="na-nav-pill" className="na-nav-pill" aria-hidden="true" transition={{ duration: 0.42, ease: EMPHASIZED }} />}
                           <AppIcon name={item.icon} className="na-icon" />
                           <span className="na-nav-label">{A.nav.items[item.label]}</span>
                           {item.label === 'notifications' && unreadCount > 0 && (
@@ -346,7 +358,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
             <AppIcon name={drawer ? 'close' : 'menu'} />
           </button>
 
-          {isDesktop && (
+          {isDesktop && !narrowDesktop && (
             <button
               type="button"
               className="na-icon-btn na-collapse-btn"
@@ -365,6 +377,12 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
           </div>
 
           <div className="na-top-spacer" />
+
+          {role && isDesktop && (
+            <div className="na-top-search">
+              <SearchCombobox label={A.health.assistant.search.title} placeholder={A.health.assistant.search.placeholder} limit={10} onSelect={(hit) => navigate(routeForRef(hit.ref, hit.documentId))} />
+            </div>
+          )}
 
           {role && <NotificationBell role={role} navigate={navigate} />}
 
@@ -426,9 +444,9 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
 
         <main id="na-main" className="na-content" tabIndex={-1}>
           {role ? (
-            <div className="na-rise" key={route}>
+            <m.div className="na-page" key={route} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: EMPHASIZED }}>
               {page}
-            </div>
+            </m.div>
           ) : (
             <EmptyState
               title={A.nav.noWorkspaceTitle}

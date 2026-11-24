@@ -1,5 +1,7 @@
 # Naseej | نَسيج — Design System
-> Calm clinical teal: a pale mist canvas by day, deep slate by night, one teal brand and action color. Public site and signed-in workspaces share one identity and differ only in density.
+> Calm clinical teal, now in frosted glass and light: a pale mist canvas by day, deep slate by night, one teal brand and action color that glows where it matters, and the logo's woven mark alive as a 3D network behind heroes and empty space. Public site and signed-in workspaces share one identity and differ only in density.
+
+**Premium web layer (Nov 2026).** `styles/redesign.css` (loaded last) and theme.css layer 3 apply the web redesign brief: glass surfaces (`--surface-glass`, `--glass-blur`, `--glass-line`, `--glass-shadow[-raised]`), glow (`--glow-primary`, `--glow-amber` for needs-review only), `--hero-gradient`, `--review-amber`, `--revoke-red`, radii `--radius-card` 20 / `--radius-hero` 28, and the motion tokens `--motion-press` 140ms, `--motion-state` 240ms, `--motion-enter` 420ms, `--motion-stagger` 55ms, `--ease-emphasized` (0.2,0,0,1). `components/WovenField.tsx` is the woven network on canvas (`sculpture` landing hero, `field` app background, `waves` home hero and assistant); it pauses off screen and draws a still frame under reduced motion. Where this paragraph and the older sections below disagree (no gradients or shadows in the workspace, 272px sidebar, Cairo, static rows), this paragraph wins.
 
 This file describes what the code **does today**. If code and this file disagree, the code in `frontend/src/styles/theme.css` is the source of truth; fix the file.
 
@@ -44,7 +46,7 @@ Status tokens (`--warning-*`, `--success-*`, `--danger-*`, `--info-*`, `--neutra
 **Theme choice.** Light, dark or system, stored as `naseej_theme` (public site) and `naseej_ws_theme` (workspace), applied before first paint by the inline script in `index.html` and kept by `ThemeContext`. System follows the OS live. The site-bar button cycles light, dark, system; Settings has all three.
 
 ## 4. Type
-- Arabic `Cairo`, Latin `Inter` (loaded in `index.html`), with system fallbacks. No other families.
+- Arabic `IBM Plex Sans Arabic` (Cairo as fallback), Latin `Inter` (loaded in `index.html`), the same files as the mobile app. No other families.
 - Workspaces: body 15px / 1.55, page title ~28–30px weight 600 with slightly tight tracking (−0.015em), card title 16.5px / 620, helper 12.5–13.5px. Public site scales type up with `clamp()`.
 - Numbers, MRNs, phone numbers, dates and units inside RTL text use `dir="ltr"` / `.na-ltr` so they stay readable.
 
@@ -65,7 +67,7 @@ Adapted from the reference in `docs/archive/accounts-design.reference.md`: large
 Deliberate differences from the reference: color comes from the Naseej tokens above, not the reference's monochrome; touch targets stay at 44px; the reference's Geist font is **not** used.
 
 ## 6. Layout (workspaces)
-Sidebar (272px, collapsible to a 76px rail that opens on hover or focus) + top bar (64px) + content. Below 1024px the sidebar becomes a drawer. The animated line backdrop was removed from the patient app: content sits on a plain canvas.
+Floating glass sidebar on the reading-start side (right in Arabic): 248px, an 84px icon rail when collapsed and always between 1024 and 1279px (it opens over the page on hover or focus); the active item is one gradient pill that glides between items. Floating frosted top bar (64px) with the global record search, bell and account menu. Content max 1320px. Below 1024px the sidebar becomes a drawer. The animated line backdrop was removed from the patient app: content sits on a plain canvas.
 
 - **Sidebar:** the patient navigation groups, then a pinned foot with the **Account** group (**Notifications** with its unread badge, then **Settings**) above **Sign out**. There is no public-site link in the sidebar.
 - **Top bar, start to end:** (mobile: drawer button) | the **collapse/expand toggle** (desktop only, between the sidebar and the page name) | page name | **notification bell** with unread count | theme | language | account menu.

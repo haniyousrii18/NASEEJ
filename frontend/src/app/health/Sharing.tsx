@@ -78,10 +78,19 @@ const Created: React.FC<{ token: string; expiresAt: string; shareId: string; onD
   return (
     <>
       <div className="hp-qrbox">
-        <QrImage value={url} label={S.scan} />
+        <div className="hp-qr-paper">
+          <img className="hp-qr-logo" src="/logo-mark.svg" alt="" width={44} height={44} />
+          <QrImage value={url} label={S.scan} />
+        </div>
         <div className="na-stack">
           <p>{S.scan}</p>
-          <Pill tone="info">{fill(S.expiresAt, { date: formatDate(A.lang, expiresAt, true) })}</Pill>
+          {/* Under 12 hours left the expiry turns amber, still with its clock glyph and words. */}
+          <Pill tone={new Date(expiresAt).getTime() - Date.now() < 12 * 3_600_000 ? 'warn' : 'info'}>
+            <span className="hp-expiry">
+              <AppIcon name="clock" size={14} />
+              {fill(S.expiresAt, { date: formatDate(A.lang, expiresAt, true) })}
+            </span>
+          </Pill>
           <Notice tone="warn" icon="alert">
             {S.shownOnce}
           </Notice>

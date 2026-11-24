@@ -132,8 +132,8 @@
 :root,
 .hp-preview {
   /* Fonts */
-  --font-arabic: 'Cairo', sans-serif;
-  --font-latin: 'Inter', 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Cairo', sans-serif;
+  --font-latin: 'Inter', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Surfaces */
   --color-bg-canvas: var(--background);
@@ -1269,4 +1269,58 @@ svg {
     transition-duration: var(--motion-duration-instant, 0.01ms) !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* ---- layer 3: premium web language (glass, glow, depth). Same names on web and mobile; both themes. ---- */
+:root {
+  --surface-glass: rgba(255, 255, 255, 0.72);
+  --surface-glass-raised: rgba(255, 255, 255, 0.86);
+  --glass-blur: blur(18px) saturate(1.4);
+  --glass-edge: rgba(255, 255, 255, 0.9);
+  --glass-line: color-mix(in srgb, var(--border) 80%, transparent);
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 10px 30px -14px rgba(var(--shadow-color), 0.22), 0 2px 6px -2px rgba(var(--shadow-color), 0.06);
+  --glass-shadow-raised: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 22px 44px -18px rgba(var(--shadow-color), 0.3), 0 4px 10px -4px rgba(var(--shadow-color), 0.08);
+  --glow-primary: 0 0 24px rgba(19, 124, 114, 0.35);
+  --glow-primary-soft: 0 0 14px rgba(19, 124, 114, 0.22);
+  --glow-amber: 0 0 20px rgba(217, 158, 43, 0.4);
+  --hero-gradient: linear-gradient(135deg, #0e5a52 0%, #137c72 45%, #2aa697 100%);
+  --on-hero: #ffffff;
+  --review-amber: #b9821e;
+  --review-amber-surface: linear-gradient(160deg, #fff6e2 0%, #fdf0d2 100%);
+  --revoke-red: #c6453c;
+  --weave-node: 19, 124, 114;
+  --weave-thread: 42, 166, 151;
+  --canvas-wash:
+    radial-gradient(70% 50% at 100% 0%, rgba(42, 166, 151, 0.1), transparent 70%),
+    radial-gradient(60% 50% at 0% 100%, rgba(19, 124, 114, 0.07), transparent 70%);
+  --radius-card: 20px;
+  --radius-hero: 28px;
+  --motion-press: 140ms;
+  --motion-state: 240ms;
+  --motion-enter: 420ms;
+  --motion-stagger: 55ms;
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+:root[data-theme='dark'] {
+  --surface-glass: rgba(24, 40, 48, 0.66);
+  --surface-glass-raised: rgba(31, 53, 64, 0.8);
+  --glass-edge: rgba(255, 255, 255, 0.07);
+  --glass-line: rgba(121, 212, 197, 0.14);
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 18px 40px -20px rgba(0, 0, 0, 0.7);
+  --glass-shadow-raised: 0 1px 0 rgba(255, 255, 255, 0.07) inset, 0 26px 50px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(89, 195, 178, 0.08);
+  --glow-primary: 0 0 28px rgba(89, 195, 178, 0.45);
+  --glow-primary-soft: 0 0 16px rgba(89, 195, 178, 0.28);
+  --hero-gradient: linear-gradient(135deg, #12303a 0%, #145049 48%, #1f7a6d 100%);
+  --on-hero: #f0f5f3;
+  --review-amber: #e5b95c;
+  --review-amber-surface: linear-gradient(160deg, rgba(229, 185, 92, 0.14) 0%, rgba(229, 185, 92, 0.06) 100%);
+  --revoke-red: #ef7a70;
+  --weave-node: 89, 195, 178;
+  --weave-thread: 121, 212, 197;
+  --canvas-wash:
+    radial-gradient(70% 55% at 100% 0%, rgba(89, 195, 178, 0.1), transparent 70%),
+    radial-gradient(60% 50% at 0% 100%, rgba(42, 166, 151, 0.08), transparent 70%);
 }

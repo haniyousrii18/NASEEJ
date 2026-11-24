@@ -69,7 +69,8 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
               {t.brand.tagline}
             </span>
             <h1 id="hero-title" className="hero-title">
-              {t.hero.title}
+              <span className="hero-title-lead">{L.heroTitleLead}</span>{' '}
+              <span className="hero-title-accent">{L.heroTitleAccent}</span>
             </h1>
             <p className="hero-lead">{t.hero.description}</p>
             <div className="hero-actions">
