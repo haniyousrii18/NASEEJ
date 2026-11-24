@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AppIcon } from '../AppIcons.js';
-import { fill } from '../format.js';
+import { fill, formatNum } from '../format.js';
 import type { AppRole } from '../nav.js';
 import { ROLE_BASE } from '../nav.js';
 import { EmptyState, Loading } from '../ui.js';
@@ -58,7 +58,7 @@ export const NotificationBell: React.FC<{ role: AppRole; navigate: (route: strin
         <AppIcon name="bell" />
         {unread > 0 && (
           <span className="na-nt-count" aria-hidden="true">
-            {unread > 99 ? '99+' : unread}
+            {unread > 99 ? `${formatNum(A.lang, 99)}+` : formatNum(A.lang, unread)}
           </span>
         )}
       </button>

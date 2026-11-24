@@ -1,4 +1,5 @@
 import { AR_FUNC, AR_NUMBERS, ENTRIES, EN_FUNC, EN_NUMBERS, type Entry } from './lexicon.js';
+import { PHRASES } from './phrases.js';
 
 /**
  * Dictionary translation between Arabic and English for short medical notes. No AI, no network, no permission needed,
@@ -447,10 +448,46 @@ export function enToAr(text: string): string | null {
 }
 
 /** Translates `text` into `target` with the built-in glossary, or returns null when any part is not covered. */
+// ---------------------------------------------------------------------------------------------------- whole phrases
+
+const PHRASE_NUM = /[\d٠-٩]+(?:[.,٫][\d٠-٩]+)*(?:\/[\d٠-٩]+)?/g;
+/** A phrase's lookup key: spacing collapsed, numbers as "#", a closing full stop dropped, Arabic normalised, English lower-cased. */
+const phraseKey = (s: string, lang: 'ar' | 'en') => {
+  const t = s.trim().replace(/\s+/g, ' ').replace(/\.$/, '').replace(PHRASE_NUM, '#').replace(/؟/g, '?').replace(/،/g, ',');
+  return lang === 'ar' ? nz(t) : t.toLowerCase();
+};
+const phraseAr = new Map<string, string>();
+const phraseEn = new Map<string, string>();
+for (const ph of PHRASES) {
+  if (!ph.enOnly) {
+    const k = phraseKey(ph.ar, 'ar');
+    if (!phraseAr.has(k)) phraseAr.set(k, ph.en);
+  }
+  if (!ph.arOnly) {
+    const k = phraseKey(ph.en, 'en');
+    if (!phraseEn.has(k)) phraseEn.set(k, ph.ar);
+  }
+}
+
+/** The reviewed rendering of a whole phrase, with its numbers carried over as written, or null when it is not listed. */
+export function phraseTranslate(text: string, target: 'ar' | 'en'): string | null {
+  const source = target === 'en' ? 'ar' : 'en';
+  const out = (target === 'en' ? phraseAr : phraseEn).get(phraseKey(text, source));
+  if (!out) return null;
+  const nums = text.match(PHRASE_NUM) ?? [];
+  if ((out.match(/#/g) ?? []).length !== nums.length) return null;
+  let i = 0;
+  let res = out.replace(/#/g, () => nums[i++]);
+  if (/\.$/.test(text.trim()) && !/[.?!؟]$/.test(res)) res += '.';
+  return res;
+}
+
 export function glossaryTranslate(text: string, target: 'ar' | 'en'): string | null {
   const clean = text.trim();
   if (!clean || clean.length > 400) return null;
   try {
+    const phrase = phraseTranslate(clean, target);
+    if (phrase) return phrase;
     return target === 'en' ? arToEn(clean) : enToAr(clean);
   } catch {
     return null;

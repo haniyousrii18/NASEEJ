@@ -3,7 +3,7 @@ import { failureMsg } from '../errors.js';
 import { useMsg, useMsgState, type Msg } from '../useMsg.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { useApiData, useDownload, useMutation } from '../api.js';
-import { fill, formatBytes, formatDate, localeOf, todayIso } from '../format.js';
+import { fill, formatBytes, formatDate, formatNum, localeOf, todayIso } from '../format.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { Reveal } from '../../components/motion.js';
 import { Async, Button, Drawer, EmptyState, Field, Notice, PageHead, Pill, Select } from '../ui.js';
@@ -807,13 +807,13 @@ export const PatientVault: React.FC = () => {
             <div className="hp-lib-types" role="group" aria-label={L.typeFilter}>
               <button type="button" className="hp-lib-chip" aria-pressed={!type} onClick={() => setType('')}>
                 {L.all}
-                <b>{total}</b>
+                <b>{formatNum(A.lang, total)}</b>
               </button>
               {DOC_TYPES.filter((t) => typeCounts.get(t)).map((t) => (
                 <button key={t} type="button" className="hp-lib-chip" aria-pressed={type === t} onClick={() => setType(type === t ? '' : t)}>
                   <AppIcon name={TYPE_ICON[t] ?? 'documents'} size={15} />
                   {V.types[t]}
-                  <b>{typeCounts.get(t)}</b>
+                  <b>{formatNum(A.lang, typeCounts.get(t) ?? 0)}</b>
                 </button>
               ))}
             </div>

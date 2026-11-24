@@ -262,7 +262,7 @@
 }
 
 .hp-bp-facts .hp-bp-review {
-  color: var(--review-amber);
+  color: var(--review-amber-ink);
   border: 1px dashed var(--review-amber);
   background: transparent;
 }
@@ -564,7 +564,7 @@
 }
 
 .hp-tl-panel[data-review='pending'] .hp-tl-panel-icon {
-  color: var(--review-amber);
+  color: var(--review-amber-ink);
   border-color: var(--review-amber);
   background: color-mix(in srgb, var(--review-amber) 10%, transparent);
   box-shadow: var(--glow-amber);
@@ -639,7 +639,7 @@
   padding: 1px 8px;
   border-radius: 999px;
   font-size: 12px;
-  color: var(--review-amber);
+  color: var(--review-amber-ink);
   border: 1px dashed var(--review-amber);
 }
 
@@ -692,7 +692,7 @@
 }
 
 .na-app .hp-sh-sub[data-soon] {
-  color: var(--review-amber);
+  color: var(--review-amber-ink);
   background: color-mix(in srgb, var(--review-amber) 12%, transparent);
   box-shadow: var(--glow-amber);
 }
@@ -822,4 +822,183 @@
   border: 1px solid color-mix(in srgb, var(--logo-sky) 45%, transparent);
   background: url('/logo-mark.svg') center / 32px no-repeat, var(--surface-card);
   box-shadow: 0 0 14px color-mix(in srgb, var(--logo-sky) 30%, transparent);
+}
+
+/* ================================================================== contrast: one button system, AA in both themes */
+/*
+ * Every filled action uses the same tokens. Light: white on deep teal, never fading into mint (worst stop 5.1:1).
+ * Dark: near-black ink on bright teal (worst stop 8.9:1). Disabled controls stay legible (about 5:1) and read as
+ * unavailable through a flat muted fill and the not-allowed cursor, not through fading the label.
+ */
+:root {
+  --btn-primary-bg: linear-gradient(135deg, #0e5a52 0%, #137c72 100%);
+  --btn-primary-bg-hover: linear-gradient(135deg, #0a4740 0%, #0f665e 100%);
+  --btn-primary-ink: #ffffff;
+  --btn-disabled-bg: #e6ecea;
+  --btn-disabled-ink: #4f5f68;
+  --btn-disabled-line: #cdd7d4;
+  --review-amber-ink: #85570a;
+  --hero-gradient: linear-gradient(135deg, #0b4f48 0%, #0f6b62 50%, #14776c 100%);
+  --hero-chip-bg: rgba(4, 32, 29, 0.26);
+  --hero-chip-line: rgba(255, 255, 255, 0.34);
+}
+
+:root[data-theme='dark'] {
+  --btn-primary-bg: linear-gradient(135deg, #59c3b2 0%, #7fd6c8 100%);
+  --btn-primary-bg-hover: linear-gradient(135deg, #6ccdbd 0%, #95dfd3 100%);
+  --btn-primary-ink: #06171a;
+  --btn-disabled-bg: #22343d;
+  --btn-disabled-ink: #a9b8ba;
+  --btn-disabled-line: #34484f;
+  --review-amber-ink: #e9c16e;
+  --hero-gradient: linear-gradient(135deg, #10303a 0%, #134a44 50%, #17635a 100%);
+  --hero-chip-bg: rgba(0, 0, 0, 0.26);
+  --hero-chip-line: rgba(240, 245, 243, 0.3);
+}
+
+.na-app .na-btn--primary,
+.hero .btn-pill-charcoal,
+.l-cta .btn-pill-charcoal,
+.site-act--primary,
+.site-cta--fill,
+.hp-tl-kind[aria-pressed='true'],
+.na-app .hp-msg--me,
+.na-nav-pill {
+  background: var(--btn-primary-bg);
+  border-color: transparent;
+  color: var(--btn-primary-ink);
+}
+
+.na-app .na-btn--primary:hover:not(:disabled),
+.hero .btn-pill-charcoal:hover:not(:disabled),
+.l-cta .btn-pill-charcoal:hover:not(:disabled),
+.site-act--primary:hover,
+.site-cta--fill:hover {
+  background: var(--btn-primary-bg-hover);
+  color: var(--btn-primary-ink);
+}
+
+.na-app .hp-msg--me .hp-msg-who {
+  color: var(--btn-primary-ink);
+  opacity: 0.88;
+}
+
+/* the active nav item carries the same ink as a primary button (dark mode keeps its translucent glow pill) */
+:root:not([data-theme='dark']) .na-nav-link[aria-current='page'] {
+  color: var(--btn-primary-ink);
+}
+
+.auth-submit {
+  --auth-btn-bg: var(--btn-primary-bg);
+  --auth-btn-hover: var(--btn-primary-bg-hover);
+  --auth-btn-ink: var(--btn-primary-ink);
+}
+
+/* disabled: flat, muted, readable */
+.na-app .na-btn:disabled,
+.na-app .na-btn--primary:disabled,
+.na-app .na-chip:disabled,
+.site-cta:disabled,
+.auth-submit:disabled:not([aria-busy='true']) {
+  opacity: 1;
+  background: var(--btn-disabled-bg);
+  border-color: var(--btn-disabled-line);
+  color: var(--btn-disabled-ink);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.na-app .na-input:disabled,
+.na-app .na-select:disabled,
+.na-app .na-textarea:disabled {
+  opacity: 1;
+  color: var(--btn-disabled-ink);
+  background: var(--btn-disabled-bg);
+}
+
+/* placeholders: never the browser's grey */
+::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.na-app :disabled::placeholder {
+  color: var(--btn-disabled-ink);
+}
+
+/* home hero: white type on a gradient that stays dark enough everywhere; chips darken instead of lighten */
+.na-app .hp-td-hero {
+  background: var(--hero-gradient);
+}
+
+.hp-hero-kicker,
+.hp-hero-chip,
+.hp-hero-chip--count,
+.hp-td-hero .hp-td-date {
+  background: var(--hero-chip-bg);
+  border-color: var(--hero-chip-line);
+  color: var(--on-hero);
+}
+
+.hp-td-hero .hp-td-date-d {
+  color: var(--on-hero);
+}
+
+.hp-td-hero .hp-td-date-m {
+  color: var(--on-hero);
+  opacity: 0.9;
+}
+
+.hp-td-hero .na-btn {
+  background: var(--hero-chip-bg);
+  border-color: var(--hero-chip-line);
+}
+
+/* the hero's white CTA keeps deep teal ink in both themes */
+.na-app .hp-hero-cta,
+.hp-td-hero .na-btn--primary,
+.hp-td-hero .na-btn--primary:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #0b4f48;
+}
+
+/* the page-language rendering of a line kept as it was written (visit summary editor) */
+.hp-in-lang {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--glass-line);
+  background: color-mix(in srgb, var(--accent-surface) 28%, transparent);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* a summary section left out of the summary: flat and dashed, not faded, so its text stays readable (AA) */
+.na-app .hp-off {
+  opacity: 1;
+  border-style: dashed;
+  background: color-mix(in srgb, var(--surface-muted) 70%, transparent);
+  box-shadow: none;
+}
+
+.na-app .hp-off .na-card-title {
+  color: var(--text-secondary);
+}
+
+/* month headings on the timeline: the deeper teal keeps 4.5:1 on the tinted canvas */
+:root:not([data-theme='dark']) .hp-tl-year {
+  color: var(--primary-hover);
+}
+
+/* landing hero: the soft lead text keeps 4.5:1 over the teal light wash */
+:root:not([data-theme='dark']) .hero {
+  --hero-soft: #3f5059;
+}
+
+/* the active nav icon takes the pill's ink (it was the accent colour, invisible on the filled pill in the icon rail) */
+.na-app .na-nav-link[aria-current='page'] .na-icon {
+  color: currentColor;
 }

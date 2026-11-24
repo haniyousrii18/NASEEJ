@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useMemo, useState } from 'react';
-import { UserText } from '../translate/UserText.js';
+import { UserText, useUserTextString } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { DatePicker } from '../DatePicker.js';
@@ -333,6 +333,16 @@ const DetailPanel: React.FC<{ event: TlEvent | null; byRef: Map<string, TlEvent>
 
 // ---------------------------------------------------------------- review and create a visit summary
 
+/** The remove button of one chosen event; its label names the event in the page language. */
+const RemoveChosen: React.FC<{ title: string; template: string; onClick: () => void }> = ({ title, template, onClick }) => {
+  const named = useUserTextString(title);
+  return (
+    <button type="button" className="na-icon-btn" aria-label={fill(template, { title: named })} onClick={onClick}>
+      <AppIcon name="close" size={16} />
+    </button>
+  );
+};
+
 const ReviewDrawer: React.FC<{
   chosen: TlEvent[];
   onRemove: (ref: string) => void;
@@ -384,9 +394,7 @@ const ReviewDrawer: React.FC<{
                   {e.date ? formatDate(A.lang, e.date) : A.health.tl.undated} · {A.health.tl.origin[e.origin]}
                 </span>
               </span>
-              <button type="button" className="na-icon-btn" aria-label={fill(R.removeLabel, { title: e.title })} onClick={() => onRemove(e.ref)}>
-                <AppIcon name="close" size={16} />
-              </button>
+              <RemoveChosen title={e.title} template={R.removeLabel} onClick={() => onRemove(e.ref)} />
             </li>
           ))}
         </ul>

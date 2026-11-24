@@ -6,7 +6,7 @@ import { useLang } from '../context/LangContext.js';
  * All styling lives in shell.css under `.site-footer`.
  */
 export const Footer: React.FC = () => {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const L = t.landing;
 
   return (
@@ -17,7 +17,7 @@ export const Footer: React.FC = () => {
           <div className="sf-brand">
             <div className="sf-brand-row">
               <img className="sf-logo" src="/logo-mark.svg" alt="" width={44} height={44} />
-              <span className="sf-name">{t.brand.fullName}</span>
+              <span className="sf-name">{t.brand.name}</span>
             </div>
             <p className="sf-lead">{t.brand.subtitle}</p>
             <p className="sf-status">
@@ -46,7 +46,7 @@ export const Footer: React.FC = () => {
 
         <div className="site-footer-bottom">
           <p className="sf-legal">
-            © 2026 {t.brand.fullName}. {L.footerRights}
+            © {new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en-GB', { useGrouping: false }).format(2026)} {t.brand.name}. {L.footerRights}
           </p>
           <ul className="sf-meta">
             <li>{L.footerStack1}</li>

@@ -1,3 +1,4 @@
+import { glossaryTranslate } from './glossary/engine.js';
 import { createHash } from 'crypto';
 import { query } from '../../config/db.js';
 import { ENV } from '../../config/env.js';
@@ -93,7 +94,12 @@ export async function translateForPatient(patientId: string, texts: string[], ta
   const misses: number[] = [];
   todo.forEach((i, k) => {
     const hit = byHash.get(hashes[k]);
-    if (hit) results[i] = { status: 'ok', text: hit.text, from, provider: hit.provider };
+    // A reviewed glossary rendering outranks a stored machine translation made before the glossary covered the text.
+    const exact = hit && hit.provider !== 'glossary' ? glossaryTranslate(texts[i], target) : null;
+    if (exact) {
+      results[i] = { status: 'ok', text: exact, from, provider: 'glossary' };
+      void query(`UPDATE content_translations SET translated_text = $4, provider = 'glossary', last_used_at = NOW() WHERE patient_id = $1 AND target_lang = $2 AND source_hash = $3`, [patientId, target, hashes[k], exact]).catch(() => undefined);
+    } else if (hit) results[i] = { status: 'ok', text: hit.text, from, provider: hit.provider };
     else misses.push(i);
   });
   if (stored.rowCount) {

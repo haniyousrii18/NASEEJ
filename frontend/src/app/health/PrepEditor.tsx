@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { UserText } from '../translate/UserText.js';
+import { InPageLanguage, UserText } from '../translate/UserText.js';
 import { validationMessage } from '../errors.js';
 import { useApiData, useMutation } from '../api.js';
 import { fill, formatDate } from '../format.js';
@@ -78,6 +78,7 @@ const Section: React.FC<{
               readOnly={!!it.source.ref}
               onChange={(e) => setItem(it.id, e.target.value)}
             />
+            <InPageLanguage text={it.text} />
             <div className="na-row na-row--between">
               <span className="na-muted">
                 {sourceText(A.lang, it.source.label)}
@@ -339,6 +340,7 @@ export const PrepEditor: React.FC<{ id: string; navigate: (r: string) => void }>
             <Card title={E.reason}>
               <Field label={E.reason} htmlFor="pe-reason">
                 <textarea id="pe-reason" className="na-textarea" dir="auto" rows={2} maxLength={500} value={content.reason} onChange={(e) => edit({ ...content, reason: e.target.value })} />
+                <InPageLanguage text={content.reason} />
               </Field>
             </Card>
             <Card title={E.overview} hint={E.overviewHelp}>
