@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// Animated vector backdrop for the landing sections. The idea is the product's name: نسيج is a weave.
+// Animated vector backdrop for the landing sections. The woven network motif carried over into the Marja brand.
 // Warp and weft threads cross, care nodes (patients, clinicians, centers) sit on them and link to their
 // neighbours, and small pulses travel along the threads. Pure SVG, colored by CSS tokens, no assets.
 

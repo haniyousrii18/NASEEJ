@@ -1,7 +1,7 @@
 /**
- * The boundary between Naseej and an automatic translation engine.
+ * The boundary between Marja and an automatic translation engine.
  *
- * Translating typed text is NOT an AI feature in Naseej: the assistant, the document reader and every other model-backed
+ * Translating typed text is NOT an AI feature in Marja: the assistant, the document reader and every other model-backed
  * feature are off-limits for it. A provider here must be a non-AI engine (a rule-based or dictionary translator, or a
  * machine-translation engine the organisation runs itself and has approved). The type below makes that explicit:
  * `ai: false` is the only value that compiles, so a language-model client cannot be registered by accident.
@@ -24,7 +24,7 @@ export interface TranslationProvider {
   isConfigured(): boolean;
   /**
    * Translates each text from `source` to `target`. Return one entry per input, in order. Return null for any text the engine
-   * cannot translate faithfully: Naseej then shows the original and says no translation is available. Never return a guess.
+   * cannot translate faithfully: Marja then shows the original and says no translation is available. Never return a guess.
    */
   translate(texts: string[], source: Lang, target: Lang): Promise<TranslationOutput[]>;
 }

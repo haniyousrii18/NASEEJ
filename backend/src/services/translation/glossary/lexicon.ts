@@ -1,5 +1,5 @@
 /**
- * The built-in medical glossary: the words and phrases Naseej can translate on its own, with no AI and no network.
+ * The built-in medical glossary: the words and phrases Marja can translate on its own, with no AI and no network.
  * Every entry is a plain, standard rendering. Anything not listed here is NOT translated (the engine refuses rather than
  * guess), so adding a word is the only way coverage grows, and a reviewer can read every rendering below.
  *

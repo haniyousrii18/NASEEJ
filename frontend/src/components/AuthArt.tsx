@@ -2,7 +2,7 @@ import React from 'react';
 
 // Hero column of the login page. The picture tells the product in one glance: a phone holding the patient's own record
 // (profile, a pulse line, entries the patient has ticked), a QR ticket with a draining timer for the temporary share, and
-// two threads (Naseej means "weave") wrapped around the phone that carry the record out to a doctor, a clinic and a hospital.
+// two threads (the original weave motif) wrapped around the phone that carry the record out to a doctor, a clinic and a hospital.
 // Drawn as SVG with no text, so nothing here claims more than the app does; colors follow the --auth-* tokens in auth.css and
 // every loop stops under reduced motion.
 

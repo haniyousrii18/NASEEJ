@@ -16,7 +16,7 @@ const ar = {
   },
   results: {
     title: 'مقارنة النتائج المتكررة',
-    hint: 'تُعرض القيم كما سُجِّلت وبترتيب التاريخ. ولا تفسّر منصة نسيج هذه التغيّرات؛ قراءتها للطبيب المعالج.',
+    hint: 'تُعرض القيم كما سُجِّلت وبترتيب التاريخ. ولا تفسّر منصة مرجع هذه التغيّرات؛ قراءتها للطبيب المعالج.',
     comparable: 'قابلة للمقارنة: نفس المؤشر ونفس الوحدة',
     unitsDiffer: 'غير قابلة للمقارنة: وحدات مختلفة',
     notNumeric: 'غير قابلة للمقارنة: قيمة غير رقمية',
@@ -70,7 +70,7 @@ const en: typeof ar = {
   },
   results: {
     title: 'Comparing repeated results',
-    hint: 'Values are shown as recorded, in date order. Naseej does not interpret changes; reading them stays with the treating clinician.',
+    hint: 'Values are shown as recorded, in date order. Marja does not interpret changes; reading them stays with the treating clinician.',
     comparable: 'Comparable: same parameter and same unit',
     unitsDiffer: 'Not comparable: different units',
     notNumeric: 'Not comparable: a value is not numeric',

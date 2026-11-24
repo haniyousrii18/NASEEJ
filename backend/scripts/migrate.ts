@@ -8,7 +8,7 @@ import { pool } from '../src/config/db.js';
  * - Files `database/migrations/NNN_name.sql` run in numeric order; each runs once, inside a transaction,
  *   and is recorded in `schema_migrations`.
  * - 001 begins with DROP TABLE statements (a from-scratch bootstrap). It is therefore NEVER run against a
- *   database that already has the Naseej schema: such a database is baselined (001 marked as applied) and
+ *   database that already has the Marja schema: such a database is baselined (001 marked as applied) and
  *   only the newer, additive migrations are applied.
  * - `--reset` (or MIGRATE_RESET=true) deliberately re-runs 001 and everything after it. It destroys data.
  */

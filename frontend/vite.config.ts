@@ -17,13 +17,13 @@ export default defineConfig({
       // "prompt": a new service worker waits until the user accepts the update banner.
       registerType: 'prompt',
       injectRegister: false, // registered manually in src/pwa/PwaPrompts.tsx
-      includeAssets: ['logo.png', 'icons/apple-touch-icon.png'],
+      includeAssets: ['logo-mark.svg', 'icons/apple-touch-icon.png', 'icons/favicon-16.png', 'icons/favicon-32.png'],
       manifest: {
         id: './',
-        name: 'Naseej | نَسيج — Connected Healthcare Platform',
-        short_name: 'نَسيج',
+        name: 'مرجع | Marja',
+        short_name: 'مرجع',
         description:
-          'نسيج: سجلك الصحي منظَّم وزيارتك جاهزة. احفظ تاريخك الطبي وأعراضك ووثائقك، وجهّز ملخص زيارة، وشاركه مع طبيبك برابط مؤقت يمكنك إلغاؤه.',
+          'مرجع: تاريخك الطبي كله في مرجع واحد. احفظ تاريخك الطبي وأعراضك ووثائقك، وجهّز ملخص زيارة، وشاركه مع طبيبك برابط مؤقت يمكنك إلغاؤه.',
         lang: 'ar',
         dir: 'rtl',
         start_url: './',

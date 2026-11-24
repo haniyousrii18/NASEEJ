@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { UserText } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
-import { fill, formatDate } from '../format.js';
+import { fill, formatDate, formatNum } from '../format.js';
 import { useTheme } from '../../context/ThemeContext.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { Reveal } from '../../components/motion.js';
@@ -364,7 +364,8 @@ const ShareRow: React.FC<{ s: Share; index: number; onRevoke: (s: Share) => void
             <span aria-hidden="true">{active ? '●' : '○'}</span> {S.states[s.state]}
           </Pill>
         </div>
-        <span className="hp-sh-sub" data-live={active || undefined}>
+        <span className="hp-sh-sub" data-live={active || undefined} data-soon={(active && new Date(s.expiresAt).getTime() - Date.now() < 12 * 3_600_000) || undefined}>
+          {active && <AppIcon name="clock" size={14} />}
           {active ? `${timeLeft(s.expiresAt, S)} · ${fill(S.expiresAt, { date: formatDate(A.lang, s.expiresAt, true) })}` : ended}
         </span>
         <span className="hp-sh-facts">
@@ -469,11 +470,11 @@ export const PatientSharing: React.FC<{ navigate: (r: string) => void }> = ({ na
                 <dl className="hp-sh-stats">
                   <div>
                     <dt>{S.statActive}</dt>
-                    <dd data-on={activeCount > 0 || undefined}>{activeCount}</dd>
+                    <dd data-on={activeCount > 0 || undefined}>{formatNum(A.lang, activeCount)}</dd>
                   </div>
                   <div>
                     <dt>{S.statOpens}</dt>
-                    <dd>{totalOpens}</dd>
+                    <dd>{formatNum(A.lang, totalOpens)}</dd>
                   </div>
                   <div>
                     <dt>{S.statLast}</dt>
@@ -485,7 +486,7 @@ export const PatientSharing: React.FC<{ navigate: (r: string) => void }> = ({ na
                   <div className="hp-lib-scope" role="tablist" aria-label={S.title}>
                     {tabs.map((t) => (
                       <button key={t.key} type="button" role="tab" aria-selected={scope === t.key} className="hp-lib-tab" onClick={() => setScope(t.key)}>
-                        {t.label} <b className="hp-sh-n">{t.n}</b>
+                        {t.label} <b className="hp-sh-n">{formatNum(A.lang, t.n)}</b>
                       </button>
                     ))}
                   </div>

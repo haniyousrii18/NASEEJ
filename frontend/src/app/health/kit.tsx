@@ -209,7 +209,7 @@ const recognitionCtor = (): (new () => RecognitionLike) | null => {
 /**
  * Browser speech-to-text. Where the browser has none, `supported` is false and the typed field is the whole feature.
  * The transcript is appended to a normal text field, so the person always edits it before anything is saved.
- * Note: in Chrome and Edge the audio is processed by the browser vendor's speech service, not by Naseej.
+ * Note: in Chrome and Edge the audio is processed by the browser vendor's speech service, not by Marja.
  */
 export function useSpeech(lang: 'ar' | 'en', onText: (text: string) => void) {
   const [listening, setListening] = useState(false);

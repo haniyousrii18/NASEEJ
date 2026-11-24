@@ -223,6 +223,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
             <img src="/logo-mark.svg" alt="" width={40} height={40} />
             <span className="na-brand-text">
               <span className="na-brand-name">{brandName}</span>
+              <span className="na-brand-sub" lang={lang === 'ar' ? 'en' : 'ar'}>{lang === 'ar' ? 'MARJA' : 'مرجع'}</span>
               <span className="na-brand-role">{roleLabel}</span>
             </span>
           </div>
@@ -277,7 +278,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                 <div key={group.id}>
                   <ul>
                     {group.items
-                      .filter((item) => item.label !== 'settings')
                       .map((item) => (
                       <li key={item.route}>
                         <button
@@ -304,6 +304,22 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                   </ul>
                 </div>
               ))}
+          {/* Theme and language live at the foot of the sidebar, in reach at every width; the account menu keeps them too. */}
+          <div className="na-side-switches" role="group" aria-label={`${themeLabel} · ${otherLangName}`}>
+            <button
+              type="button"
+              className="na-switch"
+              onClick={() => workspace.setTheme(wsTheme === 'dark' ? 'light' : 'dark')}
+              aria-label={themeLabel}
+              title={themeLabel}
+            >
+              <AppIcon name={wsTheme === 'dark' ? 'sun' : 'moon'} size={18} />
+            </button>
+            <button type="button" className="na-switch" lang={otherLang} onClick={() => setLang(otherLang)} aria-label={otherLangName} title={otherLangName}>
+              <AppIcon name="globe" size={18} />
+              <span className="na-switch-label">{otherLangName}</span>
+            </button>
+          </div>
           <button type="button" className="na-nav-link" onClick={signOut} title={rail ? A.common.shell.signOut : undefined}>
             <AppIcon name="logout" className="na-icon" />
             <span className="na-nav-label">{A.common.shell.signOut}</span>

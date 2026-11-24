@@ -2,7 +2,7 @@ import { ENV } from '../src/config/env.js';
 import { mailMode, sendMail, smtpConfigured, verifyMail } from '../src/services/mail/mail.js';
 
 /**
- * Checks that Naseej can really send email, and sends one test message.
+ * Checks that Marja can really send email, and sends one test message.
  *   npm run mail:test -- you@example.com
  * It opens the SMTP connection first (so a wrong username or password is reported on its own), then sends the message.
  * Nothing is printed that contains the password.
@@ -37,7 +37,7 @@ async function main() {
   console.log(`[Mail] mode: ${mailMode()}  (host: ${ENV.SMTP_HOST || '(none)'}, port: ${ENV.SMTP_PORT}, secure: ${ENV.SMTP_SECURE}, user: ${ENV.SMTP_USER || '(none)'})`);
   if (!smtpConfigured()) {
     console.error(
-      ['', 'Email is NOT set up, so Naseej cannot send real email. In .env set:', '  SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, MAIL_FROM', 'See docs/features/accounts.md for the Gmail steps.', ENV.SMTP_USER && !ENV.SMTP_PASS ? '\nSMTP_USER is set but SMTP_PASS is empty.' : ''].join('\n'),
+      ['', 'Email is NOT set up, so Marja cannot send real email. In .env set:', '  SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, MAIL_FROM', 'See docs/features/accounts.md for the Gmail steps.', ENV.SMTP_USER && !ENV.SMTP_PASS ? '\nSMTP_USER is set but SMTP_PASS is empty.' : ''].join('\n'),
     );
     process.exit(1);
   }
@@ -55,9 +55,9 @@ async function main() {
   try {
     await sendMail({
       to,
-      subject: 'Naseej test email',
-      text: 'If you can read this, Naseej can send email. Sign-up confirmation and password-reset links will reach you.',
-      html: '<p>If you can read this, Naseej can send email. Sign-up confirmation and password-reset links will reach you.</p>',
+      subject: 'Marja test email',
+      text: 'If you can read this, Marja can send email. Sign-up confirmation and password-reset links will reach you.',
+      html: '<p>If you can read this, Marja can send email. Sign-up confirmation and password-reset links will reach you.</p>',
     });
     console.log(`[Mail] sent a test message to ${to}. Check the inbox (and the spam folder).`);
   } catch (err) {

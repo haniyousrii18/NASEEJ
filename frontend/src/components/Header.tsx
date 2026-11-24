@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 // Views whose first screen is full-bleed art. The bar floats transparent over them until the page scrolls.
-const OVERLAY_VIEWS = ['home', 'login'];
+const OVERLAY_VIEWS = ['home', 'login', 'register'];
 
 const MenuIcon: React.FC<{ open: boolean }> = ({ open }) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           <img className="site-logo" src="/logo-mark.svg" alt="" width={54} height={54} />
           <span className="site-brand-text">
             <span className="site-brand-name">{t.brand.name}</span>
-            <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'Naseej' : 'نَسيج'}</span>
+            <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'MARJA' : 'مرجع'}</span>
           </span>
         </button>
 
@@ -139,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
               <img className="site-logo" src="/logo-mark.svg" alt="" width={40} height={40} />
               <div className="site-brand-text">
                 <span className="site-brand-name">{t.brand.name}</span>
-                <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'Naseej' : 'نَسيج'}</span>
+                <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'MARJA' : 'مرجع'}</span>
               </div>
             </div>
             <button
@@ -192,12 +192,20 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           <button type="button" className="site-act" onClick={() => setLang(otherLang)} lang={otherLang} aria-label={otherLangName} title={otherLangName}>
             <GlobeIcon />
           </button>
-          {!user && currentView !== 'login' && (
-            <button type="button" className="site-act site-act--primary" onClick={() => go('login')} aria-label={t.nav.login} title={t.nav.login}>
-              <UserIcon />
-            </button>
+          {!user && currentView !== 'login' && currentView !== 'register' && (
+            <>
+              <button type="button" className="site-cta site-cta--ghost" onClick={() => go('login')}>
+                {t.nav.login}
+              </button>
+              <button type="button" className="site-cta site-cta--fill" onClick={() => go('register')}>
+                {t.nav.register}
+              </button>
+              <button type="button" className="site-act site-act--primary site-act--narrow" onClick={() => go('login')} aria-label={t.nav.login} title={t.nav.login}>
+                <UserIcon />
+              </button>
+            </>
           )}
-          {currentView !== 'login' && (
+          {currentView !== 'login' && currentView !== 'register' && (
             <button
               type="button"
               className="site-menu-btn"

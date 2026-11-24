@@ -20,6 +20,7 @@ import './styles/ui-kit.css';
 import './styles/health.css';
 import './styles/polish.css';
 import './styles/redesign.css';
+import './styles/marja.css';
 import { AppShell } from './app/AppShell.js';
 import { AUTHENTICATED_VIEWS } from './app/nav.js';
 
@@ -108,11 +109,12 @@ const MainContent: React.FC = () => {
             />
           )}
 
+          {currentView === 'register' && <LoginPage key="register" setCurrentView={setCurrentView} initialMode="register" />}
           {(currentView === 'portal' || currentView === 'workspace') && <LoginPage setCurrentView={setCurrentView} />}
         </PageTransition>
       </main>
 
-      {currentView !== 'login' && <Footer />}
+      {currentView !== 'login' && currentView !== 'register' && <Footer />}
       <PwaPrompts currentView={currentView} />
     </div>
   );

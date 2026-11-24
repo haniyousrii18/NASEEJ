@@ -98,7 +98,7 @@ const ar = {
     notRecordedHint: 'عدم وجود معلومة هنا لا يعني غيابها: ربما لم تُسجَّل بعد، أو لم تُشارَك، أو ما زالت قيد المراجعة.',
   },
   roles: {
-    platform_admin: 'مدير منصة نسيج',
+    platform_admin: 'مدير منصة مرجع',
     center_manager: 'مدير المركز الطبي',
     doctor: 'طبيب',
     reception: 'موظف الاستقبال',

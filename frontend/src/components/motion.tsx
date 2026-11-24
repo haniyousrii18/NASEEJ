@@ -1,4 +1,4 @@
-// Naseej motion system (Framer Motion). One vocabulary used everywhere, shared with the CSS layer in theme.css:
+// Marja motion system (Framer Motion). One vocabulary used everywhere, shared with the CSS layer in theme.css:
 //   enter    240-600ms, exponential ease-out, 14-28px travel; sections reveal on scroll
 //   stagger  50ms between siblings, capped at 8 so long lists never feel slow
 //   press    scale 0.98 on tap, plus a small lift on hover for interactive surfaces
@@ -244,7 +244,10 @@ export const CountUp: React.FC<{ value: React.ReactNode }> = ({ value }) => {
     return () => cancelAnimationFrame(raf);
   }, [target]);
 
-  return <span className="num" aria-label={target === null ? undefined : String(target)}>{target === null ? value : shown}</span>;
+  // Digits follow the page language (Arabic-Indic in Arabic), read from <html lang> so the count re-renders on a switch.
+  const ar = typeof document !== 'undefined' && document.documentElement.lang === 'ar';
+  const fmt = (n: number) => new Intl.NumberFormat(ar ? 'ar-EG' : 'en-GB', { useGrouping: false }).format(n);
+  return <span className="num" aria-label={target === null ? undefined : fmt(target)}>{target === null ? value : shown === null ? null : fmt(shown)}</span>;
 };
 
 /** A bar that fills to `value` (0..1). Used for progress and completion. */
