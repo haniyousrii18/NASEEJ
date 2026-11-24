@@ -2,7 +2,7 @@ import type { NavStrings } from './i18n/nav.js';
 import type { IconName } from './AppIcons.js';
 
 /**
- * The signed-in app's navigation. Naseej is a patient-owned record, so the only workspace is the patient's.
+ * The signed-in app's navigation. Marja is a patient-owned record, so the only workspace is the patient's.
  * This decides what is *shown*; the backend decides what is *allowed*. Every route begins with "patient".
  */
 export type AppRole = 'patient';

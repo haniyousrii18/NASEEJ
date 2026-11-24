@@ -17,8 +17,8 @@ const leaves = (node: unknown, path: string, out: Leaf[] = []): Leaf[] => {
 
 const ARABIC = /[؀-ۿ]/;
 // Names and notations that are the same in both languages, and the other language's own name for itself (a language picker).
-const NEUTRAL = /^(?:[\s\d.,:;!?()/%+&|·•–—\-_'"«»#@*=<>[\]{}~]|Naseej|QR|PDF|ID|SMS|AI|URL|mg|ml|IU|kg|cm|mmHg|bpm|HbA1c|Caps Lock|Dock|macOS|Sonoma|Safari|Share|Add|Home Screen|File|English|Synthetic Data|\{[a-zA-Z]+\})+$/i;
-const latinWords = (s: string) => (s.replace(/\{[a-zA-Z]+\}/g, '').match(/[A-Za-z]{3,}/g) ?? []).filter((w) => !/^(Naseej|QR|PDF|URL|SMS|Caps|Lock|macOS|Sonoma|Safari|Dock|Synthetic|Data|English|Mohammed|Mansoor|Share|Home|Screen|Add|File|HbA|IU|mmHg|bpm|ID|API|AI|JPG|JPEG|PNG|HEIC|WebP|MB|GB|KB|Tab|Enter|Escape|Home|End|PageUp|PageDown|Shift|Ctrl|Alt)$/i.test(w));
+const NEUTRAL = /^(?:[\s\d.,:;!?()/%+&|·•–—\-_'"«»#@*=<>[\]{}~]|Marja|QR|PDF|ID|SMS|AI|URL|mg|ml|IU|kg|cm|mmHg|bpm|HbA1c|Caps Lock|Dock|macOS|Sonoma|Safari|Share|Add|Home Screen|File|English|Synthetic Data|\{[a-zA-Z]+\})+$/i;
+const latinWords = (s: string) => (s.replace(/\{[a-zA-Z]+\}/g, '').match(/[A-Za-z]{3,}/g) ?? []).filter((w) => !/^(Marja|QR|PDF|URL|SMS|Caps|Lock|macOS|Sonoma|Safari|Dock|Synthetic|Data|English|Mohammed|Mansoor|Share|Home|Screen|Add|File|HbA|IU|mmHg|bpm|ID|API|AI|JPG|JPEG|PNG|HEIC|WebP|MB|GB|KB|Tab|Enter|Escape|Home|End|PageUp|PageDown|Shift|Ctrl|Alt)$/i.test(w));
 
 const trees: Array<[string, unknown, unknown]> = [
   ['app', appT.ar, appT.en],
@@ -35,7 +35,7 @@ describe('each dictionary is written in its own language', () => {
     it(`${name}: no English entry is written in Arabic`, () => {
       const bad = leaves(en, name).filter((l) => ARABIC.test(l.value));
       // the Arabic name of the language and of the product are meant to appear in English too
-      const allowed = (v: string) => /^[\s؀-ۿ]{1,12}$/.test(v) || /نَسيج|العربية/.test(v);
+      const allowed = (v: string) => /^[\s؀-ۿ]{1,12}$/.test(v) || /مرجع|العربية/.test(v);
       expect(bad.filter((b) => !allowed(b.value)).map((b) => `${b.path} = ${b.value.slice(0, 60)}`)).toEqual([]);
     });
   }

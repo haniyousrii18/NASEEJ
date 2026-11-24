@@ -45,7 +45,7 @@ export const LangProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // The tab title and the description search engines and link previews read follow the language too. A title a signed-in
     // page has set for itself (the page name) is left alone: only the site's own default is replaced.
     const own = [translations.ar, translations.en].map((x) => `${x.brand.name} | ${x.brand.tagline}`);
-    if (!document.title || own.includes(document.title) || document.title === 'Naseej | نَسيج — Connected Healthcare Platform') {
+    if (!document.title || own.includes(document.title) || document.title === 'مرجع | Marja — تاريخك الطبي كله في مرجع واحد') {
       document.title = `${translations[lang].brand.name} | ${translations[lang].brand.tagline}`;
     }
     document.querySelector('meta[name="description"]')?.setAttribute('content', translations[lang].brand.subtitle);

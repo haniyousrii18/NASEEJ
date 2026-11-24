@@ -56,6 +56,18 @@ export const addDays = (iso: string, days: number) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
-/** Fills {n}-style placeholders. */
+/** A number in the digits of the language: Arabic-Indic in the Arabic UI, Western in English. No grouping. */
+export const formatNum = (lang: Language, n: number) => new Intl.NumberFormat(localeOf(lang), { useGrouping: false, maximumFractionDigits: 2 }).format(n);
+
+/** Digits only (ASCII 0-9) swapped for the language's own; everything else in the string is kept as written. */
+export const localDigits = (lang: Language, s: string) => (lang === 'ar' ? s.replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]) : s);
+
+/** The page language as the document carries it (LangContext keeps <html lang> in step with the switch). */
+const pageLang = (): Language => (typeof document !== 'undefined' && document.documentElement.lang === 'ar' ? 'ar' : 'en');
+
+/** Fills {n}-style placeholders. A numeric value is written in the page language's digits. */
 export const fill = (template: string, values: Record<string, string | number>) =>
-  template.replace(/\{(\w+)\}/g, (_, k) => String(values[k] ?? ''));
+  template.replace(/\{(\w+)\}/g, (_, k) => {
+    const v = values[k];
+    return typeof v === 'number' ? formatNum(pageLang(), v) : String(v ?? '');
+  });

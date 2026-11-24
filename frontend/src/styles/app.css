@@ -2556,7 +2556,7 @@ th[data-today] .na-sched-daybtn {
 }
 
 /* =============================================================================
-   Workspace component language (see DESIGN.md section 5; Naseej tokens)
+   Workspace component language (see DESIGN.md section 5; Marja tokens)
    Large radius cards on a hairline, filled quiet inputs that gain a ring on focus, capsule buttons and badges.
    Colour comes only from the existing landing tokens (orange accent in light, warm onyx in dark); nothing here
    defines a palette. Every rule is scoped to .na-app, so public pages cannot be affected.

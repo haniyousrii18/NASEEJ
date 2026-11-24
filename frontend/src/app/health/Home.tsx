@@ -9,6 +9,7 @@ import { useA } from '../useA.js';
 import { routeForRef } from './kit.js';
 import { WovenField } from '../../components/WovenField.js';
 import { CountUp } from '../../components/motion.js';
+import { BpCard } from './BpCard.js';
 
 interface HomeData {
   counts: { entries: number; symptoms: number; documents: number };
@@ -328,7 +329,9 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
 
         <div className="hp-td-grid">
           <div className="hp-td-main">
-            <Block id="td-recent" i={3}>
+            <BpCard navigate={navigate} />
+
+            <Block id="td-recent" i={4}>
               <div className="hp-section-h">
                 <h2 id="td-recent" className="hp-h2">
                   {H.timelineTitle}
@@ -340,7 +343,7 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
               {recentList()}
             </Block>
 
-            <Block id="td-prep" i={4}>
+            <Block id="td-prep" i={5}>
               <h2 id="td-prep" className="hp-h2">
                 {H.prepTitle}
               </h2>
@@ -364,7 +367,7 @@ export const PatientToday: React.FC<{ navigate: (r: string) => void }> = ({ navi
             )}
 
             {d && (
-              <Block id="td-glance" i={5}>
+              <Block id="td-glance" i={6}>
                 <h2 id="td-glance" className="hp-h2">
                   {H.glanceTitle}
                 </h2>

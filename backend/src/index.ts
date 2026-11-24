@@ -14,7 +14,7 @@ async function startServer() {
 
     registerBuiltInProviders();
     const server = app.listen(ENV.PORT, () => {
-      console.log(`[Naseej API] Server running in ${ENV.NODE_ENV} mode on http://localhost:${ENV.PORT}`);
+      console.log(`[Marja API] Server running in ${ENV.NODE_ENV} mode on http://localhost:${ENV.PORT}`);
     });
 
     // Erase the frozen copy of expired or revoked shares (data minimization); once now, then hourly.
@@ -34,7 +34,7 @@ async function startServer() {
     setInterval(prune, 24 * 60 * 60 * 1000).unref();
 
     const shutdown = async () => {
-      console.log('\n[Naseej API] Gracefully shutting down...');
+      console.log('\n[Marja API] Gracefully shutting down...');
       server.close(async () => {
         await pool.end();
         console.log('[Database] Connection pool closed.');

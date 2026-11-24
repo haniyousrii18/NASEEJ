@@ -1,6 +1,6 @@
 # PRODUCT.md
 
-# Product: Naseej | نَسيج
+# Product: Marja | مرجع (formerly Naseej | نَسيج)
 
 <!-- impeccable:product-schema 1 -->
 
@@ -59,8 +59,9 @@ Design and rules: `docs/features/patient-record.md`.
 
 ## Brand Commitments
 
-- Name: **Naseej | نَسيج** (weave / fabric).
-- Logo: approved asset `logo.png`. Do not redraw it.
+- Name: **Marja | مرجع** (reference). Renamed from Naseej | نَسيج in Nov 2026; internal identifiers (package names, storage keys, database, demo emails) keep the old name.
+- Tagline: «تاريخك الطبي كله في مرجع واحد».
+- Logo: the glass orbit mark, `frontend/public/logo-mark.svg` (a medical file tile at the centre, heartbeat, stethoscope, drop, capsule and document orbiting it), sky `#38CFE0` to deep `#0F7E96`. The wordmark is Cairo Black. Favicons and app icons in `frontend/public/icons/` are rendered from the SVG.
 - Visual language: calm clinical teal. A pale mist canvas (light) and deep slate (dark) with one teal brand and action color, defined in `DESIGN.md`.
 
 ## Evidence on Hand

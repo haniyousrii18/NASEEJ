@@ -1,9 +1,9 @@
-import React, { useCallback, useId, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { UserText } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { DatePicker } from '../DatePicker.js';
-import { fill, formatDate } from '../format.js';
+import { fill, formatDate, localeOf } from '../format.js';
 import { Button, Drawer, EmptyState, ErrorState, Field, Notice, PageHead, Pill } from '../ui.js';
 import { useA } from '../useA.js';
 import { FilterBar, FilterToggle } from './filters.js';
@@ -74,6 +74,20 @@ const confidenceBand = (c: number | null): 'none' | 'low' | 'medium' | 'high' =>
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
+/** Wide screens show an event's details in a side panel; narrower ones keep them inline under the card. */
+const PANEL_QUERY = '(min-width: 1200px)';
+const useWide = () => {
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(PANEL_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia?.(PANEL_QUERY);
+    if (!mq) return;
+    const on = () => setWide(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return wide;
+};
+
 // ---------------------------------------------------------------- one event
 
 const EventCard: React.FC<{
@@ -86,17 +100,18 @@ const EventCard: React.FC<{
   onOpenDocument: (e: TlEvent) => void;
   onJump: (ref: string) => void;
   index: number;
-}> = ({ event: e, byRef, selecting, chosen, atLimit, onToggle, onOpenDocument, onJump, index }) => {
+  open: boolean;
+  onOpen: (ref: string | null) => void;
+  /** The details live in the side panel (wide screens) instead of under the card. */
+  inPanel: boolean;
+}> = ({ event: e, byRef, selecting, chosen, atLimit, onToggle, onOpenDocument, onJump, index, open, onOpen, inPanel }) => {
   const A = useA();
   const T = A.health.tl;
-  const [open, setOpen] = useState(false);
   const uid = useId();
   const flag = e.certainty === 'clear' ? null : e.certainty;
-  const noteKey = e.origin === 'record_ai' && e.confirmedByPatient ? 'confirmed' : e.origin;
-  const band = confidenceBand(e.confidence);
 
   return (
-    <Reveal as="li" y={16} i={index % 5} id={`tl-${e.ref.replace(':', '-')}`} className="hp-tl-item" data-origin={e.origin} data-flag={flag ?? undefined} data-chosen={chosen || undefined} data-review={e.origin === 'record_ai' && !e.confirmedByPatient ? 'pending' : 'settled'}>
+    <Reveal as="li" y={16} i={index % 5} id={`tl-${e.ref.replace(':', '-')}`} className="hp-tl-item" data-open={(open && inPanel) || undefined} data-origin={e.origin} data-flag={flag ?? undefined} data-chosen={chosen || undefined} data-review={e.origin === 'record_ai' && !e.confirmedByPatient ? 'pending' : 'settled'}>
       <Pop className="hp-tl-dot l-node" i={index % 5} aria-hidden="true">
         <AppIcon name={CATEGORY_ICON[e.category]} size={19} />
       </Pop>
@@ -143,12 +158,28 @@ const EventCard: React.FC<{
         </div>
         {flag && <p className="hp-tl-flagnote">{T.certaintyHelp[flag]}</p>}
 
-        <button type="button" className="hp-tl-more" aria-expanded={open} aria-controls={`${uid}-src`} onClick={() => setOpen((v) => !v)}>
+        <button type="button" className="hp-tl-more" aria-expanded={open} aria-controls={inPanel ? 'hp-tl-panel' : `${uid}-src`} onClick={() => onOpen(open ? null : e.ref)}>
           {open ? T.source.hide : T.source.show}
           <AppIcon name="chevron" size={14} className="hp-tl-chev" />
         </button>
-        {open && (
+        {open && !inPanel && (
           <div className="hp-tl-source" id={`${uid}-src`}>
+            <SourceDetails event={e} byRef={byRef} onOpenDocument={onOpenDocument} onJump={onJump} />
+          </div>
+        )}
+      </article>
+    </Reveal>
+  );
+};
+
+/** Where an event came from: the origin note, the document, page and passage, confidence, conflicts, and a way to the file. */
+const SourceDetails: React.FC<{ event: TlEvent; byRef: Map<string, TlEvent>; onOpenDocument: (e: TlEvent) => void; onJump: (ref: string) => void }> = ({ event: e, byRef, onOpenDocument, onJump }) => {
+  const A = useA();
+  const T = A.health.tl;
+  const noteKey = e.origin === 'record_ai' && e.confirmedByPatient ? 'confirmed' : e.origin;
+  const band = confidenceBand(e.confidence);
+  return (
+          <>
             <p className="hp-tl-note">{T.originNote[noteKey]}</p>
             {e.source ? (
               <dl className="hp-tl-dl">
@@ -212,10 +243,91 @@ const EventCard: React.FC<{
                 {T.source.open}
               </Button>
             )}
-          </div>
-        )}
-      </article>
-    </Reveal>
+          </>
+  );
+};
+
+/**
+ * The side panel (wide screens): the chosen event's kind, source, date and notes, then its source details. A software
+ * reading that is not confirmed yet points to its document, where the patient confirms or dismisses it; the timeline
+ * itself stays read-only.
+ */
+const DetailPanel: React.FC<{ event: TlEvent | null; byRef: Map<string, TlEvent>; onClose: () => void; onOpenDocument: (e: TlEvent) => void; onJump: (ref: string) => void }> = ({ event: e, byRef, onClose, onOpenDocument, onJump }) => {
+  const A = useA();
+  const T = A.health.tl;
+  const P = T.panel;
+  if (!e) {
+    return (
+      <aside id="hp-tl-panel" className="hp-tl-panel hp-tl-panel--empty" aria-label={P.title}>
+        <span className="hp-tl-panel-glyph" aria-hidden="true">
+          <AppIcon name="timeline" size={22} />
+        </span>
+        <p className="na-muted">{P.empty}</p>
+      </aside>
+    );
+  }
+  const pending = e.origin === 'record_ai' && !e.confirmedByPatient;
+  return (
+    <aside id="hp-tl-panel" className="hp-tl-panel" data-review={pending ? 'pending' : 'settled'} aria-labelledby="hp-tl-panel-t">
+      <div className="hp-tl-panel-head">
+        <span className="hp-tl-panel-icon" aria-hidden="true">
+          <AppIcon name={CATEGORY_ICON[e.category]} size={26} />
+        </span>
+        <div className="hp-tl-panel-titles">
+          <h2 id="hp-tl-panel-t" className="hp-tl-panel-title">
+            <UserText text={e.title} />
+          </h2>
+          <span className="hp-tl-panel-kind">{T.category[e.category]}</span>
+        </div>
+        <button type="button" className="na-icon-btn" onClick={onClose} aria-label={P.close} title={P.close}>
+          <AppIcon name="close" size={18} />
+        </button>
+      </div>
+      <dl className="hp-tl-panel-facts">
+        <div>
+          <dt>
+            <AppIcon name={ORIGIN_ICON[e.origin]} size={16} />
+            {P.source}
+          </dt>
+          <dd>
+            {T.origin[e.origin]}
+            {pending && (
+              <span className="hp-tl-panel-review">
+                <span aria-hidden="true">◌</span>
+                {A.health.home.bp.needsReview}
+              </span>
+            )}
+            {e.confirmedByPatient && <span className="hp-tl-mark">{T.confirmedMark}</span>}
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <AppIcon name="calendar" size={16} />
+            {P.date}
+          </dt>
+          <dd>{e.date ? <time dateTime={e.date}>{formatDate(A.lang, e.date)}</time> : T.undated}</dd>
+        </div>
+      </dl>
+      {e.detail && (
+        <section className="hp-tl-panel-notes" aria-label={P.notes}>
+          <h3>{P.notes}</h3>
+          <p>
+            <DetailText text={e.detail} />
+          </p>
+        </section>
+      )}
+      <div className="hp-tl-panel-source">
+        <SourceDetails event={e} byRef={byRef} onOpenDocument={onOpenDocument} onJump={onJump} />
+      </div>
+      {pending && e.source && (
+        <div className="hp-tl-panel-actions">
+          <Button variant="primary" icon="documents" onClick={() => onOpenDocument(e)}>
+            {P.review}
+          </Button>
+          <p className="na-help">{P.reviewNote}</p>
+        </div>
+      )}
+    </aside>
   );
 };
 
@@ -365,6 +477,9 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
   const [selecting, setSelecting] = useState(() => /[?&]select=1/.test(window.location.hash));
   const [chosen, setChosen] = useState<string[]>([]);
   const [reviewing, setReviewing] = useState(false);
+  const [openRef, setOpenRef] = useState<string | null>(null);
+  const wide = useWide();
+  const monthName = useMemo(() => new Intl.DateTimeFormat(localeOf(A.lang), { month: 'long', year: 'numeric' }), [A.lang]);
 
   const all = state.status === 'ready' ? state.data.events : [];
   const byRef = useMemo(() => new Map(all.map((e) => [e.ref, e])), [all]);
@@ -385,7 +500,7 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
   const groups = useMemo(() => {
     const m = new Map<string, TlEvent[]>();
     for (const e of visible) {
-      const k = e.date ? e.date.slice(0, 4) : 'none';
+      const k = e.date ? e.date.slice(0, 7) : 'none';
       m.set(k, [...(m.get(k) ?? []), e]);
     }
     return [...m];
@@ -424,6 +539,7 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
     el.querySelector<HTMLElement>('.hp-tl-more')?.focus({ preventScroll: true });
   }, []);
 
+  const presentCats = useMemo(() => CATEGORIES.filter((c) => all.some((e) => e.category === c)), [all]);
   const chosenEvents = chosen.map((r) => byRef.get(r)).filter((e): e is TlEvent => !!e);
   const activeFilters = cats.length + origins.length + flags.length + (from ? 1 : 0) + (to ? 1 : 0);
   const filtersActive = cats.length + origins.length + flags.length + (from ? 1 : 0) + (to ? 1 : 0) > 0;
@@ -544,6 +660,20 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
           </FilterBar>
         )}
 
+        {all.length > 0 && presentCats.length > 1 && (
+          <div className="hp-tl-kinds" role="group" aria-label={T.kinds.label}>
+            <button type="button" className="hp-tl-kind" aria-pressed={cats.length === 0} onClick={() => setCats([])}>
+              {T.kinds.all}
+            </button>
+            {presentCats.map((c) => (
+              <button key={c} type="button" className="hp-tl-kind" aria-pressed={cats.length === 1 && cats[0] === c} onClick={() => setCats(cats.length === 1 && cats[0] === c ? [] : [c])}>
+                <AppIcon name={CATEGORY_ICON[c]} size={16} />
+                {T.category[c]}
+              </button>
+            ))}
+          </div>
+        )}
+
         {selecting && (
           <Notice tone="info" icon="summary">
             {T.select.intro}
@@ -558,15 +688,18 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
         )}
 
         {visible.length > 0 && (
-          <>
+          <div className="hp-tl-layout" data-panel={wide || undefined}>
+            <div className="hp-tl-flow">
             <p className={filtersActive ? 'na-help' : 'hp-visually-hidden'} role="status">
               {fill(T.count, { n: visible.length, total: all.length })}
             </p>
-            {groups.map(([year, events]) => (
-              <section key={year} className="hp-tl-group" aria-labelledby={`tl-y-${year}`}>
-                <h2 id={`tl-y-${year}`} className="hp-tl-year">
-                  {year === 'none' ? T.undated : <span className="na-ltr">{year}</span>}
-                  <span className="hp-tl-yearcount">{events.length}</span>
+            {groups.map(([month, events]) => (
+              <section key={month} className="hp-tl-group" aria-labelledby={`tl-y-${month}`}>
+                <h2 id={`tl-y-${month}`} className="hp-tl-year">
+                  {month === 'none' ? T.undated : monthName.format(new Date(`${month}-01T00:00:00`))}
+                  <span className="hp-tl-yearcount" aria-label={fill(T.monthCount, { n: events.length })}>
+                    {fill('{n}', { n: events.length })}
+                  </span>
                 </h2>
                 <ol className="hp-tl-list">
                   <DrawLine axis="y" />
@@ -582,12 +715,17 @@ export const PatientTimeline: React.FC<{ navigate: (r: string) => void }> = ({ n
                       onToggle={toggleChosen}
                       onOpenDocument={openDocument}
                       onJump={jump}
+                      open={openRef === e.ref}
+                      onOpen={setOpenRef}
+                      inPanel={wide}
                     />
                   ))}
                 </ol>
               </section>
             ))}
-          </>
+            </div>
+            {wide && <DetailPanel event={openRef ? (byRef.get(openRef) ?? null) : null} byRef={byRef} onClose={() => setOpenRef(null)} onOpenDocument={openDocument} onJump={jump} />}
+          </div>
         )}
         {filtersActive && visible.length > 0 && <span className="hp-visually-hidden" role="status">{fill(T.count, { n: visible.length, total: all.length })}</span>}
       </div>

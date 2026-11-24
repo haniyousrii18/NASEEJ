@@ -31,7 +31,7 @@ app.use(express.json());
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'healthy',
-    product: 'Naseej | نَسيج',
+    product: 'Marja | مرجع',
     timestamp: new Date().toISOString(),
     version: '1.0.0-academic',
   });

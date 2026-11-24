@@ -1,5 +1,5 @@
 /**
- * The boundary between Naseej and any document-analysis provider (OCR + classification + candidate extraction).
+ * The boundary between Marja and any document-analysis provider (OCR + classification + candidate extraction).
  * A provider returns SUGGESTIONS only. Nothing here diagnoses, prescribes or decides; whatever comes back is stored
  * as unreviewed and stays separate from verified clinical records until a clinician accepts it.
  */

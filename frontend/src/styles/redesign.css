@@ -58,7 +58,8 @@ body {
   }
 
   .app-shell[data-view='home'] .app-main,
-  .app-shell[data-view='login'] .app-main {
+  .app-shell[data-view='login'] .app-main,
+  .app-shell[data-view='register'] .app-main {
     margin-top: calc((var(--bar-h) + 14px) * -1);
   }
 }

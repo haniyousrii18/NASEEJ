@@ -6,7 +6,7 @@ import { MIN_RECALL, plausible, recall } from './quality.js';
 import type { Lang, TranslationOutput, TranslationProvider } from './provider.js';
 
 /**
- * Naseej's built-in, fully local translation engine. No AI assistant, no LLM, no network at run time, no API key.
+ * Marja's built-in, fully local translation engine. No AI assistant, no LLM, no network at run time, no API key.
  *  1. The medical glossary (exact, deterministic, reviewable): used whenever it understands every word.
  *  2. A local OPUS-MT neural machine-translation model (Marian, ONNX, run on this server by @huggingface/transformers),
  *     for everything else. Its output is accepted only if it passes the round-trip quality gate in quality.ts and keeps the

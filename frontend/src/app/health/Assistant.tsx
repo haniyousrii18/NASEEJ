@@ -87,6 +87,52 @@ const DraftCard: React.FC<{ draft: Record<string, any>; onReview: () => void; on
   );
 };
 
+/**
+ * Every record entry the answers in this conversation cite, once each, in the order they were first cited. A view of the
+ * citations already in the thread: nothing here is fetched or stored.
+ */
+const SourcesPanel: React.FC<{ msgs: Msg[]; navigate: (r: string) => void }> = ({ msgs, navigate }) => {
+  const A = useA();
+  const T = A.health.assistant;
+  const seen = new Map<string, Extract<Reply, { kind: 'reply' }>['citations'][number]>();
+  for (const m of msgs) if (m.reply?.kind === 'reply') for (const c of m.reply.citations) if (!seen.has(c.ref)) seen.set(c.ref, c);
+  const cites = [...seen.values()];
+  return (
+    <aside className="hp-as-sources" aria-labelledby="as-sources-t">
+      <h2 id="as-sources-t" className="hp-h2">
+        <span className="hp-as-sources-icon" aria-hidden="true">
+          <AppIcon name="documents" size={18} />
+        </span>
+        {T.sources}
+      </h2>
+      {cites.length === 0 ? (
+        <p className="na-muted">{T.sourcesEmpty}</p>
+      ) : (
+        <ol className="hp-as-source-list">
+          {cites.map((c, i) => (
+            <li key={c.ref}>
+              <button type="button" className="hp-as-source" onClick={() => navigate(routeForRef(c.ref, c.documentId))}>
+                <span className="hp-cite-n" aria-hidden="true">
+                  {(i + 1).toLocaleString(A.lang === 'ar' ? 'ar-EG' : 'en-GB')}
+                </span>
+                <span className="hp-as-source-text">
+                  <strong dir="auto">
+                    <UserText text={c.title} />
+                  </strong>
+                  <span>
+                    {c.date ? formatDate(A.lang, c.date) : A.health.tl.undated} · <OriginPill origin={c.origin} />
+                  </span>
+                </span>
+                <AppIcon name="chevron" size={16} className="hp-row-go" />
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </aside>
+  );
+};
+
 const Bubble: React.FC<{ m: Msg; navigate: (r: string) => void; onDraft: (d: Record<string, any>, id: number) => void; onDiscard: (id: number) => void; savedIds: Set<number>; discarded: Set<number> }> = ({ m, navigate, onDraft, onDiscard, savedIds, discarded }) => {
   const A = useA();
   const T = A.health.assistant;
@@ -482,6 +528,7 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
         </div>
 
         {mode === 'ask' && (
+          <div className="hp-as-layout">
           <section className="hp-panel hp-panel--ask" id="as-panel-ask" role="tabpanel" aria-labelledby="as-tab-ask">
             <WovenField variant="waves" className="hp-ask-weave" intensity={0.7} />
             <p className="hp-scope">
@@ -591,6 +638,8 @@ export const PatientAssistant: React.FC<{ navigate: (r: string) => void }> = ({ 
               </div>
             )}
           </section>
+          <SourcesPanel msgs={msgs} navigate={navigate} />
+          </div>
         )}
 
         {mode === 'symptom' && (

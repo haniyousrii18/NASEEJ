@@ -45,7 +45,7 @@ export const ENV = {
   SMTP_SECURE: process.env.SMTP_SECURE === 'true', // true = TLS from the start (port 465); false = STARTTLS (port 587)
   SMTP_USER: process.env.SMTP_USER || '',
   SMTP_PASS: process.env.SMTP_PASS || '',
-  MAIL_FROM: process.env.MAIL_FROM || 'Naseej <no-reply@naseej.local>',
+  MAIL_FROM: process.env.MAIL_FROM || 'Marja <no-reply@naseej.local>',
   // The address of the website, used to build the links in those emails (the token travels in the #fragment, never in a path).
   APP_URL: (process.env.APP_URL || 'http://localhost:3000').replace(/\/+$/, ''),
   // Patient-only portal: on unless PATIENT_ONLY_MODE=false (the API tests turn it off to log in as staff).

@@ -42,7 +42,8 @@
 }
 
 .app-shell[data-view='home'] .app-main,
-.app-shell[data-view='login'] .app-main {
+.app-shell[data-view='login'] .app-main,
+.app-shell[data-view='register'] .app-main {
   margin-top: calc(var(--bar-h) * -1);
 }
 
@@ -70,7 +71,7 @@
   border-radius: 12px;
 }
 
-/* The mark (logo-mark.png) is the Naseej "S" with its white tile removed, so it sits straight on the page. */
+/* The mark (logo-mark.png) is the Marja "S" with its white tile removed, so it sits straight on the page. */
 .site-logo {
   width: 54px;
   height: 54px;
