@@ -36,6 +36,23 @@ export const PHRASES: Phrase[] = [
   p('غبار الطلع', 'Pollen'),
   p('استئصال الزائدة الدودية', 'Appendectomy'),
 
+  p('التهاب الحلق', 'Sore throat'),
+  p('خفقان القلب', 'Heart palpitations'),
+  p('حكة في العينين', 'Itchy eyes'),
+  p('تورم القدم', 'Swollen foot'),
+  p('تورم القدمين', 'Swollen feet'),
+  p('ارتفاع الكوليسترول', 'High cholesterol'),
+  p('حساسية من الفول السوداني', 'Peanut allergy'),
+  p('السكري من النوع الأول', 'Type 1 diabetes'),
+  p('السكري من النوع الثاني', 'Type 2 diabetes'),
+  p('أشعة سينية على الصدر', 'Chest X-ray'),
+  p('فحص السكر التراكمي', 'HbA1c test'),
+  p('تحليل دم شامل', 'Complete blood count', { arOnly: true }),
+  p('شرب الماء', 'Drinking water'),
+  p('التوتر وقلة النوم', 'Stress and lack of sleep'),
+  p('قلة النوم', 'Lack of sleep'),
+  p('أفضل مع الراحة', 'Better with rest'),
+
   // medicines
   p('أملوديبين', 'Amlodipine'),
   p('ميتفورمين', 'Metformin'),

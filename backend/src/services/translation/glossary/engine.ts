@@ -64,6 +64,51 @@ const arNumbers = new Map(Object.entries(AR_NUMBERS).map(([k, v]) => [nz(k), v])
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 const westernDigits = (s: string) => s.replace(/[٠-٩]/g, (d) => String(AR_DIGITS.indexOf(d))).replace(/٫/g, '.').replace(/٬/g, ',');
 
+// ---------------------------------------------------------------------------------------------------- fixed expressions
+
+/**
+ * Short expressions that are translated as a unit because word-for-word would be wrong or stilted ("بعد الأكل" is
+ * "after meals", not "after the meal"). Reviewed like every other entry. Arabic first, English second; `oneWay` pairs are
+ * only read in the direction they are written (Arabic -> English when 'ar', English -> Arabic when 'en').
+ */
+const FIXED: Array<[string, string, ('ar' | 'en')?]> = [
+  ['بعد الأكل', 'after meals'],
+  ['بعد الأكل', 'after eating', 'en'],
+  ['قبل الأكل', 'before meals'],
+  ['مع الأكل', 'with meals'],
+  ['قبل النوم', 'at bedtime'],
+  ['عند الحاجة', 'as needed'],
+  ['في الليل', 'at night'],
+  ['في الصباح', 'in the morning'],
+  ['في المساء', 'in the evening'],
+  ['عند المشي', 'when walking'],
+  ['عند صعود الدرج', 'when climbing stairs'],
+  ['مع الراحة', 'with rest'],
+  ['على الريق', 'on an empty stomach'],
+  ['مرة واحدة يوميا', 'once daily'],
+  ['مرة يوميا', 'once daily', 'ar'],
+  ['مرتين يوميا', 'twice daily'],
+  ['ثلاث مرات يوميا', 'three times daily'],
+  ['في الجهة اليسرى', 'on the left side'],
+  ['في الجهة اليمنى', 'on the right side'],
+  ['في أسفل الظهر', 'in the lower back'],
+  ['أسفل الظهر', 'lower back'],
+  ['من النوع الثاني', 'type 2'],
+  ['من النوع الأول', 'type 1'],
+  ['قبل الفطور', 'before breakfast'],
+  ['بعد الفطور', 'after breakfast'],
+  ['ضيق التنفس', 'shortness of breath'],
+  ['ضيق في التنفس', 'shortness of breath', 'ar'],
+];
+const fixedAr = new Map<string, string>();
+const fixedEn = new Map<string, string>();
+for (const [a, e, only] of FIXED) {
+  const ka = a.split(' ').map((w) => nz(w)).join(' ');
+  if (only !== 'en' && !fixedAr.has(ka)) fixedAr.set(ka, e);
+  if (only !== 'ar' && !fixedEn.has(e)) fixedEn.set(e, a);
+}
+const FIXED_MAX = 4;
+
 // ---------------------------------------------------------------------------------------------------- tokens
 
 type Tok = { t: 'num'; v: string; word?: boolean } | { t: 'w'; w: string } | { t: 'p'; c: string };
@@ -124,8 +169,14 @@ function resolveAr(toks: Tok[], i: number): { len: number; hit: Hit; def: boolea
   for (const len of [3, 2]) {
     const win = toks.slice(i, i + len);
     if (win.length < len || !win.every((t) => t.t === 'w' && isArabicWord(t.w))) continue;
-    const hit = arIndex.get(canon(win.map((t) => (t as { w: string }).w)));
-    if (hit && hit.e.ar[0].includes(' ')) return { len, hit, def: false };
+    const ws = win.map((t) => (t as { w: string }).w);
+    let hit = arIndex.get(canon(ws));
+    let defMulti = false;
+    if (!hit && nz(ws[0]).startsWith('ال')) {
+      hit = arIndex.get(canon([nz(ws[0]).slice(2), ...ws.slice(1)]));
+      defMulti = !!hit;
+    }
+    if (hit && hit.e.ar[0].includes(' ')) return { len, hit, def: defMulti };
     if (hit && (hit.e.arPl?.some((f) => f.includes(' ')) ?? false)) return { len, hit, def: false };
   }
   const t = toks[i];
@@ -147,13 +198,28 @@ export function arToEn(text: string): string | null {
   let sinceNext = false;
   let failed = false;
   let known = 0; // glossary words actually translated; a text of only passthrough words is not a translation
+  const PREP = new Set(['in', 'on', 'at', 'from', 'to', 'with', 'without', 'after', 'before', 'during', 'for', 'since', 'due to']);
 
   const flush = () => {
     if (pendingNum !== null) failed = true; // a number with nothing counted after it
     if (!np) return;
-    const s = renderArNp(np);
+    const cur: ArNp = np;
+    let s = renderArNp(cur);
+    const prevPiece = out[out.length - 1];
+    // "منذ شهر": since + a bare unit is a duration, "for a month"
+    if (s !== null && sinceNext && cur.count === undefined && cur.nouns.length === 1 && cur.nouns[0].hit.e.kind === 'unit' && prevPiece?.s === 'since') {
+      prevPiece.s = 'for';
+      const u = cur.nouns[0].hit.e.en;
+      s = `${/^[aeiou]|^hour/.test(u) ? 'an' : 'a'} ${u}`;
+    }
+    // Arabic marks generic nouns as definite ("الربو"); English drops "the" unless a preposition asks for it
+    if (s !== null && s.startsWith('the ') && !(prevPiece && !prevPiece.punct && PREP.has(prevPiece.s))) s = s.slice(4);
+    if (s !== null && s.startsWith('the ') && prevPiece?.s === 'to' && out[out.length - 2]?.s === 'allergy') s = s.slice(4);
     if (s === null) failed = true;
-    else out.push({ s: sinceNext && np.count !== undefined ? `${s} ago` : s });
+    else {
+      if (sinceNext && cur.count !== undefined && prevPiece?.s === 'since') prevPiece.s = 'for';
+      out.push({ s });
+    }
     sinceNext = false;
     np = null;
   };
@@ -181,6 +247,21 @@ export function arToEn(text: string): string | null {
       continue;
     }
     const w = nz(t.w);
+    // a fixed expression spanning the next few words
+    let fixedHit: { len: number; en: string } | null = null;
+    for (let len = FIXED_MAX; len >= 2 && !fixedHit; len--) {
+      const win = toks.slice(i, i + len);
+      if (win.length < len || !win.every((x) => x.t === 'w' && isArabicWord(x.w))) continue;
+      const en = fixedAr.get(win.map((x) => nz((x as { w: string }).w)).join(' '));
+      if (en) fixedHit = { len, en };
+    }
+    if (fixedHit) {
+      flush();
+      out.push({ s: fixedHit.en });
+      known++;
+      i += fixedHit.len - 1;
+      continue;
+    }
     const fn = arFunc.get(w);
     if (fn) {
       flush();
@@ -225,7 +306,10 @@ export function arToEn(text: string): string | null {
     }
     // A noun, or a unit. A dual unit is a count of two ("يومين" = 2 days).
     if (hit.form === 'dual') {
-      flush();
+      if (np) {
+        failed = true;
+        break;
+      }
       np = { nouns: [{ hit, def }], adjs: [], count: '2' };
       continue;
     }
@@ -241,13 +325,18 @@ export function arToEn(text: string): string | null {
     const last = prev ? prev.nouns[prev.nouns.length - 1] : null;
     if (prev && prev.count === undefined && prev.adjs.length === 0 && last && !last.def && GEN.has(last.hit.e.en) && prev.nouns.length < 3) {
       prev.nouns.push({ hit, def });
+    } else if (prev) {
+      failed = true;
+      break;
     } else {
-      flush();
       np = { nouns: [{ hit, def }], adjs: [], count: undefined };
     }
   }
   if (!failed) flush();
   if (failed || pendingNum !== null || known === 0) return null;
+  // "حساسية من" reads "allergy to"
+  for (let k = 1; k < out.length; k++) if (out[k].s === 'from' && out[k - 1].s === 'allergy') out[k].s = 'to';
+  for (let k = 2; k < out.length; k++) if (out[k - 1].s === 'to' && out[k - 2].s === 'allergy' && out[k].s.startsWith('the ')) out[k].s = out[k].s.slice(4);
   const s = joinPieces(out);
   return s ? capital(s) : null;
 }
@@ -308,9 +397,16 @@ function resolveEn(words: string[], i: number): { len: number; hit: Hit } | null
   return null;
 }
 
-type EnItem = { k: 'np'; s: string; counted: boolean; ago: boolean } | { k: 'func'; f: string; word: string } | { k: 'punct'; s: string } | { k: 'of' };
+type EnItem = { k: 'np'; s: string; counted: boolean; ago: boolean } | { k: 'func'; f: string; word: string } | { k: 'punct'; s: string } | { k: 'of' } | { k: 'fixed'; s: string };
 
 export function enToAr(text: string): string | null {
+  const allergy = /^(.+?)\s+allergy$/i.exec(text.trim());
+  if (allergy && !/\s(and|or|with|in|on)\s/i.test(allergy[1])) {
+    const what = enToAr(allergy[1]);
+    if (what && !what.includes(' ') ) return `حساسية من ${what.startsWith('ال') ? what : `ال${what}`}`;
+    if (what) return `حساسية من ${what}`;
+    return null;
+  }
   const toks = tokenize(text);
   if (!toks || toks.length === 0) return null;
   const words = toks.map((t) => (t.t === 'w' ? t.w.toLowerCase() : ''));
@@ -334,7 +430,11 @@ export function enToAr(text: string): string | null {
       if (!prev || prev.k !== 'np') failed = true;
       else prev.s = `${prev.s} ${s}`;
       ofPending = false;
-    } else items.push({ k: 'np', s, counted: np.count !== undefined || !!np.fixed, ago: !!np.ago });
+    } else {
+      // a bare unit counts as a duration: "for a month" = "لمدة شهر"
+      const unit = np.nouns.length === 1 && np.nouns[0].e.kind === 'unit';
+      items.push({ k: 'np', s, counted: np.count !== undefined || !!np.fixed || unit, ago: !!np.ago });
+    }
     np = null;
   };
 
@@ -352,6 +452,19 @@ export function enToAr(text: string): string | null {
       continue;
     }
     const w = words[i];
+    let fixedHit: { len: number; ar: string } | null = null;
+    for (let len = FIXED_MAX; len >= 2 && !fixedHit; len--) {
+      if (i + len > words.length || toks.slice(i, i + len).some((x) => x.t !== 'w')) continue;
+      const ar = fixedEn.get(words.slice(i, i + len).join(' '));
+      if (ar) fixedHit = { len, ar };
+    }
+    if (fixedHit) {
+      flush();
+      items.push({ k: 'fixed', s: fixedHit.ar });
+      known++;
+      i += fixedHit.len - 1;
+      continue;
+    }
     if (w === 'the') {
       if (np && np.nouns.length > 0) flush();
       np = np ?? { nouns: [], adjs: [], def: false };
@@ -423,7 +536,13 @@ export function enToAr(text: string): string | null {
   for (let k = 0; k < items.length; k++) {
     const it = items[k];
     if (it.k === 'punct') pieces.push({ s: it.s, punct: true });
-    else if (it.k === 'np') {
+    else if (it.k === 'fixed') {
+      const before = items[k - 1];
+      if (before && before.k === 'func' && before.word === 'and') {
+        pieces.pop();
+        pieces.push({ s: `و${it.s}` });
+      } else pieces.push({ s: it.s });
+    } else if (it.k === 'np') {
       const before = items[k - 1];
       const afterSince = before && before.k === 'func' && before.word === 'since';
       const s = it.ago && !afterSince ? `منذ ${it.s}` : it.s;
@@ -452,19 +571,23 @@ export function enToAr(text: string): string | null {
 
 const PHRASE_NUM = /[\d٠-٩]+(?:[.,٫][\d٠-٩]+)*(?:\/[\d٠-٩]+)?/g;
 /** A phrase's lookup key: spacing collapsed, numbers as "#", a closing full stop dropped, Arabic normalised, English lower-cased. */
-const phraseKey = (s: string, lang: 'ar' | 'en') => {
-  const t = s.trim().replace(/\s+/g, ' ').replace(/\.$/, '').replace(PHRASE_NUM, '#').replace(/؟/g, '?').replace(/،/g, ',');
+// A phrase written with "#" is a template whose numbers vary; any other phrase (one whose digits are part of the name,
+// such as "HbA1c" or "Type 2 diabetes") matches exactly, digits included.
+const phraseKey = (s: string, lang: 'ar' | 'en', template: boolean) => {
+  let t = s.trim().replace(/\s+/g, ' ').replace(/\.$/, '').replace(/؟/g, '?').replace(/،/g, ',');
+  if (template) t = t.replace(PHRASE_NUM, '#');
   return lang === 'ar' ? nz(t) : t.toLowerCase();
 };
 const phraseAr = new Map<string, string>();
 const phraseEn = new Map<string, string>();
 for (const ph of PHRASES) {
+  const template = ph.ar.includes('#') || ph.en.includes('#');
   if (!ph.enOnly) {
-    const k = phraseKey(ph.ar, 'ar');
+    const k = phraseKey(ph.ar, 'ar', template);
     if (!phraseAr.has(k)) phraseAr.set(k, ph.en);
   }
   if (!ph.arOnly) {
-    const k = phraseKey(ph.en, 'en');
+    const k = phraseKey(ph.en, 'en', template);
     if (!phraseEn.has(k)) phraseEn.set(k, ph.ar);
   }
 }
@@ -472,7 +595,10 @@ for (const ph of PHRASES) {
 /** The reviewed rendering of a whole phrase, with its numbers carried over as written, or null when it is not listed. */
 export function phraseTranslate(text: string, target: 'ar' | 'en'): string | null {
   const source = target === 'en' ? 'ar' : 'en';
-  const out = (target === 'en' ? phraseAr : phraseEn).get(phraseKey(text, source));
+  const map = target === 'en' ? phraseAr : phraseEn;
+  const exact = map.get(phraseKey(text, source, false));
+  if (exact && !exact.includes('#')) return /\.$/.test(text.trim()) && !/[.?!؟]$/.test(exact) ? `${exact}.` : exact;
+  const out = map.get(phraseKey(text, source, true));
   if (!out) return null;
   const nums = text.match(PHRASE_NUM) ?? [];
   if ((out.match(/#/g) ?? []).length !== nums.length) return null;

@@ -7,17 +7,26 @@ const ar = (t: string) => glossaryTranslate(t, 'ar');
 describe('glossary: Arabic to English', () => {
   it.each([
     ['زيارة متابعة القلب', 'Heart follow-up visit'],
-    ['ألم في الصدر منذ يومين', 'Pain in the chest since 2 days ago'],
+    ['ألم في الصدر منذ يومين', 'Pain in the chest for 2 days'],
+    ['سعال جاف منذ أسبوعين', 'Dry cough for 2 weeks'],
+    ['حساسية من البنسلين', 'Allergy to penicillin'],
+    ['حساسية من الفول السوداني', 'Peanut allergy'],
     ['ألم شديد في الصدر لمدة 3 أيام', 'Severe pain in the chest for 3 days'],
     ['صداع شديد', 'Severe headache'],
     ['صداع ودوخة', 'Headache and dizziness'],
     ['ضيق التنفس', 'Shortness of breath'],
     ['ألم الصدر', 'Chest pain'],
     ['مرتين يوميا', 'Twice daily'],
-    ['حبة واحدة بعد الأكل', '1 tablet after the meal'],
+    ['حبة واحدة بعد الأكل', '1 tablet after meals'],
     ['فحص دوري', 'Routine checkup'],
     ['ألم في الركبة، وتورم في القدم', 'Pain in the knee, and swelling in the foot'],
-    ['ضغط الدم المرتفع', null],
+    ['ضغط الدم المرتفع', 'Elevated blood pressure'],
+    ['طبيب القلب', 'Cardiologist'],
+    ['أرق منذ شهر', 'Insomnia for a month'],
+    ['الربو', 'Asthma'],
+    ['تعب عام', 'General fatigue'],
+    ['صداع شديد في الجهة اليسرى', 'Severe headache on the left side'],
+    ['طبيب القلب الصدر', null],
   ])('%s', (input, expected) => {
     expect(en(input)).toBe(expected);
   });
@@ -86,5 +95,32 @@ describe('whole-phrase glossary', () => {
 
   it('matches the whole text only, never a part of it', () => {
     expect(glossaryTranslate('Penicillin allergy since childhood', 'ar')).not.toBe('بنسلين');
+  });
+});
+
+describe('vocabulary check for machine translation', () => {
+  it('accepts a sentence whose every concept is rendered with the reviewed vocabulary', async () => {
+    const { termsVerified } = await import('../src/services/translation/verify.js');
+    expect(termsVerified('أشعر بدوار وغثيان', 'I feel dizzy and nauseous', 'ar', 'en')).toBe(true);
+    expect(termsVerified('Do I need to change the dose?', 'هل أحتاج لتغيير الجرعة؟', 'en', 'ar')).toBe(true);
+  });
+  it('rejects a wrong medical word, an added concept, a lost negation, a changed term or a third person', async () => {
+    const { termsVerified } = await import('../src/services/translation/verify.js');
+    expect(termsVerified('تخطيط القلب', 'Heart planning', 'ar', 'en')).toBe(false);
+    expect(termsVerified('نسيت الجرعة أمس', 'I forgot the potion yesterday', 'ar', 'en')).toBe(false);
+    expect(termsVerified('لا يوجد ألم', 'There is pain', 'ar', 'en')).toBe(false);
+    expect(termsVerified('HbA1c test', 'اختبار HbAA1c', 'en', 'ar')).toBe(false);
+    expect(termsVerified('نسيت الجرعة أمس', 'She forgot the dose yesterday', 'ar', 'en')).toBe(false);
+  });
+});
+
+describe('coverage on everyday patient notes', () => {
+  it('translates at least 90% of the reference set with the reviewed glossary alone, both ways', async () => {
+    const fs = await import('fs');
+    const corpus = JSON.parse(fs.readFileSync(new URL('./fixtures/translation-corpus.json', import.meta.url), 'utf8')) as { ar: string[]; en: string[] };
+    const arOk = corpus.ar.filter((t) => en(t) !== null).length;
+    const enOk = corpus.en.filter((t) => ar(t) !== null).length;
+    expect(arOk / corpus.ar.length).toBeGreaterThanOrEqual(0.9);
+    expect(enOk / corpus.en.length).toBeGreaterThanOrEqual(0.9);
   });
 });
