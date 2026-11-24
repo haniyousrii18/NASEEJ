@@ -8,6 +8,15 @@
         "value": "arial",
         "createdAt": "2026-10-22T13:32:26.952Z",
         "reason": "Claude: transactional email HTML (backend/src/services/mail/templates.ts); mail clients strip web fonts, so a web-safe stack is required. Not the site typography."
+      },
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "frontend/src/app/health/PatientBackdrop.tsx"
+        ],
+        "createdAt": "2026-11-15T01:07:32.699Z",
+        "reason": "Claude verified in browser: src comes from imported webp assets via pick(); currentSrc loads with naturalWidth>0"
       }
     ]
   }
