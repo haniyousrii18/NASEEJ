@@ -17,7 +17,11 @@ const leaves = (node: unknown, path: string, out: Leaf[] = []): Leaf[] => {
 
 const ARABIC = /[؀-ۿ]/;
 // Names and notations that are the same in both languages, and the other language's own name for itself (a language picker).
-const NEUTRAL = /^(?:[\s\d.,:;!?()/%+&|·•–—\-_'"«»#@*=<>[\]{}~]|Marja|QR|PDF|ID|SMS|AI|URL|mg|ml|IU|kg|cm|mmHg|bpm|HbA1c|Caps Lock|Dock|macOS|Sonoma|Safari|Share|Add|Home Screen|File|English|Synthetic Data|\{[a-zA-Z]+\})+$/i;
+// Checked by removing every allowed token, then requiring only punctuation, digits and spaces to remain: no nested
+// quantifier, so the check stays linear (a single anchored `(?:a|b|…)+` pattern can backtrack exponentially).
+const NEUTRAL_TOKENS = /Marja|QR|PDF|ID|SMS|AI|URL|mg|ml|IU|kg|cm|mmHg|bpm|HbA1c|Caps Lock|Dock|macOS|Sonoma|Safari|Share|Add|Home Screen|File|English|Synthetic Data|\{[a-zA-Z]+\}/gi;
+const NEUTRAL_REST = /^[\s\d.,:;!?()/%+&|·•–—\-_'"«»#@*=<>[\]{}~]*$/;
+const isNeutral = (s: string) => s.length > 0 && NEUTRAL_REST.test(s.replace(NEUTRAL_TOKENS, ''));
 const latinWords = (s: string) => (s.replace(/\{[a-zA-Z]+\}/g, '').match(/[A-Za-z]{3,}/g) ?? []).filter((w) => !/^(Marja|QR|PDF|URL|SMS|Caps|Lock|macOS|Sonoma|Safari|Dock|Synthetic|Data|English|Mohammed|Mansoor|Share|Home|Screen|Add|File|HbA|IU|mmHg|bpm|ID|API|AI|JPG|JPEG|PNG|HEIC|WebP|MB|GB|KB|Tab|Enter|Escape|Home|End|PageUp|PageDown|Shift|Ctrl|Alt)$/i.test(w));
 
 const trees: Array<[string, unknown, unknown]> = [
@@ -28,7 +32,7 @@ const trees: Array<[string, unknown, unknown]> = [
 describe('each dictionary is written in its own language', () => {
   for (const [name, ar, en] of trees) {
     it(`${name}: no Arabic entry is written in English`, () => {
-      const bad = leaves(ar, name).filter((l) => !ARABIC.test(l.value) && !NEUTRAL.test(l.value) && latinWords(l.value).length > 0);
+      const bad = leaves(ar, name).filter((l) => !ARABIC.test(l.value) && !isNeutral(l.value) && latinWords(l.value).length > 0);
       expect(bad.map((b) => `${b.path} = ${b.value.slice(0, 60)}`)).toEqual([]);
     });
 
