@@ -16,7 +16,7 @@ import { NotificationBell } from './notifications/NotificationBell.js';
 import { NotificationsProvider, useUnreadCount } from './notifications/NotificationsContext.js';
 import { useA } from './useA.js';
 import { useAppRoute } from './useAppRoute.js';
-import { fill, formatDate } from './format.js';
+import { fill } from './format.js';
 import { EmptyState } from './ui.js';
 import { lockScroll, trapTab, useMediaQuery } from '../lib/overlay.js';
 
@@ -52,7 +52,7 @@ interface Props {
  * Visibility of an item is a convenience. Every endpoint behind a page checks authorization on the server.
  */
 const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
-  const { user, currentRole, currentOrgId, logout } = useAuth();
+  const { user, currentRole, logout } = useAuth();
   const { lang, setLang, isRtl, t: site } = useLang();
   const brandName = site.brand.name;
   const { workspace } = useTheme();
@@ -69,8 +69,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   const role = appRoleOf(currentRole);
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [drawer, setDrawer] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuBtnRef = useRef<HTMLButtonElement>(null);
   const drawerBtnRef = useRef<HTMLButtonElement>(null);
   const sideRef = useRef<HTMLElement>(null);
   const firstRender = useRef(true);
@@ -115,7 +113,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   // Per-route housekeeping: close the drawer, move focus to the page title for screen readers, set the tab title.
   useEffect(() => {
     setDrawer(false);
-    setMenuOpen(false);
     if (firstRender.current) {
       firstRender.current = false;
       return;
@@ -159,26 +156,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
     };
   }, [drawer]);
 
-  // The account menu closes on Escape or an outside click.
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setMenuOpen(false);
-        menuBtnRef.current?.focus();
-      }
-    };
-    const onClick = (e: MouseEvent) => {
-      if (!(e.target as HTMLElement).closest('.na-account')) setMenuOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    document.addEventListener('mousedown', onClick);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.removeEventListener('mousedown', onClick);
-    };
-  }, [menuOpen]);
-
   const toggleCollapsed = () => {
     setCollapsed((c) => {
       try {
@@ -190,7 +167,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
     });
   };
 
-  const memberships = user?.memberships ?? [];
   const displayName = (isRtl ? user?.fullNameAr : user?.fullNameEn) || user?.fullNameEn || '';
   const roleLabel = role ? A.common.roles[role] : '';
   // A hash that only changes its query ("?appointment=...") keeps the same route, but the page still has to see it.
@@ -346,6 +322,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
 
       <div className="na-main">
         <header className="na-top">
+          <div className="na-top-start">
           <button
             type="button"
             className="na-icon-btn na-menu-btn"
@@ -376,7 +353,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
             <span className="na-top-page">{pageLabel}</span>
           </div>
 
-          <div className="na-top-spacer" />
+          </div>
 
           {role && isDesktop && (
             <div className="na-top-search">
@@ -384,17 +361,23 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
             </div>
           )}
 
+          <div className="na-top-end">
           {role && <NotificationBell role={role} navigate={navigate} />}
+
+          <button type="button" className="na-icon-btn" lang={otherLang} onClick={() => setLang(otherLang)} aria-label={otherLangName} title={otherLangName}>
+            <AppIcon name="globe" size={20} />
+          </button>
+          <button type="button" className="na-icon-btn" onClick={() => workspace.setTheme(wsTheme === 'dark' ? 'light' : 'dark')} aria-label={themeLabel} title={themeLabel}>
+            <AppIcon name={wsTheme === 'dark' ? 'moon' : 'sun'} size={20} />
+          </button>
 
           <div className="na-account">
             <button
               type="button"
               className="na-account-btn"
-              ref={menuBtnRef}
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
               aria-label={`${A.common.shell.account}: ${displayName}`}
-              onClick={() => setMenuOpen((o) => !o)}
+              aria-current={route === 'patient/settings' || route.startsWith('patient/settings/') ? 'page' : undefined}
+              onClick={() => navigate('patient/settings')}
             >
               <span className="na-avatar" aria-hidden="true">
                 {displayName.trim().charAt(0)}
@@ -403,42 +386,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                 <span className="na-account-name">{displayName}</span>
               </span>
             </button>
-            {menuOpen && (
-              <div className="na-menu" role="menu">
-                <div className="na-menu-meta">
-                  <div>{displayName}</div>
-                  {role !== 'patient' && role !== 'platform_admin' && memberships.length > 0 && (
-                    <div>{(isRtl ? memberships.find((m) => m.organization_id === currentOrgId)?.organization_name_ar : memberships.find((m) => m.organization_id === currentOrgId)?.organization_name_en) || ''}</div>
-                  )}
-                  <div>{formatDate(lang, new Date())}</div>
-                </div>
-                <button type="button" role="menuitem" className="na-menu-item" lang={otherLang} onClick={() => { setLang(otherLang); setMenuOpen(false); }}>
-                  <AppIcon name="globe" size={18} />
-                  {otherLangName}
-                </button>
-                <button type="button" role="menuitem" className="na-menu-item" onClick={() => { workspace.setTheme(wsTheme === 'dark' ? 'light' : 'dark'); setMenuOpen(false); }}>
-                  <AppIcon name={wsTheme === 'dark' ? 'sun' : 'moon'} size={18} />
-                  {themeLabel}
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="na-menu-item"
-                  aria-current={route === 'patient/settings' || route.startsWith('patient/settings/') ? 'page' : undefined}
-                  onClick={() => {
-                    navigate('patient/settings');
-                    setMenuOpen(false);
-                  }}
-                >
-                  <AppIcon name="settings" size={18} />
-                  {A.nav.items.settings}
-                </button>
-                <button type="button" role="menuitem" className="na-menu-item" onClick={signOut}>
-                  <AppIcon name="logout" size={18} />
-                  {A.common.shell.signOut}
-                </button>
-              </div>
-            )}
+          </div>
           </div>
         </header>
 

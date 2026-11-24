@@ -1368,3 +1368,48 @@ body {
   }
 
 }
+
+/* top bar: the search sits in the middle of the bar. Start and end groups share the leftover space equally,
+   so the search is centred and can never run under the buttons on either side, in either direction. */
+.na-top-start,
+.na-top-end {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.5vw, 14px);
+  min-width: 0;
+}
+
+.na-top-end {
+  justify-content: flex-end;
+}
+
+@media (max-width: 1023px) {
+  .na-top-start {
+    flex: 1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .na-top {
+    display: grid;
+    /* Both side groups are at least as wide as their content, so a long name can never push the buttons under the search.
+       The search takes what is left (up to 440px) and stays centred whenever both sides have room. */
+    grid-template-columns: minmax(max-content, 1fr) minmax(160px, 440px) minmax(max-content, 1fr);
+  }
+  .na-top-start,
+  .na-top-end {
+    min-width: max-content;
+  }
+  .na-top-search {
+    position: relative;
+    inline-size: 100%;
+    min-inline-size: 0;
+    flex: none;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .na-account-text {
+    display: none;
+  }
+}
