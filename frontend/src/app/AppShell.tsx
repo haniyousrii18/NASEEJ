@@ -216,7 +216,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   return (
     <div className="na-app" data-collapsed={compact} data-peek={peeking} data-rail={rail} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'} data-ws-theme={wsTheme}>
       <div className="na-ambient" aria-hidden="true">
-        <WovenField variant="field" intensity={wsTheme === 'dark' ? 0.75 : 0.5} />
+        <WovenField variant="field" animate={false} intensity={wsTheme === 'dark' ? 0.75 : 0.5} />
       </div>
       <a className="na-skip" href="#na-main">
         {A.common.shell.skip}

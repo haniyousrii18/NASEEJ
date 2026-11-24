@@ -19,6 +19,8 @@ interface Props {
   intensity?: number;
   /** Follows the pointer with a gentle parallax (sculpture and field). */
   interactive?: boolean;
+  /** false draws one still frame (redrawn on resize and theme change) and never runs a frame loop. */
+  animate?: boolean;
 }
 
 type V3 = [number, number, number];
@@ -53,7 +55,7 @@ function rng(seed: number) {
   };
 }
 
-export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className, intensity = 1, interactive = false }) => {
+export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className, intensity = 1, interactive = false, animate = true }) => {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -88,7 +90,7 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
 
     // ---------------------------------------------------------------- geometry, built once
     const rand = rng(variant === 'field' ? 7 : 3);
-    const KNOT_SAMPLES = 260;
+    const KNOT_SAMPLES = 180;
     const knots: V3[][] = [];
     if (variant === 'sculpture') {
       // Three broad loops, each tilted a third of a turn from the next, pass over and under one another: the mark's
@@ -121,7 +123,8 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
 
     const resize = () => {
       const box = canvas.getBoundingClientRect();
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Soft, glowing lines gain nothing past 1.5x, and every extra pixel is cleared and redrawn each frame.
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       w = Math.max(1, box.width);
       h = Math.max(1, box.height);
       canvas.width = Math.round(w * dpr);
@@ -170,8 +173,8 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
       ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over';
 
       // ribbons: each loop is a band of parallel strands, brighter where it comes toward the viewer
-      const STRANDS = 13;
-      const CHUNK = 6;
+      const STRANDS = 9;
+      const CHUNK = 9;
       for (const pts of knots) {
         const proj = pts.map(project);
         // the ribbon's body: a broad, faint glass band under the strands
@@ -294,8 +297,8 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
     const drawWaves = (t: number) => {
       const dark = isDark() || tone === 'light';
       ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over';
-      const STRANDS = 26;
-      const step = Math.max(6, w / 90);
+      const STRANDS = 18;
+      const step = Math.max(10, w / 60);
       for (let s = 0; s < STRANDS; s++) {
         const f = s / (STRANDS - 1);
         const band = s % 2 ? 1 : -1; // two interlaced ribbons that cross like warp and weft
@@ -327,7 +330,7 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
 
     // The background field drifts so slowly that 20 frames a second look the same as 60, and every frame it skips is
     // a frame the frosted surfaces above it do not have to re-blur.
-    const frameGap = variant === 'field' ? 1000 / 20 : 0;
+    const frameGap = variant === 'field' ? 1000 / 20 : variant === 'waves' ? 1000 / 30 : 0;
     let last = 0;
     const loop = (now: number) => {
       if (now - last >= frameGap) {
@@ -337,7 +340,7 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
       raf = requestAnimationFrame(loop);
     };
     const play = () => {
-      if (running || reduce.matches || !visible || document.hidden) return;
+      if (running || !animate || reduce.matches || !visible || document.hidden) return;
       running = true;
       raf = requestAnimationFrame(loop);
     };
@@ -346,7 +349,7 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
       cancelAnimationFrame(raf);
     };
     const sync = () => {
-      if (reduce.matches || !visible || document.hidden) {
+      if (!animate || reduce.matches || !visible || document.hidden) {
         pause();
         draw(performance.now());
       } else play();
@@ -388,7 +391,7 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
       document.removeEventListener('visibilitychange', sync);
       reduce.removeEventListener('change', sync);
     };
-  }, [variant, tone, intensity, interactive]);
+  }, [variant, tone, intensity, interactive, animate]);
 
   return <canvas ref={ref} className={`weave weave--${variant}${className ? ` ${className}` : ''}`} aria-hidden="true" />;
 };

@@ -161,9 +161,7 @@ body {
   padding: clamp(18px, 2.4vw, 26px);
   border-radius: 26px;
   border: 1px solid var(--glass-line);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--surface) 70%, transparent), color-mix(in srgb, var(--surface) 42%, transparent));
-  -webkit-backdrop-filter: blur(14px) saturate(1.5);
-  backdrop-filter: blur(14px) saturate(1.5);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--surface) 90%, transparent), color-mix(in srgb, var(--surface) 74%, transparent));
   box-shadow:
     inset 0 1px 0 var(--glass-edge),
     0 30px 60px -28px rgba(var(--shadow-color), 0.45),
@@ -385,7 +383,6 @@ body {
 .na-app {
   --na-side: 248px;
   background: var(--canvas-wash), var(--background);
-  background-attachment: fixed;
   font-size: 15.5px;
 }
 
@@ -632,9 +629,7 @@ body {
 .na-app .hp-quick-tile {
   border: 1px solid var(--glass-line);
   border-radius: var(--radius-card);
-  background: var(--surface-glass);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
+  background: var(--surface-card);
   box-shadow: var(--glass-shadow);
 }
 
@@ -690,7 +685,7 @@ body {
   .na-app .hp-sh-card:hover,
   .na-app .hp-tl-item:hover .hp-tl-card {
     transform: translateY(-2px);
-    background: var(--surface-glass-raised);
+    background: var(--surface-card-raised);
     box-shadow: var(--glass-shadow-raised);
   }
 }
@@ -756,8 +751,6 @@ body {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.14);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   font-size: 13px;
   font-weight: 600;
 }
@@ -801,8 +794,6 @@ body {
   color: var(--on-hero);
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.26);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
 }
 
 .hp-td-hero .hp-td-lead {
@@ -1084,7 +1075,7 @@ body {
 
 .na-app .hp-tl-item[data-review='pending'] .hp-tl-card {
   border: 1.5px dashed color-mix(in srgb, var(--review-amber) 70%, transparent);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--review-amber) 9%, var(--surface-glass)), var(--surface-glass));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--review-amber) 9%, var(--surface-card)), var(--surface-card));
   box-shadow: 0 18px 40px -28px color-mix(in srgb, var(--review-amber) 80%, transparent);
 }
 
@@ -1109,21 +1100,6 @@ body {
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   box-shadow: var(--glass-shadow-raised);
-}
-
-@supports (animation-timeline: view()) {
-  .hp-tl-item {
-    animation: hp-tl-reveal linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 40%;
-  }
-
-  @keyframes hp-tl-reveal {
-    from {
-      opacity: 0.2;
-      transform: translateY(18px);
-    }
-  }
 }
 
 /* ================================================================== sharing (patient/sharing) */
@@ -1239,9 +1215,7 @@ body {
 
 .na-app .hp-msg {
   border: 1px solid var(--glass-line);
-  background: var(--surface-glass-raised);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
+  background: var(--surface-card);
   box-shadow: var(--glass-shadow);
   animation: hp-msg-in 0.42s var(--ease-emphasized) both;
 }
@@ -1393,9 +1367,4 @@ body {
     animation: none;
   }
 
-  @supports (animation-timeline: view()) {
-    .hp-tl-item {
-      animation: none;
-    }
-  }
 }
