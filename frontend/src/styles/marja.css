@@ -1011,3 +1011,18 @@
   background: color-mix(in srgb, var(--primary) 14%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 45%, transparent);
 }
+
+/* ================================================================== logo: floating glow mark on dark, glass tile on light
+   The Network M mark ships two assets: a dark glass tile that stays legible on light surfaces and the
+   bare floating bubbles that sit straight on dark ones. The public header swaps between them with the theme. */
+.site-logo.logo-float {
+  display: none;
+}
+
+:root[data-theme='dark'] .site-logo.logo-tile {
+  display: none;
+}
+
+:root[data-theme='dark'] .site-logo.logo-float {
+  display: block;
+}

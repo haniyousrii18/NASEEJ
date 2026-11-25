@@ -76,7 +76,8 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
     <header ref={barRef} className="site-bar" data-overlay={OVERLAY_VIEWS.includes(currentView)} data-scrolled={scrolled} data-menu={false}>
       <div className="site-bar-inner">
         <button type="button" className="site-brand" onClick={() => go('home')} aria-label={`${t.brand.name} · ${t.nav.home}`}>
-          <img className="site-logo" src="/logo-mark.svg" alt="" width={54} height={54} />
+          <img className="site-logo logo-tile" src="/logo-mark.svg" alt="" width={54} height={54} />
+          <img className="site-logo logo-float" src="/logo-mark-floating.svg" alt="" width={54} height={54} />
           <span className="site-brand-text">
             <span className="site-brand-name">{t.brand.name}</span>
           </span>
