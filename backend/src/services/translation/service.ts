@@ -1,3 +1,4 @@
+import { termsVerified } from './verify.js';
 import { glossaryTranslate } from './glossary/engine.js';
 import { createHash } from 'crypto';
 import { query } from '../../config/db.js';
@@ -99,6 +100,9 @@ export async function translateForPatient(patientId: string, texts: string[], ta
     if (exact) {
       results[i] = { status: 'ok', text: exact, from, provider: 'glossary' };
       void query(`UPDATE content_translations SET translated_text = $4, provider = 'glossary', last_used_at = NOW() WHERE patient_id = $1 AND target_lang = $2 AND source_hash = $3`, [patientId, target, hashes[k], exact]).catch(() => undefined);
+    } else if (hit && hit.provider === 'local-mt' && !termsVerified(texts[i], hit.text, from, target)) {
+      // stored before the vocabulary check existed and fails it now: translate again rather than serve it
+      misses.push(i);
     } else if (hit) results[i] = { status: 'ok', text: hit.text, from, provider: hit.provider };
     else misses.push(i);
   });

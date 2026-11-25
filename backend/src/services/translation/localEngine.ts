@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { glossaryTranslate } from './glossary/engine.js';
 import { MODEL_DIR, MODELS, type Direction } from './models.js';
-import { MIN_RECALL, plausible, recall } from './quality.js';
+import { plausible } from './quality.js';
+import { termsVerified } from './verify.js';
 import type { Lang, TranslationOutput, TranslationProvider } from './provider.js';
 
 /**
@@ -13,6 +14,9 @@ import type { Lang, TranslationOutput, TranslationProvider } from './provider.js
  *     numbers. It is always labelled as automatic translation, because it can still be wrong.
  * If models are not installed (`npm run translate:models`), only the glossary runs.
  */
+/** Where a text splits into clauses: sentence ends, commas, semicolons, line breaks (the separator is kept). */
+const CLAUSE = /(\s*[.!?؟]\s+|\s*[,،;؛]\s*|\n+)/;
+
 const modelPresent = (direction: Direction) => fs.existsSync(path.join(MODEL_DIR, MODELS[direction], 'onnx'));
 
 type Pipe = (text: string, opts?: Record<string, unknown>) => Promise<Array<{ translation_text: string }>>;
@@ -49,13 +53,17 @@ function raw(text: string, direction: Direction): Promise<string | null> {
   return next.catch(() => null);
 }
 
-/** Machine translation of one text, kept only if it is plausible and survives the round trip. Exported for tests. */
+/**
+ * Machine translation of one text, kept only if it is plausible and its vocabulary checks out: every concept of the
+ * original is in the reviewed vocabulary and appears in the output with a reviewed rendering, and nothing is added
+ * (verify.ts). That check is stricter than a round trip, which also rejected correct sentences because the
+ * back-translation was noisy ("لتغيير" for "تغيير"). Exported for tests.
+ */
 export async function machineTranslate(text: string, source: Lang, target: Lang, translateRaw = raw): Promise<string | null> {
   const direction = `${source}-${target}` as Direction;
   const out = await translateRaw(text, direction);
   if (!out || !plausible(text, out, target)) return null;
-  const back = await translateRaw(out, `${target}-${source}` as Direction);
-  if (!back || recall(text, back, source) < MIN_RECALL) return null;
+  if (!termsVerified(text, out, source, target)) return null;
   return out;
 }
 
@@ -66,14 +74,45 @@ export const localProvider: TranslationProvider = {
   async translate(texts, source, target): Promise<TranslationOutput[]> {
     const mt = process.env.TRANSLATION_MT !== 'off' && modelPresent(`${source}-${target}` as Direction) && modelPresent(`${target}-${source}` as Direction);
     const results: TranslationOutput[] = [];
-    for (const text of texts) {
+    const one = async (text: string): Promise<{ text: string; engine: string } | null> => {
       const exact = glossaryTranslate(text, target);
-      if (exact) {
-        results.push({ text: exact, engine: 'glossary' });
+      if (exact) return { text: exact, engine: 'glossary' };
+      const machine = mt ? await machineTranslate(text, source, target) : null;
+      return machine ? { text: machine, engine: 'local-mt' } : null;
+    };
+    for (const text of texts) {
+      const whole = await one(text);
+      if (whole) {
+        results.push(whole);
         continue;
       }
-      const machine = mt ? await machineTranslate(text, source, target) : null;
-      results.push(machine ? { text: machine, engine: 'local-mt' } : null);
+      // Clause by clause: every clause must translate with confidence, or the whole text stays as written.
+      const parts = text.split(CLAUSE);
+      if (parts.length < 3) {
+        results.push(null);
+        continue;
+      }
+      let ok = true;
+      const engines = new Set<string>();
+      const built: string[] = [];
+      for (let k = 0; k < parts.length && ok; k++) {
+        const piece = parts[k];
+        if (k % 2 === 1) {
+          built.push(target === 'ar' ? piece.replace(/,/g, '،').replace(/;/g, '؛').replace(/\?/g, '؟') : piece.replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?'));
+          continue;
+        }
+        if (!piece.trim()) {
+          built.push(piece);
+          continue;
+        }
+        const r = await one(piece.trim());
+        if (!r) ok = false;
+        else {
+          engines.add(r.engine);
+          built.push(r.text);
+        }
+      }
+      results.push(ok ? { text: built.join('').replace(/\s+([,،;؛.?؟!])/g, '$1').trim(), engine: engines.has('local-mt') ? 'local-mt' : 'glossary' } : null);
     }
     return results;
   },
