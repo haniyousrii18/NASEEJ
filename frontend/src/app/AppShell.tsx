@@ -66,7 +66,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   const { workspace } = useTheme();
   const wsTheme = workspace.theme;
   const { enter: enterWorkspace, leave: leaveWorkspace } = workspace;
-  // The workspace has its own light/dark choice, applied only while this shell is mounted.
+  // One theme across public and signed-in pages; the effect stays so the shell contract is unchanged.
   useEffect(() => {
     enterWorkspace();
     return leaveWorkspace;
