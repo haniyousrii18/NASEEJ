@@ -15,8 +15,11 @@
   --art-lungs: image-set(url('/hero/lungs-light@1x.webp') 1x, url('/hero/lungs-light@2x.webp') 2x);
   /* light flowing through the art: deep teal on the pale page, bright teal on the dark one */
   --art-light: #137c72;
-  --art-light-soft: color-mix(in srgb, #137c72 22%, transparent);
   --art-spark: radial-gradient(circle, #ffffff 0 18%, #2aa697 42%, transparent 70%);
+  /* one lap of the spark round the ring; the organ bubbles light up on the same clock */
+  --art-lap: 12s;
+  /* the brand teal an organ bubble lights up in when the spark reaches it */
+  --organ: #1f9688;
 }
 
 :root[data-theme='dark'] {
@@ -28,8 +31,8 @@
   --art-kidney: image-set(url('/hero/kidney-dark@1x.webp') 1x, url('/hero/kidney-dark@2x.webp') 2x);
   --art-lungs: image-set(url('/hero/lungs-dark@1x.webp') 1x, url('/hero/lungs-dark@2x.webp') 2x);
   --art-light: #9ff0e2;
-  --art-light-soft: color-mix(in srgb, #59c3b2 30%, transparent);
   --art-spark: radial-gradient(circle, #ffffff 0 22%, #7fe3d2 45%, transparent 70%);
+  --organ: #7fe3d2;
 }
 
 /* ---------------------------------------------------------------- stage: art on top, card on the floor in front */
@@ -39,21 +42,61 @@
   aspect-ratio: 1 / 1.42;
 }
 
-.hero-card {
-  inset-inline: 13%;
-  inset-block-end: 0;
+/* The art and the card share one scene on the page background: no panels, no dividing lines, no glow halos. The card
+   is a slab of clear glass with a fine teal rim standing in front of the ring's base, reflected faintly below. */
+.hero-stage {
+  --glass-rim: rgba(31, 150, 136, 0.4);
+  --glass-fill-a: color-mix(in srgb, var(--surface) 94%, transparent);
+  --glass-fill-b: color-mix(in srgb, var(--surface) 86%, transparent);
+  --card-sheen: 0.4;
+  isolation: isolate;
 }
 
-/* glass floor: the card is mirrored in it, as on a polished surface */
+:root[data-theme='dark'] .hero-stage {
+  --glass-rim: rgba(127, 227, 210, 0.55);
+  --glass-fill-a: rgba(24, 46, 53, 0.94);
+  --glass-fill-b: rgba(15, 30, 37, 0.9);
+  --card-sheen: 0.1;
+}
+
+.hero-card {
+  inset-inline: 3%;
+  inset-block-end: 4%;
+}
+
+[dir='rtl'] .hero-card {
+  transform: rotateX(16deg) rotateY(13deg) rotateZ(1.5deg);
+}
+
+[dir='ltr'] .hero-card {
+  transform: rotateX(16deg) rotateY(-13deg) rotateZ(-1.5deg);
+}
+
+/* frosted glass, painted once: a dense tinted fill, a lit rim and a sheen across the face. No live backdrop blur and
+   no reflection: both re-render whatever is behind the card on every frame of the hero's motion, and that is what
+   made the page stutter. */
 .hero-card-glass {
-  -webkit-box-reflect: below 6px linear-gradient(transparent 58%, rgba(255, 255, 255, 0.2));
+  border: 1px solid var(--glass-rim);
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, var(--card-sheen)) 0%, transparent 34%),
+    linear-gradient(165deg, var(--glass-fill-a), var(--glass-fill-b));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 34px 50px -30px rgba(var(--shadow-color), 0.6);
+}
+
+/* off screen, the whole scene holds still (set by HeroVisual) */
+.hero-stage[data-idle] *,
+.hero-stage[data-idle] *::before,
+.hero-stage[data-idle] *::after {
+  animation-play-state: paused !important;
 }
 
 @media (max-width: 899px) {
-  /* on a phone the card is tall for its width: a longer stage keeps it on the floor, clear of the ring */
+  /* on a phone the card is tall for its width: a slightly longer stage, so it still stands in front of the ring's base */
   .hero-stage {
     inline-size: min(100%, 420px);
-    aspect-ratio: 1 / 1.62;
+    aspect-ratio: 1 / 1.5;
   }
 }
 
@@ -62,7 +105,7 @@
   position: absolute;
   inset-inline: 0;
   inset-block-start: 0;
-  /* the canvas has empty sky above the QR tile: lift it so the card in front only meets the floor reflection */
+  /* the canvas has empty sky above the QR tile: lift it so the card in front meets the base of the ring */
   margin-block-start: -6%;
   aspect-ratio: 1;
   animation: hero-art-in 1.2s var(--ease-emphasized) 0.1s both;
@@ -119,28 +162,6 @@
   }
 }
 
-/* the glass floor under the ring: a soft pool of light and a horizon line that fades out at both ends */
-.hero-art-floor {
-  position: absolute;
-  inset-inline: -28%;
-  inset-block-start: 84%;
-  block-size: 52%;
-  background:
-    radial-gradient(42% 48% at 50% 0%, var(--art-light-soft), transparent 72%),
-    linear-gradient(180deg, color-mix(in srgb, var(--primary) 9%, transparent), transparent 62%);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
-  pointer-events: none;
-}
-
-.hero-art-floor::before {
-  content: '';
-  position: absolute;
-  inset-inline: 0;
-  inset-block-start: 0;
-  block-size: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 60%, transparent), transparent);
-}
 
 /* light pouring from the QR tile into the spine of the book, with a soft pulse behind the tile */
 .hero-art-flow {
@@ -189,28 +210,10 @@
   content: none;
 }
 
-.hero-art::before {
-  content: '';
-  position: absolute;
-  left: 32%;
-  top: 0;
-  width: 36%;
-  height: 36%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--art-light-soft), transparent);
-  opacity: 0.5;
-  animation: art-glow 6s ease-in-out infinite;
-}
-
-@keyframes art-glow {
-  50% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-}
-
-/* a spark running along the front of the ring. A square that turns inside a vertically squashed box traces the
-   ellipse with transforms only; it shows on the near half and fades where the ring passes behind the book. */
+/* a spark running the whole ring. A square that turns inside a vertically squashed box traces the ellipse with
+   transforms only; the spark counter-turns and un-squashes itself so it stays round. It runs clockwise from the right
+   end (0deg) through the front (90deg) and the left end (180deg) to the back, dims a little on the far side, and fades
+   out only while the ring is hidden behind the book (about 222deg to 318deg). Two trail beads follow it. */
 .hero-art-orbit {
   position: absolute;
   left: 7.34%;
@@ -221,46 +224,110 @@
 }
 
 .hero-art-orbit-turn {
+  --lag: calc(var(--n) * 0.11s);
   position: absolute;
   inset-inline-start: 0;
   inset-block-start: 50%;
   inline-size: 100%;
   aspect-ratio: 1;
-  animation: art-orbit 11s linear infinite;
+  transform: translateY(-50%) scaleY(0.4822);
+  /* a lag behind the spark, written as a negative delay so every bead is on the ring from the first frame */
+  animation: art-orbit var(--art-lap) linear infinite;
+  animation-delay: calc(var(--lag) - var(--art-lap));
 }
 
 .hero-art-orbit-turn i {
   position: absolute;
   inset-block-start: 50%;
   right: 0;
-  inline-size: 5%;
+  inline-size: 5.4%;
   aspect-ratio: 1;
-  margin-block-start: -2.5%;
-  margin-right: -2.5%;
+  margin-block-start: -2.7%;
+  margin-right: -2.7%;
   border-radius: 50%;
   background: var(--art-spark);
+  animation:
+    art-orbit-upright var(--art-lap) linear infinite,
+    art-orbit-fade var(--art-lap) linear infinite;
+  animation-delay: inherit;
+}
+
+.hero-art-orbit-turn:nth-child(2) i {
+  scale: 0.62;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0 20%, color-mix(in srgb, var(--organ) 55%, transparent) 45%, transparent 70%);
+}
+
+.hero-art-orbit-turn:nth-child(3) i {
+  scale: 0.4;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0 20%, color-mix(in srgb, var(--organ) 30%, transparent) 45%, transparent 70%);
 }
 
 @keyframes art-orbit {
-  0% {
-    transform: translateY(-50%) scaleY(0.4822) rotate(0deg);
-    opacity: 0;
-  }
-  7% {
-    opacity: 1;
-  }
-  43% {
-    opacity: 1;
-  }
-  50% {
-    transform: translateY(-50%) scaleY(0.4822) rotate(180deg);
-    opacity: 0;
-  }
-  100% {
+  to {
     transform: translateY(-50%) scaleY(0.4822) rotate(360deg);
-    opacity: 0;
   }
 }
+
+@keyframes art-orbit-upright {
+  from {
+    transform: rotate(0deg) scaleY(2.0738);
+  }
+  to {
+    transform: rotate(-360deg) scaleY(2.0738);
+  }
+}
+
+/* percent of a lap = degrees / 3.6 */
+@keyframes art-orbit-fade {
+  0% { opacity: 0.85; }
+  6% { opacity: 1; }
+  47% { opacity: 1; }
+  55% { opacity: 0.7; }
+  60.5% { opacity: 0.7; }
+  62.5% { opacity: 0; }
+  87.5% { opacity: 0; }
+  89.5% { opacity: 0.7; }
+  100% { opacity: 0.85; }
+}
+
+/* the organ bubble the spark is passing lights up in the brand teal: a tint inside the glass with a bright rim that
+   swells a little and fades. One layer per bubble, starting a beat before the spark arrives, on the spark's clock. */
+.hero-art-bubble::after {
+  content: '';
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: art-hit var(--art-lap) cubic-bezier(0.3, 0, 0.2, 1) infinite;
+  animation-delay: calc((var(--a) / 360 - 1) * var(--art-lap) - 0.25s);
+}
+
+.hero-art-bubble::after {
+  background: radial-gradient(circle, color-mix(in srgb, var(--organ) 55%, transparent) 0%, color-mix(in srgb, var(--organ) 22%, transparent) 55%, transparent 72%);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--organ) 85%, transparent);
+}
+
+@keyframes art-hit {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  3.5% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  9% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  18%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
 
 /* motes of light rising out of the open pages */
 .hero-art-motes {
@@ -309,7 +376,7 @@
 @media (prefers-reduced-motion: reduce) {
   .hero-art,
   .hero-art *,
-  .hero-art::before {
+  .hero-art-bubble::after {
     animation: none !important;
   }
 
@@ -320,39 +387,94 @@
   }
 }
 
-/* ---------------------------------------------------------------- the four promises, now under the final call to action */
-.l-cta-points {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  max-inline-size: 760px;
-  margin: 20px 0 0;
-  padding: 20px 0 0;
-  list-style: none;
-  border-block-start: 1px solid var(--glass-line, var(--color-border-subtle));
+
+/* ---------------------------------------------------------------- headline: the accent word writes itself in
+   Each letter is a copy of the whole word clipped to that letter (see LetterReveal.tsx), so Arabic letters keep
+   their joined forms while each one rises in on its own, in reading order. Then one band of light crosses the word. */
+.lr--ready {
+  animation: none;
 }
 
-.l-cta-points li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: var(--radius-pills);
-  font-size: 14px;
-  color: var(--text-primary);
-  background: var(--surface-glass, var(--surface));
-  border: 1px solid var(--glass-line, var(--color-border-subtle));
+.lr-word {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
 }
 
-.l-cta-points svg {
-  flex: none;
-  color: var(--primary);
+.lr--ready .lr-base {
+  visibility: hidden;
 }
 
-@media (max-width: 559px) {
-  .l-cta-points li {
-    font-size: 13px;
-    padding: 7px 13px;
+.lr-piece,
+.lr-shine {
+  position: absolute;
+  inset: 0;
+  white-space: nowrap;
+}
+
+.lr-piece {
+  transform-origin: 50% 85%;
+  animation: lr-letter 0.8s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+  animation-delay: calc(var(--lr-delay) + var(--i) * 0.14s);
+}
+
+@keyframes lr-letter {
+  0% {
+    opacity: 0;
+    transform: translateY(0.42em) scale(0.82);
+    filter: blur(8px);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(0);
+    color: color-mix(in srgb, var(--primary) 45%, #ffffff);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.lr-shine {
+  color: transparent;
+  background: linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.9) 50%, transparent 60%) no-repeat;
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  opacity: 0;
+  pointer-events: none;
+  animation: lr-shine 1.3s ease-in-out both;
+  animation-delay: calc(var(--lr-delay) + var(--lr-count) * 0.14s + 0.45s);
+}
+
+@keyframes lr-shine {
+  0% {
+    opacity: 1;
+    background-position: 100% 0;
+  }
+  100% {
+    opacity: 1;
+    background-position: 0% 0;
+  }
+}
+
+[dir='rtl'] .lr-shine {
+  animation-name: lr-shine-rtl;
+}
+
+@keyframes lr-shine-rtl {
+  0% {
+    opacity: 1;
+    background-position: 0% 0;
+  }
+  100% {
+    opacity: 1;
+    background-position: 100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lr-piece,
+  .lr-shine {
+    animation: none !important;
   }
 }
