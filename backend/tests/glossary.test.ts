@@ -69,3 +69,22 @@ describe('glossary: passthrough alone is not a translation', () => {
     expect(ar('')).toBeNull();
   });
 });
+
+describe('whole-phrase glossary', () => {
+  it('translates listed phrases exactly, both ways', () => {
+    expect(glossaryTranslate('صورة الدم', 'en')).toBe('Complete blood count');
+    expect(glossaryTranslate('ارتفاع ضغط الدم', 'en')).toBe('High blood pressure');
+    expect(glossaryTranslate('Penicillin', 'ar')).toBe('بنسلين');
+    expect(glossaryTranslate('Rx', 'ar')).toBe('وصفة طبية');
+  });
+
+  it('carries numbers over as written and keeps a closing full stop', () => {
+    expect(glossaryTranslate('عند الحاجة، لا يزيد عن 3 مرات يوميًا', 'en')).toBe('As needed, no more than 3 times a day');
+    expect(glossaryTranslate('LDL cholesterol 162 mg/dL', 'ar')).toBe('الكوليسترول الضار 162 mg/dL');
+    expect(glossaryTranslate('قياس في المنزل صباحًا.', 'en')).toBe('Measured at home in the morning.');
+  });
+
+  it('matches the whole text only, never a part of it', () => {
+    expect(glossaryTranslate('Penicillin allergy since childhood', 'ar')).not.toBe('بنسلين');
+  });
+});

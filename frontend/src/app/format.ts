@@ -38,9 +38,9 @@ export const formatTime = (value: string | null | undefined) => (value ? value.s
 export function formatBytes(n: number, lang: 'ar' | 'en' = 'en'): string {
   if (!Number.isFinite(n) || n <= 0) return '';
   const u = lang === 'ar' ? { b: 'بايت', kb: 'ك.ب', mb: 'م.ب' } : { b: 'B', kb: 'KB', mb: 'MB' };
-  if (n < 1024) return `${n} ${u.b}`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} ${u.kb}`;
-  return `${(n / 1024 / 1024).toFixed(1)} ${u.mb}`;
+  const v = n < 1024 ? String(n) : n < 1024 * 1024 ? (n / 1024).toFixed(1) : (n / 1024 / 1024).toFixed(1);
+  const unit = n < 1024 ? u.b : n < 1024 * 1024 ? u.kb : u.mb;
+  return `${lang === 'ar' ? v.replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]).replace('.', '٫') : v} ${unit}`;
 }
 
 export const todayIso = () => {

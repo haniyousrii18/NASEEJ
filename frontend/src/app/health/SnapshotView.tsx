@@ -1,6 +1,6 @@
 import React from 'react';
 import { UserText } from '../translate/UserText.js';
-import { formatDate } from '../format.js';
+import { formatDate, formatNum } from '../format.js';
 import { appT } from '../i18n/index.js';
 import { AppIcon, type IconName } from '../AppIcons.js';
 import { sourceText } from './sourceLabel.js';
@@ -63,7 +63,7 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; lang?: 'ar' | 'en'; on
       <h2 id={`${sid(s.key)}-h`}>
         <AppIcon name={SECTION_ICON[s.key] ?? 'scroll'} size={18} />
         {(T.sections as Record<string, string>)[s.key] ?? s.key}
-        <span className="hp-sv-count">{s.items.length}</span>
+        <span className="hp-sv-count">{formatNum(L, s.items.length)}</span>
       </h2>
       <ul className="hp-sv-list">
         {s.items.map((it, i) => (
@@ -119,7 +119,7 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; lang?: 'ar' | 'en'; on
           {stops.map((st) => (
             <button key={st.id} type="button" className={`hp-sv-chip${st.key === 'allergies' ? ' is-alert' : ''}`} onClick={() => jumpTo(st.id)}>
               {st.label}
-              <b>{st.count}</b>
+              <b>{formatNum(L, st.count)}</b>
             </button>
           ))}
         </nav>
@@ -151,7 +151,7 @@ export const SnapshotView: React.FC<{ snapshot: Snapshot; lang?: 'ar' | 'en'; on
           <h2 id="sv-sec-docs-h">
             <AppIcon name="documents" size={18} />
             {T.documents}
-            <span className="hp-sv-count">{snapshot.documents.length}</span>
+            <span className="hp-sv-count">{formatNum(L, snapshot.documents.length)}</span>
           </h2>
           <ul className="hp-sv-list">
             {snapshot.documents.map((d) => (

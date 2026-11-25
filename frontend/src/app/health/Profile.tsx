@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { UserText } from '../translate/UserText.js';
+import { UserText, useUserTextString } from '../translate/UserText.js';
 import { useApiData, useMutation } from '../api.js';
-import { fill, formatDate } from '../format.js';
+import { fill, formatDate, formatNum } from '../format.js';
 import { Timeline } from '../record/Timeline.js';
 import { SummaryView, type PortalSummary } from '../pages/patient.js';
 import { Async, Button, Card, Drawer, EmptyState, PageHead, Pill, Select } from '../ui.js';
@@ -22,6 +22,7 @@ const dateOf = (e: Entry) => (e.kind === 'condition' || e.kind === 'medication' 
 /** One health fact: what it is, the few details that matter, and where it came from as a quiet line. */
 const EntryRow: React.FC<{ e: Entry; index: number; onEdit: () => void; onDelete: () => void }> = ({ e, index, onEdit, onDelete }) => {
   const A = useA();
+  const titleText = useUserTextString(e.title);
   const H = A.health.profile;
   const date = e.kind === 'condition' || e.kind === 'medication' ? e.startDate : e.eventDate;
   const status = e.kind === 'condition' || e.kind === 'medication' ? (e.status === 'past' ? H.fields.past[e.kind] : H.fields.active[e.kind]) : null;
@@ -64,10 +65,10 @@ const EntryRow: React.FC<{ e: Entry; index: number; onEdit: () => void; onDelete
         <SourceLine origin={e.source} confirmed={e.reviewStatus === 'confirmed'} date={date ? (e.kind === 'condition' ? fill(H.since, { date: formatDate(A.lang, date) }) : formatDate(A.lang, date)) : undefined} />
       </div>
       <div className="hp-entry-actions">
-        <Button small variant="quiet" onClick={onEdit} aria-label={`${A.health.common.edit}: ${e.title}`}>
+        <Button small variant="quiet" onClick={onEdit} aria-label={`${A.health.common.edit}: ${titleText}`}>
           {A.health.common.edit}
         </Button>
-        <Button small variant="quiet" onClick={onDelete} aria-label={`${A.health.common.remove}: ${e.title}`}>
+        <Button small variant="quiet" onClick={onDelete} aria-label={`${A.health.common.remove}: ${titleText}`}>
           {A.health.common.remove}
         </Button>
       </div>
@@ -167,7 +168,7 @@ export const EntryList: React.FC<{ kind: EntryKind; version: number; adding: boo
                   {(['all', 'active', 'past'] as const).map((k) => (
                     <button key={k} type="button" className="hp-lib-chip" aria-pressed={scope === k} onClick={() => setScope(k)}>
                       {k === 'all' ? L.all : H.fields[k][kind as 'condition' | 'medication']}
-                      <b>{k === 'all' ? items.length : items.filter((e) => (e.status ?? 'active') === k).length}</b>
+                      <b>{formatNum(A.lang, k === 'all' ? items.length : items.filter((e) => (e.status ?? 'active') === k).length)}</b>
                     </button>
                   ))}
                 </div>

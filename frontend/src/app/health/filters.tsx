@@ -2,7 +2,7 @@ import React, { useId } from 'react';
 import { AppIcon } from '../AppIcons.js';
 import { Button } from '../ui.js';
 import { useA } from '../useA.js';
-import { fill } from '../format.js';
+import { fill, formatNum } from '../format.js';
 
 /**
  * One filter pattern for every list: an optional search box, a "Filters" button that opens the panel, the active
@@ -35,14 +35,16 @@ export const SearchField: React.FC<{ id: string; label: string; value: string; o
 
 /** The button that opens a FilterBar's panel. FilterBar draws it by default; a page can place it elsewhere. */
 export const FilterToggle: React.FC<{ open: boolean; count: number; controls: string; onToggle: () => void }> = ({ open, count, controls, onToggle }) => {
-  const C = useA().health.common;
+  const AA = useA();
+  const C = AA.health.common;
+  const lang = AA.lang;
   return (
     <Button small variant="quiet" className="hp-filters-btn" aria-expanded={open} aria-controls={controls} onClick={onToggle}>
       <AppIcon name="settings" size={16} />
       {C.filters}
       {count > 0 && (
         <span className="hp-count" aria-label={fill(C.filtersOn, { n: count })}>
-          {count}
+          {formatNum(lang, count)}
         </span>
       )}
     </Button>

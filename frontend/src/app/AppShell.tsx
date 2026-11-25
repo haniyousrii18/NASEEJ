@@ -16,7 +16,7 @@ import { NotificationBell } from './notifications/NotificationBell.js';
 import { NotificationsProvider, useUnreadCount } from './notifications/NotificationsContext.js';
 import { useA } from './useA.js';
 import { useAppRoute } from './useAppRoute.js';
-import { fill } from './format.js';
+import { fill, formatNum } from './format.js';
 import { EmptyState } from './ui.js';
 import { lockScroll, trapTab, useMediaQuery } from '../lib/overlay.js';
 
@@ -295,7 +295,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                           <span className="na-nav-label">{A.nav.items[item.label]}</span>
                           {item.label === 'notifications' && unreadCount > 0 && (
                             <span className="na-nav-badge" role="status" aria-label={fill(A.notifications.unreadLabel, { n: unreadCount })}>
-                              {unreadCount > 99 ? '99+' : unreadCount}
+                              {unreadCount > 99 ? `${formatNum(lang, 99)}+` : formatNum(lang, unreadCount)}
                             </span>
                           )}
                         </button>
@@ -305,7 +305,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                 </div>
               ))}
           {/* Theme and language live at the foot of the sidebar, in reach at every width; the account menu keeps them too. */}
-          <div className="na-side-switches" role="group" aria-label={`${themeLabel} · ${otherLangName}`}>
+          <div className="na-side-switches" role="group" aria-label={A.common.shell.prefs}>
             <button
               type="button"
               className="na-switch"

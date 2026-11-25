@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRequest } from '../api.js';
 import type { ApiFailure } from '../api.js';
-import { fill } from '../format.js';
+import { fill, formatNum } from '../format.js';
 import type { AppRole } from '../nav.js';
 import { Button, EmptyState, ErrorState, Loading, PageHead, Select } from '../ui.js';
 import { useA } from '../useA.js';
@@ -96,7 +96,7 @@ export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: stri
     }
   };
 
-  const count = (key: Status) => (!summary ? '' : ` (${key === 'all' ? summary.total : key === 'unread' ? summary.unread : summary.archived})`);
+  const count = (key: Status) => (!summary ? '' : ` (${formatNum(A.lang, key === 'all' ? summary.total : key === 'unread' ? summary.unread : summary.archived)})`);
   const hasUnread = status !== 'archived' && rows.some((r) => !r.read);
 
   // Search covers the rows that are loaded: the title and the sentence the person reads.
@@ -116,7 +116,7 @@ export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: stri
           hasUnread ? (
             <Button onClick={() => void markAll()}>
               {T.markAllRead}
-              {summary && summary.unread > 0 && <span className="hp-count">{summary.unread}</span>}
+              {summary && summary.unread > 0 && <span className="hp-count">{formatNum(A.lang, summary.unread)}</span>}
             </Button>
           ) : undefined
         }
@@ -137,7 +137,7 @@ export const NotificationsPage: React.FC<{ role: AppRole; navigate: (route: stri
             {CATEGORIES.filter((c) => !summary || (summary.byCategory[c]?.total ?? 0) > 0 || category === c).map((c) => (
               <option key={c} value={c}>
                 {T.categories[c as keyof typeof T.categories]}
-                {summary ? ` (${summary.byCategory[c]?.total ?? 0})` : ''}
+                {summary ? ` (${formatNum(A.lang, summary.byCategory[c]?.total ?? 0)})` : ''}
               </option>
             ))}
           </Select>

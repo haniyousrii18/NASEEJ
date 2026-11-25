@@ -35,8 +35,8 @@ const join = (parts: Array<string | null | undefined>) => parts.filter((p): p is
 
 /** Words the server itself adds to an item's text, in the language the summary is written in. */
 const WORDS = {
-  ar: { severity: 'الشدة', better: 'يخففه', worse: 'يزيده', diagnosis: 'التشخيص', plan: 'الخطة', page: 'صفحة', reference: 'المرجع', active: 'حالي', past: 'سابق', mild: 'خفيفة', moderate: 'متوسطة', severe: 'شديدة', freq: { once: 'مرة واحدة', constant: 'مستمر', intermittent: 'يأتي ويذهب', daily: 'يوميًا', weekly: 'أسبوعيًا', occasional: 'أحيانًا' } as Record<string, string> },
-  en: { severity: 'severity', better: 'better', worse: 'worse', diagnosis: 'diagnosis', plan: 'plan', page: 'page', reference: 'reference', active: 'active', past: 'past', mild: 'mild', moderate: 'moderate', severe: 'severe', freq: { once: 'once', constant: 'constant', intermittent: 'intermittent', daily: 'daily', weekly: 'weekly', occasional: 'occasional' } as Record<string, string> },
+  ar: { severity: 'الشدة', better: 'يخففه', worse: 'يزيده', diagnosis: 'التشخيص', plan: 'الخطة', page: 'صفحة', reference: 'المرجع', active: 'حالي', past: 'سابق', mild: 'خفيفة', moderate: 'متوسطة', severe: 'شديدة', freq: { once: 'مرة واحدة', constant: 'مستمر', intermittent: 'يأتي ويذهب', daily: 'يوميًا', weekly: 'أسبوعيًا', occasional: 'أحيانًا' } as Record<string, string>, docType: { lab_report: 'تقرير مختبر', imaging_report: 'تقرير أشعة', prescription: 'وصفة طبية', discharge_summary: 'ملخص خروج', clinical_note: 'ملاحظة طبية', referral: 'تحويل', vaccination_record: 'سجل تطعيم', administrative: 'مستند إداري', other: 'مستند' } as Record<string, string> },
+  en: { severity: 'severity', better: 'better', worse: 'worse', diagnosis: 'diagnosis', plan: 'plan', page: 'page', reference: 'reference', active: 'active', past: 'past', mild: 'mild', moderate: 'moderate', severe: 'severe', freq: { once: 'once', constant: 'constant', intermittent: 'intermittent', daily: 'daily', weekly: 'weekly', occasional: 'occasional' } as Record<string, string>, docType: { lab_report: 'lab report', imaging_report: 'imaging report', prescription: 'prescription', discharge_summary: 'discharge summary', clinical_note: 'clinical note', referral: 'referral', vaccination_record: 'vaccination record', administrative: 'administrative document', other: 'document' } as Record<string, string> },
 };
 
 export async function buildRecordItems(patientId: string, lang: Lang): Promise<RecordItem[]> {
@@ -87,7 +87,7 @@ export async function buildRecordItems(patientId: string, lang: Lang): Promise<R
       ref: `document:${d.id}`,
       type: 'document',
       title: d.title,
-      summary: cut(join([d.doc_type, d.provider_name])),
+      summary: cut(join([d.doc_type ? W.docType[d.doc_type] ?? d.doc_type : null, d.provider_name])),
       date: d.document_date ?? day(d.created_at),
       origin: d.source_type === 'patient_uploaded' ? 'upload' : 'clinician',
       documentId: d.id,

@@ -264,7 +264,7 @@ body {
 }
 
 .hero-card-state[data-state='review'] {
-  color: var(--review-amber);
+  color: var(--review-amber-ink);
   border: 2px solid var(--review-amber);
   box-shadow: var(--glow-amber);
 }
@@ -1020,7 +1020,7 @@ body {
   border-radius: 50%;
   font-size: 18px;
   line-height: 1;
-  color: var(--review-amber);
+  color: var(--review-amber-ink);
   border: 2px solid var(--review-amber);
   box-shadow: var(--glow-amber);
 }
@@ -1069,7 +1069,7 @@ body {
 
 .na-app .hp-tl-item[data-review='pending'] .hp-tl-dot {
   background: var(--surface);
-  color: var(--review-amber);
+  color: var(--review-amber-ink);
   border: 2px dashed var(--review-amber);
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--review-amber) 12%, transparent), var(--glow-amber);
 }
