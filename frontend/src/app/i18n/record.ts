@@ -70,7 +70,7 @@ const en: typeof ar = {
   },
   results: {
     title: 'Comparing repeated results',
-    hint: 'Values are shown as recorded, in date order. Marja does not interpret changes; reading them stays with the treating clinician.',
+    hint: 'Values are shown as recorded, in date order. Marjea does not interpret changes; reading them stays with the treating clinician.',
     comparable: 'Comparable: same parameter and same unit',
     unitsDiffer: 'Not comparable: different units',
     notNumeric: 'Not comparable: a value is not numeric',

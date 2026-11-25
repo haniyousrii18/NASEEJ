@@ -240,7 +240,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
             <img src="/logo-mark.svg" alt="" width={40} height={40} />
             <span className="na-brand-text">
               <span className="na-brand-name">{brandName}</span>
-              <span className="na-brand-sub" lang={lang === 'ar' ? 'en' : 'ar'}>{lang === 'ar' ? 'MARJA' : 'مرجع'}</span>
               <span className="na-brand-role">{roleLabel}</span>
             </span>
           </div>

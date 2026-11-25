@@ -91,13 +91,6 @@
   color: var(--color-ink);
 }
 
-.site-brand-sub {
-  font-size: 12px;
-  font-weight: 460;
-  letter-spacing: 0.04em;
-  color: var(--color-body-gray);
-}
-
 /* layout of the collapsible region: links, then the end cluster */
 .site-collapsible {
   flex: 1;
@@ -384,10 +377,6 @@
 
   .site-brand-name {
     font-size: 19px;
-  }
-
-  .site-brand-sub {
-    display: none;
   }
 
   .site-actions {

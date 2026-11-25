@@ -79,7 +79,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           <img className="site-logo" src="/logo-mark.svg" alt="" width={54} height={54} />
           <span className="site-brand-text">
             <span className="site-brand-name">{t.brand.name}</span>
-            <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'MARJA' : 'مرجع'}</span>
           </span>
         </button>
 

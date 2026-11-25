@@ -12,7 +12,7 @@
 }
 
 :root[data-theme='dark'] {
-  --wordmark: var(--logo-sky);
+  --wordmark: #f5faf8;
   --logo-halo: drop-shadow(0 0 16px rgba(56, 207, 224, 0.45));
   --focus-glow: 0 0 0 3px rgba(56, 207, 224, 0.4), 0 0 18px rgba(56, 207, 224, 0.35);
 }
@@ -28,7 +28,7 @@
   box-shadow: var(--focus-glow);
 }
 
-/* ================================================================== lockup: mark + Cairo Black wordmark + MARJA */
+/* ================================================================== lockup: mark + El Messiri wordmark, single line */
 .site-logo,
 .na-brand img,
 .sf-logo {
@@ -37,41 +37,19 @@
 
 .site-brand-name,
 .na-brand-name {
-  font-family: 'Cairo', var(--font-arabic);
-  font-weight: 900;
+  font-family: 'El Messiri', 'Cairo', var(--font-arabic);
+  font-weight: 700;
   line-height: 1.05;
   letter-spacing: 0;
   color: var(--wordmark);
 }
 
 .site-brand-name {
-  font-size: 25px;
-}
-
-.site-brand-sub,
-.na-brand-sub {
-  font-family: 'Inter', var(--font-arabic);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.42em;
-  color: var(--wordmark);
-  opacity: 0.85;
-}
-
-/* in English the second line is the Arabic name, which takes no tracking */
-.site-brand-sub:lang(ar),
-.na-brand-sub:lang(ar) {
-  font-family: 'Cairo', var(--font-arabic);
-  font-size: 12px;
-  letter-spacing: 0;
-}
-
-.na-brand-text {
-  gap: 2px;
+  font-size: 31px;
 }
 
 .na-brand-name {
-  font-size: 24px;
+  font-size: 30px;
 }
 
 .na-app .na-brand-role {
@@ -79,8 +57,8 @@
 }
 
 .sf-name {
-  font-family: 'Cairo', var(--font-arabic);
-  font-weight: 900;
+  font-family: 'El Messiri', 'Cairo', var(--font-arabic);
+  font-weight: 700;
   color: var(--wordmark);
 }
 

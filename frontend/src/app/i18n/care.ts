@@ -342,7 +342,7 @@ const en: typeof ar = {
     principle: 'You decide what is allowed. Each permission is separate, and you can revoke at any moment, which stops access immediately.',
     inviteTitle: 'Invite a caregiver',
     email: 'Email of the caregiver’s account',
-    emailHelp: 'They need a Marja account. Ask the medical center to create one if they do not have it.',
+    emailHelp: 'They need a Marjea account. Ask the medical center to create one if they do not have it.',
     relationship: 'Relationship (optional)',
     relationshipHelp: 'A label only. It grants nothing.',
     permissions: 'What may they do?',
