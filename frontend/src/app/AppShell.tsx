@@ -24,12 +24,20 @@ const PEEK_OPEN_DELAY = 80; // ms of hover before a collapsed sidebar opens, so 
 const PEEK_CLOSE_DELAY = 220; // ms of grace after leaving, so crossing gaps between items does not flicker
 
 const COLLAPSE_KEY = 'naseej_app_sidebar'; // a single UI preference: no identifiers, no clinical data
+const LOCK_KEY = 'naseej_app_sidebar_lock'; // collapsed rail stays icons-only on hover (UI preference only)
 
-const readCollapsed = () => {
+const readFlag = (key: string) => {
   try {
-    return localStorage.getItem(COLLAPSE_KEY) === '1';
+    return localStorage.getItem(key) === '1';
   } catch {
     return false;
+  }
+};
+const saveFlag = (key: string, on: boolean) => {
+  try {
+    localStorage.setItem(key, on ? '1' : '0');
+  } catch {
+    /* the preference simply lasts for this page view */
   }
 };
 
@@ -67,7 +75,10 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   const unreadCount = useUnreadCount();
 
   const role = appRoleOf(currentRole);
-  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const [collapsed, setCollapsed] = useState(() => readFlag(COLLAPSE_KEY));
+  // Two ways to use the collapsed rail: it opens over the page on hover (default), or it is locked to icons only,
+  // so each icon can be picked directly without the full menu sliding open.
+  const [railLocked, setRailLocked] = useState(() => readFlag(LOCK_KEY));
   const [drawer, setDrawer] = useState(false);
   const drawerBtnRef = useRef<HTMLButtonElement>(null);
   const sideRef = useRef<HTMLElement>(null);
@@ -158,13 +169,19 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
 
   const toggleCollapsed = () => {
     setCollapsed((c) => {
-      try {
-        localStorage.setItem(COLLAPSE_KEY, c ? '0' : '1');
-      } catch {
-        /* the preference simply lasts for this page view */
-      }
+      saveFlag(COLLAPSE_KEY, !c);
       return !c;
     });
+  };
+
+  const toggleRailLock = () => {
+    setRailLocked((l) => {
+      saveFlag(LOCK_KEY, !l);
+      return !l;
+    });
+    window.clearTimeout(peekTimer.current);
+    setHoverPeek(false);
+    setFocusPeek(false);
   };
 
   const displayName = (isRtl ? user?.fullNameAr : user?.fullNameEn) || user?.fullNameEn || '';
@@ -182,7 +199,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   if (!user) return null;
 
   const compact = collapsed || narrowDesktop;
-  const peeking = compact && isDesktop && ((canHover && hoverPeek) || focusPeek);
+  const peeking = compact && isDesktop && !railLocked && ((canHover && hoverPeek) || focusPeek);
   const rail = compact && isDesktop && !peeking;
 
   const otherLang = lang === 'ar' ? 'en' : 'ar';
@@ -190,7 +207,7 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
   const themeLabel = wsTheme === 'dark' ? A.care.theme.toLight : A.care.theme.toDark;
 
   return (
-    <div className="na-app" data-collapsed={compact} data-peek={peeking} data-rail={rail} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'} data-ws-theme={wsTheme}>
+    <div className="na-app" data-collapsed={compact} data-rail-locked={compact && isDesktop && railLocked} data-peek={peeking} data-rail={rail} data-drawer={drawer ? 'open' : 'closed'} data-role={role ?? 'none'} data-ws-theme={wsTheme}>
       <div className="na-ambient" aria-hidden="true">
         <WovenField variant="field" animate={false} intensity={wsTheme === 'dark' ? 0.75 : 0.5} />
       </div>
@@ -304,22 +321,6 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
                   </ul>
                 </div>
               ))}
-          {/* Theme and language live at the foot of the sidebar, in reach at every width; the account menu keeps them too. */}
-          <div className="na-side-switches" role="group" aria-label={A.common.shell.prefs}>
-            <button
-              type="button"
-              className="na-switch"
-              onClick={() => workspace.setTheme(wsTheme === 'dark' ? 'light' : 'dark')}
-              aria-label={themeLabel}
-              title={themeLabel}
-            >
-              <AppIcon name={wsTheme === 'dark' ? 'sun' : 'moon'} size={18} />
-            </button>
-            <button type="button" className="na-switch" lang={otherLang} onClick={() => setLang(otherLang)} aria-label={otherLangName} title={otherLangName}>
-              <AppIcon name="globe" size={18} />
-              <span className="na-switch-label">{otherLangName}</span>
-            </button>
-          </div>
           <button type="button" className="na-nav-link" onClick={signOut} title={rail ? A.common.shell.signOut : undefined}>
             <AppIcon name="logout" className="na-icon" />
             <span className="na-nav-label">{A.common.shell.signOut}</span>
@@ -365,13 +366,28 @@ const AppShellInner: React.FC<Props> = ({ setCurrentView }) => {
             </button>
           )}
 
+          {isDesktop && compact && (
+            <button
+              type="button"
+              className="na-icon-btn na-lock-btn"
+              onClick={toggleRailLock}
+              aria-pressed={railLocked}
+              aria-controls="na-sidebar"
+              aria-label={railLocked ? A.common.shell.unlockRail : A.common.shell.lockRail}
+              title={railLocked ? A.common.shell.unlockRail : A.common.shell.lockRail}
+            >
+              <AppIcon name="lock" size={18} />
+            </button>
+          )}
+
           <div className="na-top-title">
             <span className="na-top-page">{pageLabel}</span>
           </div>
 
           </div>
 
-          {role && isDesktop && (
+          {/* search stays in the bar at every width: inline on wide and medium windows, its own row on phones */}
+          {role && (
             <div className="na-top-search">
               <SearchCombobox label={A.health.assistant.search.title} placeholder={A.health.assistant.search.placeholder} limit={10} onSelect={(hit) => navigate(routeForRef(hit.ref, hit.documentId))} />
             </div>

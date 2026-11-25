@@ -137,50 +137,69 @@
   }
 }
 
-/* ================================================================== sidebar foot: theme + language */
-.na-side-switches {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  gap: 6px;
-  margin-block: 6px;
+/* ================================================================== sidebar: fixed, never scrolls
+   Theme and language live in the top bar only. Every item fits the window at any height: link height and the
+   gaps shrink with the viewport instead of the sidebar growing a scrollbar. */
+.na-app {
+  /* 10 links (7 pages + notifications, settings, sign out) share what is left after the brand, padding and gaps */
+  --na-link-h: clamp(30px, calc((100dvh - 200px) / 10), 48px);
 }
 
-.na-switch {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-block-size: 44px;
-  padding-inline: 10px;
-  border-radius: 14px;
-  border: 1px solid var(--glass-line);
-  background: color-mix(in srgb, var(--surface) 40%, transparent);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 600;
-  transition: color var(--motion-state) var(--ease-emphasized), background-color var(--motion-state) var(--ease-emphasized);
-}
-
-.na-switch:hover {
-  color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 8%, transparent);
-}
-
-.na-switch-label {
+.na-side {
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: opacity var(--motion-state) var(--ease-emphasized);
 }
 
-/* the icon rail has no room for them: they come back when the rail opens (peek), and the account menu always has both */
-.na-app[data-rail='true']:not([data-peek='true']) .na-side-switches {
-  display: none;
+.na-nav {
+  min-block-size: 0;
+  gap: clamp(4px, 1.4dvh, 18px);
+  margin-top: clamp(2px, 0.8dvh, 8px);
 }
 
-/* icons never shrink, whatever the rail width or a scrollbar takes */
-.na-nav-link .na-icon,
-.na-switch svg {
+.na-nav ul,
+.na-side-foot ul {
+  gap: clamp(1px, 0.4dvh, 4px);
+}
+
+.na-app .na-side .na-nav-link {
+  min-height: var(--na-link-h);
+}
+
+.na-side-foot {
+  gap: clamp(2px, 0.6dvh, 6px);
+  padding-top: clamp(4px, 1dvh, 10px);
+}
+
+@media (max-height: 640px) {
+  .na-side-head,
+  .na-brand {
+    min-height: 40px;
+  }
+
+  .na-app .na-brand img {
+    inline-size: 34px;
+    block-size: 34px;
+  }
+
+  .na-app .na-side .na-nav-link {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 640px) {
+  .na-side {
+    padding-block: 10px;
+  }
+}
+
+/* a phone held sideways is too short for ten links even at their smallest: there, scrolling beats cutting items off */
+@media (max-height: 479px) {
+  .na-side {
+    overflow-y: auto;
+  }
+}
+
+/* icons never shrink, whatever the rail width */
+.na-nav-link .na-icon {
   flex: none;
 }
 
@@ -1001,4 +1020,12 @@
 /* the active nav icon takes the pill's ink (it was the accent colour, invisible on the filled pill in the icon rail) */
 .na-app .na-nav-link[aria-current='page'] .na-icon {
   color: currentColor;
+}
+
+/* ================================================================== collapsed rail: lock
+   Locked, the icon rail never opens on hover or focus; each icon is picked directly (its name shows as a tooltip). */
+.na-lock-btn[aria-pressed='true'] {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 45%, transparent);
 }

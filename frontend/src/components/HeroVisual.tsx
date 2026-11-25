@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { useLang } from '../context/LangContext.js';
-import { WovenField } from './WovenField.js';
 
 const RowIcon: React.FC<{ k: number }> = ({ k }) => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
@@ -27,8 +26,52 @@ const RowIcon: React.FC<{ k: number }> = ({ k }) => (
 );
 
 /**
- * Visual side of the hero: the woven-network sculpture (a live canvas, the logo's mark in light) above a frosted glass
- * preview of a record. The card is decorative and synthetic; its states still read as word + glyph, as in the app.
+ * The record illustration, split into layers so parts of it move on their own: the QR tile floats over the open book,
+ * the five organ bubbles breathe on the ring, a spark runs along the front of the ring, light flows down from the QR
+ * into the book. Layers are WebP images set as CSS backgrounds per theme (public/hero, made from one source picture),
+ * so only the active theme's files download. Every motion is a transform or opacity change: no canvas, no script loop.
+ * Boxes are percent of the square canvas (public/hero/layers.json).
+ */
+const BUBBLES = [
+  { k: 'heart', left: 6.619, top: 43.86, size: 11.802 },
+  { k: 'joint', left: 81.579, top: 44.338, size: 11.802 },
+  { k: 'brain', left: 8.373, top: 66.268, size: 13.716 },
+  { k: 'kidney', left: 77.751, top: 66.268, size: 13.716 },
+  { k: 'lungs', left: 42.344, top: 74.482, size: 14.992 },
+] as const;
+
+const RecordArt: React.FC = () => (
+  <div className="hero-art">
+    <div className="hero-art-floor" />
+    <div className="hero-art-layer hero-art-base" />
+    <div className="hero-art-flow">
+      <i />
+      <i />
+    </div>
+    <div className="hero-art-orbit">
+      <div className="hero-art-orbit-turn">
+        <i />
+      </div>
+    </div>
+    {BUBBLES.map((b, i) => (
+      <div
+        key={b.k}
+        className={`hero-art-layer hero-art-bubble hero-art-${b.k}`}
+        style={{ left: `${b.left}%`, top: `${b.top}%`, width: `${b.size}%`, height: `${b.size}%`, '--i': i } as React.CSSProperties}
+      />
+    ))}
+    <div className="hero-art-layer hero-art-qr" />
+    <div className="hero-art-motes">
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <i key={i} style={{ '--i': i } as React.CSSProperties} />
+      ))}
+    </div>
+  </div>
+);
+
+/**
+ * Visual side of the hero: the record illustration standing on a glass floor, with a frosted glass preview of a record
+ * in front of it. The card is decorative and synthetic; its states still read as word + glyph, as in the app.
  * The card tilts toward the pointer on devices that hover.
  */
 export const HeroVisual: React.FC = () => {
@@ -60,7 +103,7 @@ export const HeroVisual: React.FC = () => {
   return (
     <div className="hero-visual">
       <div className="hero-stage" aria-hidden="true">
-        <WovenField variant="sculpture" interactive className="hero-sculpture" />
+        <RecordArt />
         <div className="hero-card" ref={card}>
           <div className="hero-card-glass">
             <p className="hero-card-title">{L.heroCardTitle}</p>

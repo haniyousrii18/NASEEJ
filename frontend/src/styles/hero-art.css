@@ -1,0 +1,358 @@
+/* ==================================================================================================
+   Landing hero: the record illustration (open book, QR tile, organ ring) standing on a glass floor,
+   with the frosted record card in front. Layers come from public/hero (see HeroVisual.tsx).
+   Performance: images are CSS backgrounds, so only the current theme's files download; every animation
+   moves transform or opacity only, so it runs on the compositor; reduced motion stops all of it.
+   ================================================================================================== */
+
+:root {
+  --art-base: image-set(url('/hero/base-light@1x.webp') 1x, url('/hero/base-light@2x.webp') 2x);
+  --art-qr: image-set(url('/hero/qr-light@1x.webp') 1x, url('/hero/qr-light@2x.webp') 2x);
+  --art-heart: image-set(url('/hero/heart-light@1x.webp') 1x, url('/hero/heart-light@2x.webp') 2x);
+  --art-joint: image-set(url('/hero/joint-light@1x.webp') 1x, url('/hero/joint-light@2x.webp') 2x);
+  --art-brain: image-set(url('/hero/brain-light@1x.webp') 1x, url('/hero/brain-light@2x.webp') 2x);
+  --art-kidney: image-set(url('/hero/kidney-light@1x.webp') 1x, url('/hero/kidney-light@2x.webp') 2x);
+  --art-lungs: image-set(url('/hero/lungs-light@1x.webp') 1x, url('/hero/lungs-light@2x.webp') 2x);
+  /* light flowing through the art: deep teal on the pale page, bright teal on the dark one */
+  --art-light: #137c72;
+  --art-light-soft: color-mix(in srgb, #137c72 22%, transparent);
+  --art-spark: radial-gradient(circle, #ffffff 0 18%, #2aa697 42%, transparent 70%);
+}
+
+:root[data-theme='dark'] {
+  --art-base: image-set(url('/hero/base-dark@1x.webp') 1x, url('/hero/base-dark@2x.webp') 2x);
+  --art-qr: image-set(url('/hero/qr-dark@1x.webp') 1x, url('/hero/qr-dark@2x.webp') 2x);
+  --art-heart: image-set(url('/hero/heart-dark@1x.webp') 1x, url('/hero/heart-dark@2x.webp') 2x);
+  --art-joint: image-set(url('/hero/joint-dark@1x.webp') 1x, url('/hero/joint-dark@2x.webp') 2x);
+  --art-brain: image-set(url('/hero/brain-dark@1x.webp') 1x, url('/hero/brain-dark@2x.webp') 2x);
+  --art-kidney: image-set(url('/hero/kidney-dark@1x.webp') 1x, url('/hero/kidney-dark@2x.webp') 2x);
+  --art-lungs: image-set(url('/hero/lungs-dark@1x.webp') 1x, url('/hero/lungs-dark@2x.webp') 2x);
+  --art-light: #9ff0e2;
+  --art-light-soft: color-mix(in srgb, #59c3b2 30%, transparent);
+  --art-spark: radial-gradient(circle, #ffffff 0 22%, #7fe3d2 45%, transparent 70%);
+}
+
+/* ---------------------------------------------------------------- stage: art on top, card on the floor in front */
+.hero-stage {
+  /* as wide as the column allows, but never taller than the first screen */
+  inline-size: clamp(260px, calc((min(100dvh, 860px) - var(--bar-h) - 110px) / 1.42), min(100%, 560px));
+  aspect-ratio: 1 / 1.42;
+}
+
+.hero-card {
+  inset-inline: 13%;
+  inset-block-end: 0;
+}
+
+/* glass floor: the card is mirrored in it, as on a polished surface */
+.hero-card-glass {
+  -webkit-box-reflect: below 6px linear-gradient(transparent 58%, rgba(255, 255, 255, 0.2));
+}
+
+@media (max-width: 899px) {
+  /* on a phone the card is tall for its width: a longer stage keeps it on the floor, clear of the ring */
+  .hero-stage {
+    inline-size: min(100%, 420px);
+    aspect-ratio: 1 / 1.62;
+  }
+}
+
+/* ---------------------------------------------------------------- the art */
+.hero-art {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  /* the canvas has empty sky above the QR tile: lift it so the card in front only meets the floor reflection */
+  margin-block-start: -6%;
+  aspect-ratio: 1;
+  animation: hero-art-in 1.2s var(--ease-emphasized) 0.1s both;
+}
+
+@keyframes hero-art-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+}
+
+.hero-art-layer {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.hero-art-base {
+  inset: 0;
+  background-image: var(--art-base);
+}
+
+.hero-art-qr {
+  left: 38.756%;
+  top: 7.018%;
+  width: 22.807%;
+  height: 22.169%;
+  background-image: var(--art-qr);
+  animation: art-float 6s ease-in-out infinite;
+}
+
+.hero-art-heart { background-image: var(--art-heart); }
+.hero-art-joint { background-image: var(--art-joint); }
+.hero-art-brain { background-image: var(--art-brain); }
+.hero-art-kidney { background-image: var(--art-kidney); }
+.hero-art-lungs { background-image: var(--art-lungs); }
+
+.hero-art-bubble {
+  animation: art-breathe 5.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -1.04s);
+}
+
+@keyframes art-float {
+  50% {
+    transform: translateY(-5%);
+  }
+}
+
+@keyframes art-breathe {
+  50% {
+    transform: translateY(-3%) scale(1.045);
+  }
+}
+
+/* the glass floor under the ring: a soft pool of light and a horizon line that fades out at both ends */
+.hero-art-floor {
+  position: absolute;
+  inset-inline: -28%;
+  inset-block-start: 84%;
+  block-size: 52%;
+  background:
+    radial-gradient(42% 48% at 50% 0%, var(--art-light-soft), transparent 72%),
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 9%, transparent), transparent 62%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  pointer-events: none;
+}
+
+.hero-art-floor::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 60%, transparent), transparent);
+}
+
+/* light pouring from the QR tile into the spine of the book, with a soft pulse behind the tile */
+.hero-art-flow {
+  position: absolute;
+  left: 43%;
+  width: 14%;
+  top: 27%;
+  height: 22%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 70%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 70%, transparent);
+}
+
+.hero-art-flow i {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 46%;
+  inline-size: 8%;
+  block-size: 38%;
+  border-radius: 99px;
+  background: linear-gradient(180deg, transparent, var(--art-light), transparent);
+  opacity: 0;
+  animation: art-flow 3.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.hero-art-flow i:nth-child(2) {
+  inset-inline-start: 30%;
+  animation-delay: 1.6s;
+}
+
+@keyframes art-flow {
+  0% {
+    opacity: 0;
+    transform: translateY(-40%);
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(260%);
+  }
+}
+
+.hero-art-flow::before {
+  content: none;
+}
+
+.hero-art::before {
+  content: '';
+  position: absolute;
+  left: 32%;
+  top: 0;
+  width: 36%;
+  height: 36%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--art-light-soft), transparent);
+  opacity: 0.5;
+  animation: art-glow 6s ease-in-out infinite;
+}
+
+@keyframes art-glow {
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+/* a spark running along the front of the ring. A square that turns inside a vertically squashed box traces the
+   ellipse with transforms only; it shows on the near half and fades where the ring passes behind the book. */
+.hero-art-orbit {
+  position: absolute;
+  left: 7.34%;
+  width: 85.32%;
+  top: 40.99%;
+  height: 41.14%;
+  pointer-events: none;
+}
+
+.hero-art-orbit-turn {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 50%;
+  inline-size: 100%;
+  aspect-ratio: 1;
+  animation: art-orbit 11s linear infinite;
+}
+
+.hero-art-orbit-turn i {
+  position: absolute;
+  inset-block-start: 50%;
+  right: 0;
+  inline-size: 5%;
+  aspect-ratio: 1;
+  margin-block-start: -2.5%;
+  margin-right: -2.5%;
+  border-radius: 50%;
+  background: var(--art-spark);
+}
+
+@keyframes art-orbit {
+  0% {
+    transform: translateY(-50%) scaleY(0.4822) rotate(0deg);
+    opacity: 0;
+  }
+  7% {
+    opacity: 1;
+  }
+  43% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-50%) scaleY(0.4822) rotate(180deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(-50%) scaleY(0.4822) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* motes of light rising out of the open pages */
+.hero-art-motes {
+  position: absolute;
+  left: 28%;
+  width: 44%;
+  top: 24%;
+  height: 30%;
+  container-type: size;
+  pointer-events: none;
+}
+
+.hero-art-motes i {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: calc(8% + var(--i) * 16%);
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--art-spark);
+  opacity: 0;
+  animation: art-mote 5.4s ease-out infinite;
+  animation-delay: calc(var(--i) * -0.9s);
+}
+
+.hero-art-motes i:nth-child(odd) {
+  inline-size: 3px;
+  block-size: 3px;
+  animation-duration: 6.6s;
+}
+
+@keyframes art-mote {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-90cqh) translateX(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-art,
+  .hero-art *,
+  .hero-art::before {
+    animation: none !important;
+  }
+
+  .hero-art-flow,
+  .hero-art-orbit,
+  .hero-art-motes {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------- the four promises, now under the final call to action */
+.l-cta-points {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-inline-size: 760px;
+  margin: 20px 0 0;
+  padding: 20px 0 0;
+  list-style: none;
+  border-block-start: 1px solid var(--glass-line, var(--color-border-subtle));
+}
+
+.l-cta-points li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pills);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--surface-glass, var(--surface));
+  border: 1px solid var(--glass-line, var(--color-border-subtle));
+}
+
+.l-cta-points svg {
+  flex: none;
+  color: var(--primary);
+}
+
+@media (max-width: 559px) {
+  .l-cta-points li {
+    font-size: 13px;
+    padding: 7px 13px;
+  }
+}
