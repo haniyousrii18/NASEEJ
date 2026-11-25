@@ -1,0 +1,281 @@
+/* ==================================================================================================
+   Zoom and viewport resilience. Browser zoom changes the CSS viewport: 200% on a 1366x768 laptop is a
+   683x384 window, 50% is 2732x1536. Width was already handled per layout; these rules cover what zoom
+   exposes on top of that: short windows where fixed chrome eats the page, headings sized to width only,
+   grids that leave an orphan tile, and very wide windows where the chrome and the content stop lining up.
+   Loaded last, so it only adjusts; it never restyles.
+   ================================================================================================== */
+
+/* ---------------------------------------------------------------- display type follows height too */
+/* A headline sized by width alone fills a short window. min(vw, vh) keeps it in proportion either way. */
+.hero-title {
+  font-size: clamp(2rem, min(5.2vw, 9.5dvh), 4rem);
+}
+
+.na-pagehead .na-title {
+  font-size: clamp(22px, min(2.6vw, 5dvh), 32px);
+}
+
+/* ---------------------------------------------------------------- quick actions: 4, 2 or 1 per row, never 3 + 1 */
+.hp-td {
+  container: hp-today / inline-size;
+}
+
+.hp-quick {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@container hp-today (min-width: 520px) {
+  .hp-quick {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container hp-today (min-width: 940px) {
+  .hp-quick {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ---------------------------------------------------------------- very wide windows (zoomed out, 4K) */
+/* The page column stops at 1320px; the floating top bar now stops with it instead of running edge to edge. */
+@media (min-width: 1024px) {
+  .na-app .na-top {
+    margin-inline: max(clamp(12px, 2vw, 24px), calc((100% - 1320px) / 2 + clamp(12px, 2vw, 24px)));
+  }
+}
+
+/* ---------------------------------------------------------------- short windows (zoomed in, phones sideways) */
+@media (max-height: 560px) {
+  /* public site: a slimmer bar and logo, so the hero starts higher */
+  :root {
+    --bar-h: 52px;
+  }
+
+  .site-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .hero {
+    min-height: auto;
+  }
+
+  /* workspace on phone/tablet widths: the top bar scrolls away with the page instead of staying pinned,
+     and the tab bar drops its labels, so together they take a fifth of the height instead of a third */
+  .na-app .na-top {
+    min-height: 52px;
+  }
+
+  .na-app .hp-tab {
+    min-block-size: 40px;
+    padding-block: 4px;
+  }
+
+  .na-app .hp-tab span {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .na-app .hp-tabbar {
+    padding-block: 4px max(4px, env(safe-area-inset-bottom));
+  }
+
+  /* install / update / offline cards: one compact row; the explanation is dropped, the actions stay */
+  .pwa-prompt-stack > div {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: center !important;
+    gap: 8px 12px !important;
+    padding: 10px 14px !important;
+    max-inline-size: min(560px, 100%) !important;
+  }
+
+  .pwa-prompt-stack > div > span {
+    display: none;
+  }
+
+  .pwa-prompt-stack > div > div {
+    margin: 0 !important;
+    margin-inline-start: auto !important;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 560px) {
+  .na-app .na-top {
+    position: relative;
+  }
+
+  .na-app .na-content {
+    padding-block-end: 64px;
+  }
+}
+
+/* ---------------------------------------------------------------- very short windows */
+@media (max-height: 420px) {
+  .na-app .na-pagehead {
+    margin-block-end: 12px;
+  }
+}
+
+/* ================================================================== public site bar: no menu, ever
+   Every item stays in the bar. Wide: one row. Medium: brand + utilities + account, then the links.
+   Narrow: brand + utilities, then the links, then sign in / create account side by side.
+   The bar's real height is published by Header.tsx as --site-bar-h for the full-bleed first screen. */
+.site-cta {
+  display: inline-flex;
+}
+
+.site-bar-inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: 'brand nav actions auth';
+  align-items: center;
+  column-gap: clamp(8px, 2vw, 28px);
+}
+
+.site-brand { grid-area: brand; }
+.site-nav { grid-area: nav; min-width: 0; }
+.site-actions { grid-area: actions; margin-inline-start: 0; }
+.site-auth { grid-area: auth; }
+
+@media (max-width: 959px) {
+  :root {
+    --bar-h: var(--site-bar-h, 112px);
+  }
+
+  .site-bar-inner {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'brand actions auth'
+      'nav nav nav';
+    row-gap: 2px;
+    padding-block: 6px;
+  }
+
+  .site-brand {
+    min-height: 48px;
+  }
+
+  /* the links become an evenly split row of tabs under the brand */
+  .site-nav {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding-block-start: 4px;
+    border-block-start: 1px solid var(--glass-line, var(--color-border-subtle));
+  }
+
+  .site-nav button {
+    min-height: 40px;
+    padding-inline: 8px;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .site-auth {
+    margin-inline-start: 4px;
+    padding-inline-start: 10px;
+  }
+
+  .site-cta {
+    min-block-size: 40px;
+    padding-inline: 14px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 599px) {
+  :root {
+    --bar-h: var(--site-bar-h, 150px);
+  }
+
+  /* three short rows would take a fifth of a phone screen if pinned, so the bar scrolls with the page here */
+  .site-bar {
+    position: relative;
+  }
+
+  .site-bar-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand actions'
+      'nav nav'
+      'auth auth';
+  }
+
+  .site-auth {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin: 0;
+    padding: 6px 0 4px;
+    border: 0;
+  }
+
+  .site-auth .site-cta,
+  .site-auth .site-account,
+  .site-auth .site-link {
+    inline-size: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+}
+
+/* ================================================================== workspace top bar: search at every width
+   Wide (>=1024px): centred between the two button groups (redesign.css). Medium: it takes the free middle of the
+   bar. Phones: the bar wraps and the search gets a full-width second row under the buttons. */
+@media (max-width: 1023px) {
+  .na-app .na-top {
+    flex-wrap: wrap;
+    column-gap: 10px;
+  }
+
+  .na-app .na-top-start {
+    flex: 0 0 auto;
+  }
+
+  .na-app .na-top-search {
+    flex: 1 1 260px;
+    min-inline-size: 0;
+    order: 2;
+  }
+
+  .na-app .na-top-end {
+    order: 3;
+    margin-inline-start: auto;
+  }
+
+  .na-app .na-top-search .hp-sc-field {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 639px) {
+  .na-app .na-top {
+    row-gap: 8px;
+    padding-block: 8px;
+  }
+
+  .na-app .na-top-end {
+    order: 1;
+  }
+
+  .na-app .na-top-search {
+    order: 4;
+    flex-basis: 100%;
+  }
+
+  .na-app .na-top-search .hp-sc-panel {
+    max-block-size: min(60dvh, 480px);
+  }
+}

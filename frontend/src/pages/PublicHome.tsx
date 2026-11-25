@@ -84,16 +84,6 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
             </div>
           </div>
         </div>
-        <div className="l-container hero-foot">
-          <ul className="hero-points">
-            {[t.hero.statsCenters, t.hero.statsIsolation, t.hero.statsSafety, t.hero.statsBilingual].map((p) => (
-              <li key={p}>
-                <CheckIcon />
-                {p}
-              </li>
-            ))}
-          </ul>
-        </div>
       </section>
 
       <div className="landing-body">
@@ -197,6 +187,15 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
                 {t.hero.ctaLogin}
                 <ArrowIcon />
               </button>
+              {/* what starting commits you to, said where the decision is made */}
+              <ul className="l-cta-points">
+                {[t.hero.statsCenters, t.hero.statsIsolation, t.hero.statsSafety, t.hero.statsBilingual].map((p) => (
+                  <li key={p}>
+                    <CheckIcon />
+                    {p}
+                  </li>
+                ))}
+              </ul>
             </Reveal>
           </div>
         </section>

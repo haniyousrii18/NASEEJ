@@ -21,6 +21,8 @@ import './styles/health.css';
 import './styles/polish.css';
 import './styles/redesign.css';
 import './styles/marja.css';
+import './styles/hero-art.css';
+import './styles/responsive.css';
 import { AppShell } from './app/AppShell.js';
 import { AUTHENTICATED_VIEWS } from './app/nav.js';
 

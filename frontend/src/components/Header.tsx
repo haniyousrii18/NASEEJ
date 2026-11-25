@@ -2,9 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLang } from '../context/LangContext.js';
 import { useAuth } from '../context/AuthContext.js';
 import { ThemeToggle } from './ThemeToggle.js';
-import { DownloadIcon, GlobeIcon, UserIcon } from './LineIcon.js';
+import { DownloadIcon, GlobeIcon } from './LineIcon.js';
 import { useInstall } from '../pwa/InstallContext.js';
-import { lockScroll, trapTab, useMediaQuery } from '../lib/overlay.js';
 
 interface HeaderProps {
   currentView: string;
@@ -14,62 +13,17 @@ interface HeaderProps {
 // Views whose first screen is full-bleed art. The bar floats transparent over them until the page scrolls.
 const OVERLAY_VIEWS = ['home', 'login', 'register'];
 
-const MenuIcon: React.FC<{ open: boolean }> = ({ open }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-    {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-  </svg>
-);
-
-const CloseIcon: React.FC = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <path d="M6 6l12 12M18 6L6 18" />
-  </svg>
-);
-
 /**
- * Site bar. Hierarchy, start to end: brand, primary links, quiet utilities (install, theme, language),
- * then one account area with a single primary action. Below 960px everything folds into one menu.
+ * Site bar. Hierarchy, start to end: brand, primary links, quiet utilities (install, theme, language), then the
+ * account area. Nothing is ever folded away behind a menu: on narrower windows the same items reflow into rows
+ * (brand + utilities, then links, then sign-in buttons), see the site-bar rules in responsive.css.
  */
 export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
   const { lang, setLang, t, isRtl } = useLang();
   const { user, logout, currentRole } = useAuth();
   const installApp = useInstall();
-  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
-  const menuBtnRef = useRef<HTMLButtonElement>(null);
-  const drawerRef = useRef<HTMLDivElement>(null);
-  const closeBtnRef = useRef<HTMLButtonElement>(null);
-  // Below 960px the links fold into a modal drawer; above it the same markup is the inline bar.
-  const isDrawerWidth = useMediaQuery('(max-width: 959px)');
-  const drawerOpen = open && isDrawerWidth;
-
-  const closeMenu = (restoreFocus = true) => {
-    setOpen(false);
-    if (restoreFocus) menuBtnRef.current?.focus({ preventScroll: true });
-  };
-
-  // Close the menu on navigation, and when the window grows past the drawer breakpoint.
-  useEffect(() => setOpen(false), [currentView]);
-  useEffect(() => {
-    if (!isDrawerWidth) setOpen(false);
-  }, [isDrawerWidth]);
-
-  // Open drawer: Escape closes and returns focus to the trigger, Tab stays inside, the page behind does not scroll.
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const unlock = lockScroll();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeMenu();
-      else trapTab(e, drawerRef.current);
-    };
-    document.addEventListener('keydown', onKey);
-    closeBtnRef.current?.focus({ preventScroll: true });
-    return () => {
-      unlock();
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [drawerOpen]);
+  const barRef = useRef<HTMLElement>(null);
 
   // The bar turns solid once the page has moved.
   useEffect(() => {
@@ -79,11 +33,21 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const go = (view: string) => {
-    setCurrentView(view);
-    setOpen(false);
-    if (drawerOpen) menuBtnRef.current?.focus({ preventScroll: true });
-  };
+  // The bar's real height (one row on wide windows, two or three on narrow ones) is published as --site-bar-h,
+  // so a full-bleed first screen starts exactly below it at every width.
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const root = document.documentElement;
+    const ro = new ResizeObserver(() => root.style.setProperty('--site-bar-h', `${Math.ceil(el.getBoundingClientRect().height)}px`));
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty('--site-bar-h');
+    };
+  }, []);
+
+  const go = (view: string) => setCurrentView(view);
 
   // Ending the session also leaves the protected page, so one click lands on the login page.
   const handleLogout = () => {
@@ -106,8 +70,10 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
   const displayName = user ? (isRtl ? user.fullNameAr : user.fullNameEn) : '';
   const roleName = user ? t.roles[currentRole as keyof typeof t.roles] || currentRole : '';
 
+  const onAuthPage = currentView === 'login' || currentView === 'register';
+
   return (
-    <header className="site-bar" data-overlay={OVERLAY_VIEWS.includes(currentView)} data-scrolled={scrolled} data-menu={open}>
+    <header ref={barRef} className="site-bar" data-overlay={OVERLAY_VIEWS.includes(currentView)} data-scrolled={scrolled} data-menu={false}>
       <div className="site-bar-inner">
         <button type="button" className="site-brand" onClick={() => go('home')} aria-label={`${t.brand.name} · ${t.nav.home}`}>
           <img className="site-logo" src="/logo-mark.svg" alt="" width={54} height={54} />
@@ -117,71 +83,15 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           </span>
         </button>
 
-
-        {/* Blurred Backdrop for Mobile Sidebar Drawer */}
-        <div
-          className={`site-drawer-backdrop${open ? ' is-active' : ''}`}
-          onClick={() => closeMenu()}
-          aria-hidden="true"
-        />
-
-        <div
-          id="site-menu"
-          ref={drawerRef}
-          className={`site-collapsible${open ? ' is-open' : ''}`}
-          data-open={open}
-          role={isDrawerWidth ? 'dialog' : undefined}
-          aria-modal={drawerOpen ? 'true' : undefined}
-          aria-label={isDrawerWidth ? t.landing.menu : undefined}
-        >
-          <div className="site-drawer-header">
-            <div className="site-drawer-brand">
-              <img className="site-logo" src="/logo-mark.svg" alt="" width={40} height={40} />
-              <div className="site-brand-text">
-                <span className="site-brand-name">{t.brand.name}</span>
-                <span className="site-brand-sub" lang={isRtl ? 'en' : 'ar'}>{isRtl ? 'MARJA' : 'مرجع'}</span>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="site-drawer-close"
-              ref={closeBtnRef}
-              onClick={() => closeMenu()}
-              aria-label={t.landing.closeMenu}
-            >
-              <CloseIcon />
+        <nav className="site-nav" aria-label={t.landing.menu}>
+          {links.map(([view, label]) => (
+            <button key={view} type="button" aria-current={currentView === view ? 'page' : undefined} onClick={() => go(view)}>
+              {label}
             </button>
-          </div>
+          ))}
+        </nav>
 
-          <nav className="site-nav" aria-label={t.landing.menu}>
-            {links.map(([view, label]) => (
-              <button key={view} type="button" aria-current={currentView === view ? 'page' : undefined} onClick={() => go(view)}>
-                {label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="site-end">
-            <div className="site-auth">
-              {user ? (
-                <>
-                  <button type="button" onClick={goWorkspace} className="site-account">
-                    <span className="site-account-avatar" aria-hidden="true">{displayName.trim().charAt(0)}</span>
-                    <span className="site-account-text">
-                      <span className="site-account-name">{displayName}</span>
-                      <span className="site-account-role">{roleName}</span>
-                    </span>
-                  </button>
-                  <button type="button" onClick={handleLogout} className="site-link" title={t.nav.logout}>
-                    {t.nav.logout}
-                  </button>
-                </>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        {/* Icon-only utilities, always in the bar at every width: install, theme, language, sign in. */}
+        {/* Icon utilities: install, theme, language. */}
         <div className="site-actions" role="group" aria-label={t.landing.menu}>
           {installApp.available && (
             <button type="button" className="site-act" onClick={() => void installApp.install()} aria-label={t.nav.install} title={t.nav.install}>
@@ -192,33 +102,33 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
           <button type="button" className="site-act" onClick={() => setLang(otherLang)} lang={otherLang} aria-label={otherLangName} title={otherLangName}>
             <GlobeIcon />
           </button>
-          {!user && currentView !== 'login' && currentView !== 'register' && (
-            <>
+        </div>
+
+        {user ? (
+          <div className="site-auth">
+            <button type="button" onClick={goWorkspace} className="site-account">
+              <span className="site-account-avatar" aria-hidden="true">{displayName.trim().charAt(0)}</span>
+              <span className="site-account-text">
+                <span className="site-account-name">{displayName}</span>
+                <span className="site-account-role">{roleName}</span>
+              </span>
+            </button>
+            <button type="button" onClick={handleLogout} className="site-link" title={t.nav.logout}>
+              {t.nav.logout}
+            </button>
+          </div>
+        ) : (
+          !onAuthPage && (
+            <div className="site-auth">
               <button type="button" className="site-cta site-cta--ghost" onClick={() => go('login')}>
                 {t.nav.login}
               </button>
               <button type="button" className="site-cta site-cta--fill" onClick={() => go('register')}>
                 {t.nav.register}
               </button>
-              <button type="button" className="site-act site-act--primary site-act--narrow" onClick={() => go('login')} aria-label={t.nav.login} title={t.nav.login}>
-                <UserIcon />
-              </button>
-            </>
-          )}
-          {currentView !== 'login' && currentView !== 'register' && (
-            <button
-              type="button"
-              className="site-menu-btn"
-              aria-expanded={open}
-              aria-controls="site-menu"
-              aria-label={open ? t.landing.closeMenu : t.landing.menu}
-              ref={menuBtnRef}
-              onClick={() => setOpen((o) => !o)}
-            >
-              <MenuIcon open={open} />
-            </button>
-          )}
-        </div>
+            </div>
+          )
+        )}
       </div>
     </header>
   );

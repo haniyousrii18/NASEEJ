@@ -6,8 +6,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 // manifest paths, navigation fallback, API exclusion and the service worker scope follow it.
 const BASE = '/';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: BASE,
+  // A fresh id per dev-server start: a restart signs the user out (src/lib/devSession.ts). Empty in builds.
+  define: { __DEV_SERVER_BOOT__: JSON.stringify(command === 'serve' ? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}` : '') },
   // react lives in frontend/node_modules while hoisted libraries (framer-motion) sit at the repo root. Resolving
   // react once from this project keeps them on the same copy; without it vite 8 swaps in an empty optional-peer stub.
   resolve: { dedupe: ['react', 'react-dom'] },
@@ -85,4 +87,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
