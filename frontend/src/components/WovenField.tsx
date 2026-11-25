@@ -21,6 +21,12 @@ interface Props {
   interactive?: boolean;
   /** false draws one still frame (redrawn on resize and theme change) and never runs a frame loop. */
   animate?: boolean;
+  /**
+   * Fades the drawing out toward the edges (an ellipse centred a little above the middle) and sets its overall
+   * strength, inside the canvas. A CSS mask or opacity on a full-screen fixed layer makes the browser recomposite it
+   * under every frosted surface on each scroll and hover frame; baked into the pixels, it is a plain static layer.
+   */
+  vignette?: number;
 }
 
 type V3 = [number, number, number];
@@ -55,7 +61,7 @@ function rng(seed: number) {
   };
 }
 
-export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className, intensity = 1, interactive = false, animate = true }) => {
+export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className, intensity = 1, interactive = false, animate = true, vignette }) => {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -326,11 +332,26 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
       if (variant === 'sculpture') drawSculpture(t + 4);
       else if (variant === 'field') drawField(t + 10);
       else drawWaves(t + 2);
+      if (vignette !== undefined) {
+        // keep the drawing only inside a soft ellipse: radius 120% x 90% at (50%, 40%), solid to 30%, gone by 85%
+        const c = ctx!;
+        c.save();
+        c.globalCompositeOperation = 'destination-in';
+        c.translate(w * 0.5, h * 0.4);
+        c.scale(w * 1.2, h * 0.9);
+        const g = c.createRadialGradient(0, 0, 0, 0, 0, 1);
+        g.addColorStop(0.3, `rgba(0, 0, 0, ${vignette})`);
+        g.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
+        c.fillStyle = g;
+        c.fillRect(-1, -1, 2, 2);
+        c.restore();
+      }
     }
 
-    // The background field drifts so slowly that 20 frames a second look the same as 60, and every frame it skips is
-    // a frame the frosted surfaces above it do not have to re-blur.
-    const frameGap = variant === 'field' ? 1000 / 20 : variant === 'waves' ? 1000 / 30 : 0;
+    // The background field and the silk waves drift so slowly that 20 and 15 frames a second look the same as 60, and
+    // every frame skipped is canvas work the main thread does not do and a frame the frosted surfaces above it do not
+    // have to re-blur.
+    const frameGap = variant === 'field' ? 1000 / 20 : variant === 'waves' ? 1000 / 15 : 0;
     let last = 0;
     const loop = (now: number) => {
       if (now - last >= frameGap) {
@@ -391,7 +412,7 @@ export const WovenField: React.FC<Props> = ({ variant, tone = 'theme', className
       document.removeEventListener('visibilitychange', sync);
       reduce.removeEventListener('change', sync);
     };
-  }, [variant, tone, intensity, interactive, animate]);
+  }, [variant, tone, intensity, interactive, animate, vignette]);
 
   return <canvas ref={ref} className={`weave weave--${variant}${className ? ` ${className}` : ''}`} aria-hidden="true" />;
 };

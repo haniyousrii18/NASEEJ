@@ -32,32 +32,36 @@ const RowIcon: React.FC<{ k: number }> = ({ k }) => (
  * so only the active theme's files download. Every motion is a transform or opacity change: no canvas, no script loop.
  * Boxes are percent of the square canvas (public/hero/layers.json).
  */
+/* `a`: where the bubble sits on the ring, in degrees clockwise from its right end (the spark's start). The spark
+   reaches it at a / 360 of a lap, and the bubble lights up then. */
 const BUBBLES = [
-  { k: 'heart', left: 6.619, top: 43.86, size: 11.802 },
-  { k: 'joint', left: 81.579, top: 44.338, size: 11.802 },
-  { k: 'brain', left: 8.373, top: 66.268, size: 13.716 },
-  { k: 'kidney', left: 77.751, top: 66.268, size: 13.716 },
-  { k: 'lungs', left: 42.344, top: 74.482, size: 14.992 },
+  { k: 'heart', left: 6.619, top: 43.86, size: 11.802, a: 213 },
+  { k: 'joint', left: 81.579, top: 44.338, size: 11.802, a: 328 },
+  { k: 'brain', left: 8.373, top: 66.268, size: 13.716, a: 145.4 },
+  { k: 'kidney', left: 77.751, top: 66.268, size: 13.716, a: 34.7 },
+  { k: 'lungs', left: 42.344, top: 74.482, size: 14.992, a: 90.4 },
 ] as const;
 
 const RecordArt: React.FC = () => (
   <div className="hero-art">
-    <div className="hero-art-floor" />
     <div className="hero-art-layer hero-art-base" />
     <div className="hero-art-flow">
       <i />
       <i />
     </div>
     <div className="hero-art-orbit">
-      <div className="hero-art-orbit-turn">
-        <i />
-      </div>
+      {/* the spark and two fading trail beads */}
+      {[0, 1, 2].map((n) => (
+        <div key={n} className="hero-art-orbit-turn" style={{ '--n': n } as React.CSSProperties}>
+          <i />
+        </div>
+      ))}
     </div>
     {BUBBLES.map((b, i) => (
       <div
         key={b.k}
         className={`hero-art-layer hero-art-bubble hero-art-${b.k}`}
-        style={{ left: `${b.left}%`, top: `${b.top}%`, width: `${b.size}%`, height: `${b.size}%`, '--i': i } as React.CSSProperties}
+        style={{ left: `${b.left}%`, top: `${b.top}%`, width: `${b.size}%`, height: `${b.size}%`, '--i': i, '--a': b.a } as React.CSSProperties}
       />
     ))}
     <div className="hero-art-layer hero-art-qr" />
@@ -78,31 +82,71 @@ export const HeroVisual: React.FC = () => {
   const { t } = useLang();
   const L = t.landing;
   const card = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
 
+  // Every loop in the scene pauses while the hero is off screen, so scrolling the rest of the page costs nothing.
+  // All of them pause and resume together, so the spark and the bubbles it lights stay on the same clock.
+  useEffect(() => {
+    const el = stage.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) el.removeAttribute('data-idle');
+      else el.setAttribute('data-idle', '');
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // The card leans toward the pointer, but only while the pointer is over the scene: anywhere else on the page a
+  // pointer move does no work at all. The lean is written straight to the card's transform (one element, no custom
+  // properties), at most once a frame, and eases back when the pointer leaves.
   useEffect(() => {
     const el = card.current;
-    if (!el || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    const area = stage.current;
+    if (!el || !area || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     let raf = 0;
+    let inside = false;
+    let box: DOMRect | null = null;
+    // scrolling or resizing only marks the box stale; it is measured again on the next pointer move
+    const remeasure = () => {
+      box = null;
+    };
     const onMove = (e: PointerEvent) => {
+      if (!box) box = area.getBoundingClientRect();
+      const over = e.clientX >= box.left && e.clientX <= box.right && e.clientY >= box.top && e.clientY <= box.bottom;
+      if (!over) {
+        if (inside) {
+          inside = false;
+          cancelAnimationFrame(raf);
+          el.style.transform = '';
+        }
+        return;
+      }
+      inside = true;
       cancelAnimationFrame(raf);
+      const b = box;
       raf = requestAnimationFrame(() => {
-        const x = e.clientX / window.innerWidth - 0.5;
-        const y = e.clientY / window.innerHeight - 0.5;
-        el.style.setProperty('--tilt-x', `${(-y * 8).toFixed(2)}deg`);
-        el.style.setProperty('--tilt-y', `${(x * 10).toFixed(2)}deg`);
+        const x = (e.clientX - b.left) / b.width - 0.5;
+        const y = (e.clientY - b.top) / b.height - 0.5;
+        const rtl = document.documentElement.dir === 'rtl';
+        el.style.transform = `rotateX(${(16 - y * 8).toFixed(2)}deg) rotateY(${((rtl ? 13 : -13) + x * 10).toFixed(2)}deg) rotateZ(${rtl ? 1.5 : -1.5}deg)`;
       });
     };
     window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('scroll', remeasure, { passive: true });
+    window.addEventListener('resize', remeasure);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('scroll', remeasure);
+      window.removeEventListener('resize', remeasure);
     };
   }, []);
 
   return (
     <div className="hero-visual">
-      <div className="hero-stage" aria-hidden="true">
+      <div className="hero-stage" aria-hidden="true" ref={stage}>
         <RecordArt />
         <div className="hero-card" ref={card}>
           <div className="hero-card-glass">
@@ -124,7 +168,6 @@ export const HeroVisual: React.FC = () => {
           </div>
         </div>
       </div>
-      <p className="hero-visual-note">{L.heroSyntheticNote}</p>
     </div>
   );
 };

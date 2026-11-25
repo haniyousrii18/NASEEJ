@@ -1,7 +1,9 @@
 import React from 'react';
 import { useLang } from '../context/LangContext.js';
 import { HeroVisual } from '../components/HeroVisual.js';
-import { ArrowIcon, CheckIcon, LeafIcon } from '../components/LineIcon.js';
+import { LetterReveal } from '../components/LetterReveal.js';
+import { ArrowIcon, CheckIcon, LeafIcon, ShieldIcon } from '../components/LineIcon.js';
+import { m } from 'motion/react';
 import { DrawLine, Pop, Reveal } from '../components/motion.js';
 
 interface Props {
@@ -25,6 +27,60 @@ const humanGlyph = (k: number) => (
     {k === 2 && <path d="M3 12h4l2-6 4 12 2-6h6" />}
     {k === 3 && <path d="M4 5h16v11H9l-5 4z" />}
   </svg>
+);
+
+/* one glyph per sharing control: reviewed summary, link that expires, revoke with an access log, read-only view */
+const trustGlyph = (k: number) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    {k === 0 && (
+      <>
+        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+        <path d="M14 3v5h5M9 14.5l2 2 4-4" />
+      </>
+    )}
+    {k === 1 && (
+      <>
+        <circle cx="12" cy="13" r="8" />
+        <path d="M12 9v4l2.5 2.5M9.5 2.5h5" />
+      </>
+    )}
+    {k === 2 && (
+      <>
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+        <path d="M3 3v5h5M12 8v4l3 2" />
+      </>
+    )}
+    {k === 3 && (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    )}
+  </svg>
+);
+
+/* The four controls cascade in like app tiles: each one springs up from below the grid's edge, a beat after the one
+   before, and its icon pops in as it lands. Plays once, when the grid scrolls into view. */
+const tileVariants = {
+  hidden: { opacity: 0, y: 110, scale: 0.9 },
+  show: (i: number) => ({ opacity: 1, y: 0, scale: 1, transition: { delay: i * 0.11, type: 'spring', stiffness: 260, damping: 19, mass: 0.9 } }),
+};
+const iconVariants = {
+  hidden: { opacity: 0, scale: 0.3, rotate: -14 },
+  show: (i: number) => ({ opacity: 1, scale: 1, rotate: 0, transition: { delay: 0.28 + i * 0.11, type: 'spring', stiffness: 420, damping: 14 } }),
+};
+
+const TrustTiles: React.FC<{ points: string[] }> = ({ points }) => (
+  <m.ul className="trust-grid" initial="hidden" whileInView="show" viewport={{ once: true, margin: '0px 0px -80px 0px' }}>
+    {points.map((p, i) => (
+      <m.li key={p} className="trust-tile" variants={tileVariants} custom={i}>
+        <m.span className="trust-icon" variants={iconVariants} custom={i}>
+          {trustGlyph(i)}
+        </m.span>
+        <p className="trust-text">{p}</p>
+      </m.li>
+    ))}
+  </m.ul>
 );
 
 /**
@@ -70,7 +126,7 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
             </span>
             <h1 id="hero-title" className="hero-title">
               <span className="hero-title-lead">{L.heroTitleLead}</span>{' '}
-              <span className="hero-title-accent">{L.heroTitleAccent}</span>
+              <LetterReveal text={L.heroTitleAccent} className="hero-title-accent" delay={0.35} />
             </h1>
             <p className="hero-lead">{t.hero.description}</p>
             <div className="hero-actions">
@@ -148,55 +204,24 @@ export const PublicHome: React.FC<Props> = ({ setCurrentView }) => {
         </section>
 
         {/* ---------------------------------------------------------- privacy and trust */}
-        <section className="l-section" aria-labelledby="trust-title">
-          <div className="l-container">
-            <Reveal className="l-trust">
-              <div className="l-trust-copy">
-                <h2 id="trust-title" className="l-h2 l-h2--inverse">
-                  {L.trustTitle}
-                </h2>
-                <p className="l-lead l-lead--inverse">{L.trustBody}</p>
-                <button type="button" className="btn-pill btn-pill-cloud l-trust-link" onClick={() => setCurrentView('workflow')}>
-                  {t.nav.workflow}
-                  <ArrowIcon />
-                </button>
-              </div>
-              <ul className="l-trust-list">
-                {trustPoints.map((p, i) => (
-                  <Reveal as="li" key={p} i={i}>
-                    <Pop className="l-check" i={i}>
-                      <CheckIcon />
-                    </Pop>
-                    <span>{p}</span>
-                  </Reveal>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- final call to action */}
-        <section className="l-section l-section--last" aria-labelledby="cta-title">
-          <div className="l-container">
-            <Reveal className="l-cta">
-              <h2 id="cta-title" className="l-h2">
-                {L.ctaTitle}
+        {/* Open on the page: the case on one side, the four controls as a hairline grid of tiles on the other. */}
+        <section className="l-section l-section--last" aria-labelledby="trust-title">
+          <div className="l-container trust">
+            <Reveal className="trust-copy">
+              <span className="sec-tag">
+                <ShieldIcon />
+                {L.trustEyebrow}
+              </span>
+              <h2 id="trust-title" className="l-h2">
+                {L.trustTitle}
               </h2>
-              <p className="l-lead">{L.ctaBody}</p>
-              <button type="button" className="btn-pill btn-pill-charcoal hero-cta" onClick={() => setCurrentView('login')}>
-                {t.hero.ctaLogin}
+              <p className="l-lead">{L.trustBody}</p>
+              <button type="button" className="btn-pill btn-pill-ghost trust-link" onClick={() => setCurrentView('workflow')}>
+                {t.nav.workflow}
                 <ArrowIcon />
               </button>
-              {/* what starting commits you to, said where the decision is made */}
-              <ul className="l-cta-points">
-                {[t.hero.statsCenters, t.hero.statsIsolation, t.hero.statsSafety, t.hero.statsBilingual].map((p) => (
-                  <li key={p}>
-                    <CheckIcon />
-                    {p}
-                  </li>
-                ))}
-              </ul>
             </Reveal>
+            <TrustTiles points={trustPoints} />
           </div>
         </section>
       </div>

@@ -22,6 +22,7 @@ import './styles/polish.css';
 import './styles/redesign.css';
 import './styles/marja.css';
 import './styles/hero-art.css';
+import './styles/sections.css';
 import './styles/responsive.css';
 import { AppShell } from './app/AppShell.js';
 import { AUTHENTICATED_VIEWS } from './app/nav.js';
@@ -116,7 +117,7 @@ const MainContent: React.FC = () => {
         </PageTransition>
       </main>
 
-      {currentView !== 'login' && currentView !== 'register' && <Footer />}
+      {currentView !== 'login' && currentView !== 'register' && <Footer setCurrentView={setCurrentView} />}
       <PwaPrompts currentView={currentView} />
     </div>
   );

@@ -23,8 +23,14 @@
   letter-spacing: 0;
 }
 
+/* type in English: Sora, a geometric display face, for headings over Plus Jakarta Sans body text */
+:lang(en) :is(h1, h2, h3, .hero-title, .l-h2, .na-title, .hp-h2, .na-top-page) {
+  font-family: 'Sora', var(--font-latin);
+  letter-spacing: -0.02em;
+}
+
 /* ================================================================== focus: the logo's sky as a soft halo */
-:where(.na-app, .site-bar, .landing, .site-footer) :focus-visible {
+:where(.na-app, .site-bar, .landing, .sf) :focus-visible {
   box-shadow: var(--focus-glow);
 }
 
@@ -855,7 +861,6 @@
 
 .na-app .na-btn--primary,
 .hero .btn-pill-charcoal,
-.l-cta .btn-pill-charcoal,
 .site-act--primary,
 .site-cta--fill,
 .hp-tl-kind[aria-pressed='true'],
@@ -868,7 +873,6 @@
 
 .na-app .na-btn--primary:hover:not(:disabled),
 .hero .btn-pill-charcoal:hover:not(:disabled),
-.l-cta .btn-pill-charcoal:hover:not(:disabled),
 .site-act--primary:hover,
 .site-cta--fill:hover {
   background: var(--btn-primary-bg-hover);
